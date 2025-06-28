@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User, AuthStatus, UserType } from '@/types'
+import { db, supabase } from '@/lib/supabase'
 
 interface AuthState {
   user: User | null
@@ -40,49 +41,86 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true, status: 'loading' })
         
         try {
-          // Simulate API call delay
-          await new Promise(resolve => setTimeout(resolve, 1000))
+          // Try to find existing user by phone
+          let user: User | null = null
           
-          // Mock user creation with proper type mapping
-          const user: User = {
-            id: `user_${Date.now()}`,
-            phone: phone,
-            name: name,
-            user_type: userType,
-            email: userType === 'customer' ? `${phone.replace(/\D/g, '')}@example.com` : `tech_${phone.replace(/\D/g, '')}@multiservicios.com`,
-            profile_picture: undefined,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+          try {
+            user = await db.getUserByPhone(phone)
+            console.log('Found existing user:', user)
+          } catch (error) {
+            // User doesn't exist, we'll create a new one
+            console.log('User not found, creating new user')
           }
 
-          // Add electrician profile for technicians
-          if (userType === 'technician') {
-            user.electrician_profile = {
-              id: `tech_${Date.now()}`,
-              user_id: user.id,
-              name: name,
-              phone: phone,
-              specializations: ['reparacion', 'instalacion'],
-              rating: 4.8,
-              completed_jobs: 23,
-              hourly_rate: 800,
-              is_available: true,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
+          if (!user) {
+            // Create new user in database
+            const email = userType === 'customer' 
+              ? `${phone.replace(/\D/g, '')}@example.com` 
+              : `tech_${phone.replace(/\D/g, '')}@multiservicios.com`
+
+            // First create the user record
+            const { data: newUser, error: userError } = await supabase
+              .from('users')
+              .insert({
+                phone: phone,
+                name: name,
+                user_type: userType,
+                email: email,
+                address: null
+              })
+              .select()
+              .single()
+            
+            if (userError) throw userError
+
+            // Create corresponding profile
+            if (userType === 'customer') {
+              await supabase
+                .from('customer_profiles')
+                .insert({
+                  user_id: newUser.id,
+                  full_name: name,
+                  phone: phone,
+                  email: email,
+                  address: null
+                })
+              
+              await supabase
+                .from('customers')
+                .insert({
+                  id: newUser.id,
+                  name: name,
+                  phone: phone,
+                  address: 'Dirección por definir',
+                  is_returning: false,
+                  previous_jobs: 0,
+                  payment_history: 'good'
+                })
+            } else {
+              await supabase
+                .from('electrician_profiles')
+                .insert({
+                  user_id: newUser.id,
+                  name: name,
+                  phone: phone,
+                  email: email,
+                  business_name: `Servicios ${name}`,
+                  license_number: null,
+                  specialties: ['Reparaciones', 'Instalaciones'],
+                  service_area: 'Santo Domingo',
+                  hourly_rate: 1200.00,
+                  availability_status: 'available',
+                  rating: 5.0,
+                  total_jobs: 0
+                })
             }
-          } else {
-            // Add customer profile for customers
-            user.customer_profile = {
-              id: `cust_${Date.now()}`,
-              user_id: user.id,
-              preferred_contact_method: 'whatsapp' as const,
-              property_type: 'casa' as const,
-              service_preferences: ['reparacion', 'instalacion'],
-              payment_method_preferences: ['efectivo', 'transferencia'],
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            }
+
+            // Fetch the complete user with profiles
+            user = await db.getUser(newUser.id)
+          }
+
+          if (!user) {
+            throw new Error('No se pudo crear o encontrar el usuario')
           }
 
           set({
@@ -93,6 +131,7 @@ export const useAuthStore = create<AuthStore>()(
             lastLoginTime: Date.now(),
           })
         } catch (error) {
+          console.error('Login error:', error)
           const errorMessage = error instanceof Error ? error.message : 'Error de autenticación'
           set({
             user: null,

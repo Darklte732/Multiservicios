@@ -1,25 +1,72 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Clock, Calendar, Star, Wrench, User, Shield, Phone, MapPin, CheckCircle, AlertCircle, Zap } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
+import { db } from '@/lib/supabase'
+import { LoadingSpinner } from './LoadingSpinner'
+import { ServiceCard } from './dashboard/ServiceCard'
+import { WarrantyCard } from './dashboard/WarrantyCard'
+import { DashboardStats } from './dashboard/DashboardStats'
 
 export function CustomerDashboard() {
   const { user } = useAuthStore()
   const [activeTab, setActiveTab] = useState('current')
   const [isLoading, setIsLoading] = useState(true)
+  const [serviceRequests, setServiceRequests] = useState<any[]>([])
+  const [warranties, setWarranties] = useState<any[]>([])
+  const [notifications, setNotifications] = useState<any[]>([])
+
+  const loadCustomerData = useCallback(async () => {
+    if (!user?.id) return
+    
+    try {
+      setIsLoading(true)
+      
+      // Load service requests
+      const requests = await db.getServiceRequests({ customerId: user.id })
+      setServiceRequests(requests || [])
+      
+      // Load warranties
+      const warrantyData = await db.getServiceWarranties()
+      const customerWarranties = warrantyData?.filter(w => 
+        requests?.some(r => r.id === w.service_request_id)
+      ) || []
+      setWarranties(customerWarranties)
+      
+      // Load notifications
+      const notificationData = await db.getNotifications(user.id)
+      setNotifications(notificationData || [])
+      
+      // No need to calculate stats here - DashboardStats component will handle it
+      
+    } catch (error) {
+      console.error('Error loading customer data:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [user?.id])
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000)
-    return () => clearTimeout(timer)
-  }, [])
+    if (user?.id) {
+      loadCustomerData()
+    }
+  }, [user?.id, loadCustomerData])
 
-  if (!user?.customer_profile) {
+  const currentServices = serviceRequests.filter(r => 
+    ['pending', 'confirmed', 'in_progress'].includes(r.status)
+  )
+  
+  const completedServices = serviceRequests.filter(r => 
+    r.status === 'completed'
+  )
+
+  if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Acceso Denegado</h2>
-          <p className="text-gray-600">Solo los clientes pueden acceder a este panel.</p>
+          <p className="text-gray-600">Por favor inicia sesión para acceder al panel.</p>
         </div>
       </div>
     )
@@ -28,10 +75,7 @@ export function CustomerDashboard() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando tu panel de cliente...</p>
-        </div>
+        <LoadingSpinner size="lg" />
       </div>
     )
   }
@@ -52,6 +96,13 @@ export function CustomerDashboard() {
               <div className="bg-blue-50 px-3 py-1 rounded-full">
                 <span className="text-blue-700 text-sm font-medium">Cliente Activo</span>
               </div>
+              {notifications.filter(n => !n.read).length > 0 && (
+                <div className="bg-red-50 px-3 py-1 rounded-full">
+                  <span className="text-red-700 text-sm font-medium">
+                    {notifications.filter(n => !n.read).length} notificaciones
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -59,66 +110,21 @@ export function CustomerDashboard() {
 
       {/* Quick Stats */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-blue-100">
-                <Wrench className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Servicios</p>
-                <p className="text-2xl font-bold text-gray-900">3</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-green-100">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Completados</p>
-                <p className="text-2xl font-bold text-gray-900">2</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-purple-100">
-                <Shield className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Garantias Activas</p>
-                <p className="text-2xl font-bold text-gray-900">1</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-yellow-100">
-                <Star className="h-6 w-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Calificacion Promedio</p>
-                <p className="text-2xl font-bold text-gray-900">4.5</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DashboardStats
+          services={serviceRequests}
+          warranties={warranties}
+        />
 
         {/* Main Dashboard Content */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-white rounded-lg shadow mt-8">
           {/* Tab Navigation */}
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
               {[
-                { id: 'current', name: 'Servicios Actuales', count: 1 },
-                { id: 'history', name: 'Historial', count: 2 },
-                { id: 'warranties', name: 'Garantias', count: 1 },
-                { id: 'account', name: 'Mi Cuenta', count: null }
+                { id: 'current', name: 'Servicios Actuales', count: currentServices.length },
+                { id: 'history', name: 'Historial', count: completedServices.length },
+                { id: 'warranties', name: 'Garantías', count: warranties.length },
+                { id: 'notifications', name: 'Notificaciones', count: notifications.filter(n => !n.read).length }
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -132,13 +138,11 @@ export function CustomerDashboard() {
                   `}
                 >
                   {tab.name}
-                  {tab.count !== null && (
-                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                      activeTab === tab.id ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {tab.count}
-                    </span>
-                  )}
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    activeTab === tab.id ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {tab.count}
+                  </span>
                 </button>
               ))}
             </nav>
@@ -155,40 +159,19 @@ export function CustomerDashboard() {
                   </button>
                 </div>
 
-                <div className="space-y-4">
-                  <div className="border border-gray-200 rounded-lg p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Wrench className="h-4 w-4" />
-                          <h4 className="text-lg font-medium text-gray-900">Instalacion de toma corriente en cocina</h4>
-                          <div className="flex items-center space-x-1">
-                            <Clock className="h-4 w-4 text-blue-600" />
-                            <span className="text-sm font-medium text-gray-600">En Progreso</span>
-                          </div>
-                        </div>
-                        <div className="space-y-2 text-sm text-gray-600">
-                          <div className="flex items-center space-x-2">
-                            <Calendar className="h-4 w-4" />
-                            <span>Programado: Manana</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <MapPin className="h-4 w-4" />
-                            <span>Santo Domingo, DN</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Clock className="h-4 w-4" />
-                            <span>Duracion estimada: 120 minutos</span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-gray-900">RD$1,200</p>
-                        <p className="text-sm text-gray-600">ID: SRV-2025-001</p>
-                      </div>
-                    </div>
+                {currentServices.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Wrench className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No hay servicios activos</h3>
+                    <p className="text-gray-600">Solicita un nuevo servicio para comenzar.</p>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-4">
+                    {currentServices.map((service) => (
+                      <ServiceCard key={service.id} service={service} />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -196,160 +179,88 @@ export function CustomerDashboard() {
               <div className="space-y-6">
                 <h3 className="text-lg font-medium text-gray-900">Historial de Servicios</h3>
                 
-                <div className="space-y-4">
-                  <div className="border border-gray-200 rounded-lg p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Wrench className="h-4 w-4" />
-                          <h4 className="text-lg font-medium text-gray-900">Reparacion de interruptor danado en sala</h4>
-                          <div className="flex items-center space-x-1">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span className="text-sm font-medium text-gray-600">Completado</span>
-                          </div>
-                        </div>
-                        <div className="space-y-2 text-sm text-gray-600 mb-4">
-                          <div className="flex items-center space-x-2">
-                            <Calendar className="h-4 w-4" />
-                            <span>Completado: Hace 1 semana</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <MapPin className="h-4 w-4" />
-                            <span>Santo Domingo, DN</span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Star className="h-4 w-4 text-yellow-500" />
-                          <span className="text-sm font-medium">Calificacion: 5/5</span>
-                        </div>
-                        
-                        <div className="bg-gray-50 rounded-lg p-3">
-                          <p className="text-sm text-gray-700">&quot;Excelente servicio, muy profesional y rapido.&quot;</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-bold text-gray-900">RD$800</p>
-                        <p className="text-sm text-gray-600">ID: SRV-2024-098</p>
-                      </div>
-                    </div>
+                {completedServices.length === 0 ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No hay servicios completados</h3>
+                    <p className="text-gray-600">Tus servicios completados aparecerán aquí.</p>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-4">
+                    {completedServices.map((service) => (
+                      <ServiceCard key={service.id} service={service} />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === 'warranties' && (
               <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900">Garantias Activas</h3>
+                <h3 className="text-lg font-medium text-gray-900">Garantías Activas</h3>
                 
-                <div className="space-y-4">
-                  <div className="border border-green-200 rounded-lg p-6 bg-green-50">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Shield className="h-5 w-5 text-green-600" />
-                          <h4 className="text-lg font-medium text-gray-900">Garantia de 6 meses para reparacion de interruptor</h4>
-                        </div>
-                        <div className="space-y-2 text-sm text-gray-600 mb-3">
-                          <p><strong>Servicio ID:</strong> SRV-2024-098</p>
-                          <p><strong>Valida hasta:</strong> Junio 2025</p>
-                          <p><strong>Terminos:</strong> Cobertura completa para fallas relacionadas con la reparacion realizada</p>
-                        </div>
-                        <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          ✓ Garantia Activa
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600">
-                          174 dias restantes
-                        </p>
-                      </div>
-                    </div>
+                {warranties.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No hay garantías activas</h3>
+                    <p className="text-gray-600">Las garantías de tus servicios aparecerán aquí.</p>
                   </div>
-                </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {warranties.map((warranty) => (
+                      <WarrantyCard key={warranty.id} warranty={warranty} />
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
-            {activeTab === 'account' && (
+            {activeTab === 'notifications' && (
               <div className="space-y-6">
-                <h3 className="text-lg font-medium text-gray-900">Informacion de la Cuenta</h3>
+                <h3 className="text-lg font-medium text-gray-900">Notificaciones</h3>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
-                      <input
-                        type="text"
-                        value={user.name}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        readOnly
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Telefono</label>
-                      <input
-                        type="tel"
-                        value={user.phone}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        readOnly
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                      <input
-                        type="email"
-                        value={user.email || ''}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        readOnly
-                      />
-                    </div>
+                {notifications.length === 0 ? (
+                  <div className="text-center py-8">
+                    <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No hay notificaciones</h3>
+                    <p className="text-gray-600">Tus notificaciones aparecerán aquí.</p>
                   </div>
-                  
+                ) : (
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Direccion</label>
-                      <input
-                        type="text"
-                        value="Santo Domingo, Republica Dominicana"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        readOnly
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Miembro desde</label>
-                      <input
-                        type="text"
-                        value={new Date(user.created_at).toLocaleDateString('es-DO')}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                        readOnly
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                      <div className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        ✓ Cuenta Activa
+                    {notifications.map((notification) => (
+                      <div key={notification.id} className={`border rounded-lg p-4 ${
+                        notification.read ? 'bg-gray-50' : 'bg-blue-50 border-blue-200'
+                      }`}>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900">{notification.title}</h4>
+                            <p className="text-gray-600 mt-1">{notification.message}</p>
+                            <p className="text-sm text-gray-500 mt-2">
+                              {new Date(notification.created_at).toLocaleDateString('es-ES', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                          {!notification.read && (
+                            <button
+                              onClick={async () => {
+                                await db.markNotificationAsRead(notification.id)
+                                loadCustomerData()
+                              }}
+                              className="text-blue-600 text-sm hover:text-blue-800"
+                            >
+                              Marcar como leída
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
-                </div>
-                
-                <div className="border-t pt-6">
-                  <h4 className="text-md font-medium text-gray-900 mb-4">Preferencias</h4>
-                  <div className="space-y-3">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" defaultChecked />
-                      <span className="ml-2 text-sm text-gray-700">Recibir notificaciones por WhatsApp</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" defaultChecked />
-                      <span className="ml-2 text-sm text-gray-700">Recibir recordatorios de mantenimiento</span>
-                    </label>
-                    <label className="flex items-center">
-                      <input type="checkbox" className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                      <span className="ml-2 text-sm text-gray-700">Recibir ofertas promocionales</span>
-                    </label>
-                  </div>
-                </div>
+                )}
               </div>
             )}
           </div>

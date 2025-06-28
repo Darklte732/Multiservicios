@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { NotificationProvider } from '@/contexts/NotificationContext'
+import { ToastContainer } from '@/components/notifications/ToastNotification'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -90,9 +92,12 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
       </head>
       <body className={`antialiased font-geist-sans min-h-screen`}>
-        <ErrorBoundary>
-          {children}
-        </ErrorBoundary>
+        <NotificationProvider>
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
+          <ToastContainer />
+        </NotificationProvider>
       </body>
     </html>
   )

@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Zap, Wrench, Thermometer, Droplets, Hammer, Shield, LogIn, UserPlus } from 'lucide-react'
 import { AuthModal } from '@/components/AuthModal'
 import { useAuthStore } from '@/store/auth'
+import { NotificationBell } from '@/components/notifications/NotificationBell'
+import { NotificationDemo } from '@/components/notifications/NotificationDemo'
 
 export default function HomePage() {
   const [selectedService, setSelectedService] = useState<string | null>(null)
@@ -134,6 +136,9 @@ export default function HomePage() {
             
             {/* Authentication Buttons */}
             <div className="flex items-center space-x-4">
+              {/* Notification Bell */}
+              {user && <NotificationBell />}
+              
               {user ? (
                 <div className="flex items-center space-x-4">
                   <Link
@@ -352,6 +357,13 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+        {/* Notification Demo - Show only for logged in users */}
+        {user && (
+          <div className="mt-8">
+            <NotificationDemo />
+          </div>
+        )}
       </div>
 
       {/* Authentication Modal */}

@@ -24,6 +24,26 @@ export interface Database {
         Insert: Omit<CustomersTable, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<CustomersTable, 'id' | 'created_at'>>
       }
+      customer_profiles: {
+        Row: any
+        Insert: any
+        Update: any
+      }
+      electrician_profiles: {
+        Row: any
+        Insert: any
+        Update: any
+      }
+      service_requests: {
+        Row: any
+        Insert: any
+        Update: any
+      }
+      service_warranties: {
+        Row: any
+        Insert: any
+        Update: any
+      }
       appointments: {
         Row: AppointmentsTable
         Insert: Omit<AppointmentsTable, 'id' | 'created_at' | 'updated_at'>
@@ -60,4 +80,213 @@ export interface Database {
   }
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey) 
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10
+    }
+  }
+})
+
+// Database utility functions
+export const db = {
+  // Users and Authentication
+  async getUser(id: string) {
+    const { data, error } = await supabase
+      .from('users')
+      .select(`
+        *,
+        customer_profile:customer_profiles(*),
+        electrician_profile:electrician_profiles(*)
+      `)
+      .eq('id', id)
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  async getUserByPhone(phone: string) {
+    const { data, error } = await supabase
+      .from('users')
+      .select(`
+        *,
+        customer_profile:customer_profiles(*),
+        electrician_profile:electrician_profiles(*)
+      `)
+      .eq('phone', phone)
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Service Requests
+  async getServiceRequests(filters: {
+    customerId?: string
+    electricianId?: string
+    status?: string
+    limit?: number
+  } = {}) {
+    let query = supabase
+      .from('service_requests')
+      .select(`
+        *,
+        customer:customers(*),
+        assigned_electrician:users!assigned_electrician_id(*)
+      `)
+      .order('created_at', { ascending: false })
+
+    if (filters.customerId) {
+      query = query.eq('customer_id', filters.customerId)
+    }
+    
+    if (filters.electricianId) {
+      query = query.eq('assigned_electrician_id', filters.electricianId)
+    }
+    
+    if (filters.status) {
+      query = query.eq('status', filters.status)
+    }
+    
+    if (filters.limit) {
+      query = query.limit(filters.limit)
+    }
+
+    const { data, error } = await query
+    if (error) throw error
+    return data
+  },
+
+  async createServiceRequest(request: any) {
+    const { data, error } = await supabase
+      .from('service_requests')
+      .insert(request)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  async updateServiceRequest(id: string, updates: any) {
+    const { data, error } = await supabase
+      .from('service_requests')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Service Warranties
+  async getServiceWarranties(serviceRequestId?: string) {
+    let query = supabase
+      .from('service_warranties')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (serviceRequestId) {
+      query = query.eq('service_request_id', serviceRequestId)
+    }
+
+    const { data, error } = await query
+    if (error) throw error
+    return data
+  },
+
+  async createServiceWarranty(warranty: any) {
+    const { data, error } = await supabase
+      .from('service_warranties')
+      .insert(warranty)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Electricians
+  async getAvailableElectricians(serviceArea?: string) {
+    let query = supabase
+      .from('electrician_profiles')
+      .select(`
+        *,
+        user:users(*)
+      `)
+      .eq('availability_status', 'available')
+      .order('rating', { ascending: false })
+
+    if (serviceArea) {
+      query = query.ilike('service_area', `%${serviceArea}%`)
+    }
+
+    const { data, error } = await query
+    if (error) throw error
+    return data
+  },
+
+  // Notifications
+  async getNotifications(userId: string, unreadOnly = false) {
+    let query = supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (unreadOnly) {
+      query = query.eq('read', false)
+    }
+
+    const { data, error } = await query
+    if (error) throw error
+    return data
+  },
+
+  async markNotificationAsRead(id: string) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ read: true, read_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  // Real-time subscriptions
+  subscribeToServiceRequests(callback: (payload: any) => void) {
+    return supabase
+      .channel('service_requests')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'service_requests' },
+        callback
+      )
+      .subscribe()
+  },
+
+  subscribeToNotifications(userId: string, callback: (payload: any) => void) {
+    return supabase
+      .channel('notifications')
+      .on('postgres_changes',
+        { 
+          event: 'INSERT', 
+          schema: 'public', 
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`
+        },
+        callback
+      )
+      .subscribe()
+  }
+}
+
+export default supabase 
