@@ -1,0 +1,9 @@
+# Apple Touch Icon Placeholder
+# This file should be replaced with an actual 180x180 PNG icon
+# Design specifications:
+# - 180x180 pixels (iOS requirement)
+# - PNG format, no transparency (iOS will add rounded corners)
+# - ⚡ lightning bolt icon with solid background
+# - Background color: white (#ffffff) or light blue (#f0f9ff)
+# - Icon color: blue (#3b82f6)
+# - Optimized for iOS home screen display 

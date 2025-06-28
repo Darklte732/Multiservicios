@@ -1,0 +1,21 @@
+# MultiServicios El Seibo - Robots.txt
+
+User-agent: *
+Allow: /
+
+# Sitemaps
+Sitemap: https://multiservicios-elseibo.com/sitemap.xml
+
+# Allow all search engines to index our electrical services
+Allow: /booking
+Allow: /dashboard
+
+# Block admin areas if they exist
+Disallow: /admin/
+Disallow: /api/
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
+
+# Host specification
+Host: multiservicios-elseibo.com 
