@@ -33,7 +33,9 @@ export function NotificationDemo() {
       error: {
         title: 'Error de Conexión',
         message: 'No se pudo conectar con el servidor. Verificando conexión...',
-        type: 'error' as const
+        type: 'error' as const,
+        action_url: undefined,
+        action_label: undefined
       },
       service_update: {
         title: 'Actualización de Servicio',
@@ -60,8 +62,8 @@ export function NotificationDemo() {
       message: notification.message,
       type: notification.type,
       is_read: false,
-      action_url: notification.action_url,
-      action_label: notification.action_label
+      action_url: notification.action_url || undefined,
+      action_label: notification.action_label || undefined
     })
   }
 

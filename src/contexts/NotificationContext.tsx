@@ -1,9 +1,28 @@
 'use client'
 
-import React, { createContext, useContext, useReducer, useEffect, useRef } from 'react'
+import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react'
 import { db } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import type { DashboardNotification, NotificationType } from '@/types'
+
+// Export types for component usage
+export type { NotificationType, DashboardNotification } from '@/types'
+
+export interface ToastNotification {
+  id: string
+  title: string
+  message: string
+  type: NotificationType
+  duration: number
+  timestamp: number
+  actions?: ToastAction[]
+}
+
+export interface ToastAction {
+  label: string
+  action: () => void
+  style?: 'primary' | 'secondary' | 'danger'
+}
 
 interface NotificationState {
   notifications: DashboardNotification[]
@@ -14,21 +33,7 @@ interface NotificationState {
   pushEnabled: boolean
 }
 
-interface ToastNotification {
-  id: string
-  title: string
-  message: string
-  type: NotificationType
-  duration: number
-  timestamp: number
-  actions?: ToastAction[]
-}
 
-interface ToastAction {
-  label: string
-  action: () => void
-  style?: 'primary' | 'secondary' | 'danger'
-}
 
 type NotificationAction =
   | { type: 'SET_NOTIFICATIONS'; payload: DashboardNotification[] }
@@ -158,7 +163,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }, [])
 
   // Play notification sound
-  const playNotificationSound = async (type: NotificationType) => {
+  const playNotificationSound = useCallback(async (type: NotificationType) => {
     if (!state.soundEnabled || !audioContextRef.current) return
 
     try {
@@ -191,10 +196,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     } catch (error) {
       console.warn('Could not play notification sound:', error)
     }
-  }
+  }, [state.soundEnabled])
 
   // Request push notification permission
-  const requestPushPermission = async () => {
+  const requestPushPermission = useCallback(async () => {
     if ('Notification' in window && 'serviceWorker' in navigator) {
       const permission = await Notification.requestPermission()
       const enabled = permission === 'granted'
@@ -202,10 +207,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       return enabled
     }
     return false
-  }
+  }, [])
 
   // Show browser push notification
-  const showPushNotification = (notification: DashboardNotification) => {
+  const showPushNotification = useCallback((notification: DashboardNotification) => {
     if (!state.pushEnabled || !('Notification' in window) || Notification.permission !== 'granted') {
       return
     }
@@ -234,10 +239,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (!notif.requireInteraction) {
       setTimeout(() => notif.close(), 10000)
     }
-  }
+  }, [state.pushEnabled])
 
   // Load notifications from database
-  const refreshNotifications = async () => {
+  const refreshNotifications = useCallback(async () => {
     if (!user?.id) return
 
     try {
@@ -246,7 +251,27 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     } catch (error) {
       console.error('Error loading notifications:', error)
     }
-  }
+  }, [user?.id])
+
+  const removeToast = useCallback((id: string) => {
+    dispatch({ type: 'REMOVE_TOAST', payload: id })
+  }, [])
+
+  const showToast = useCallback((toast: Omit<ToastNotification, 'id' | 'timestamp'>) => {
+    const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    const toastWithId: ToastNotification = {
+      ...toast,
+      id,
+      timestamp: Date.now()
+    }
+
+    dispatch({ type: 'ADD_TOAST', payload: toastWithId })
+
+    // Auto-remove toast after duration
+    setTimeout(() => {
+      removeToast(id)
+    }, toast.duration || 5000)
+  }, [removeToast])
 
   // Setup real-time subscription
   useEffect(() => {
@@ -302,10 +327,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         subscriptionRef.current.unsubscribe()
       }
     }
-  }, [user?.id])
+  }, [user?.id, playNotificationSound, showPushNotification, refreshNotifications, showToast])
 
   // Context methods
-  const addNotification = async (notification: Omit<DashboardNotification, 'id' | 'created_at'>) => {
+  const addNotification = useCallback(async (notification: Omit<DashboardNotification, 'id' | 'created_at'>) => {
     if (!user?.id) return
 
     try {
@@ -316,25 +341,23 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       }
 
       // Insert into database (this will trigger the real-time subscription)
-      await db.supabase
-        .from('notifications')
-        .insert(newNotification)
+      await db.createNotification(newNotification)
 
     } catch (error) {
       console.error('Error adding notification:', error)
     }
-  }
+  }, [user?.id])
 
-  const markAsRead = async (id: string) => {
+  const markAsRead = useCallback(async (id: string) => {
     try {
       await db.markNotificationAsRead(id)
       dispatch({ type: 'MARK_AS_READ', payload: id })
     } catch (error) {
       console.error('Error marking notification as read:', error)
     }
-  }
+  }, [])
 
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     if (!user?.id) return
 
     try {
@@ -351,40 +374,22 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     } catch (error) {
       console.error('Error marking all notifications as read:', error)
     }
-  }
+  }, [user?.id, state.notifications])
 
-  const showToast = (toast: Omit<ToastNotification, 'id' | 'timestamp'>) => {
-    const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    const toastWithId: ToastNotification = {
-      ...toast,
-      id,
-      timestamp: Date.now()
-    }
 
-    dispatch({ type: 'ADD_TOAST', payload: toastWithId })
 
-    // Auto-remove toast after duration
-    setTimeout(() => {
-      removeToast(id)
-    }, toast.duration || 5000)
-  }
-
-  const removeToast = (id: string) => {
-    dispatch({ type: 'REMOVE_TOAST', payload: id })
-  }
-
-  const toggleSound = () => {
+  const toggleSound = useCallback(() => {
     dispatch({ type: 'TOGGLE_SOUND', payload: !state.soundEnabled })
-  }
+  }, [state.soundEnabled])
 
-  const togglePush = async () => {
+  const togglePush = useCallback(async () => {
     if (!state.pushEnabled) {
       const enabled = await requestPushPermission()
       if (!enabled) return
     } else {
       dispatch({ type: 'TOGGLE_PUSH', payload: false })
     }
-  }
+  }, [state.pushEnabled, requestPushPermission])
 
   const contextValue: NotificationContextType = {
     state,
@@ -413,4 +418,4 @@ export function useNotifications() {
   return context
 }
 
-export type { ToastNotification, ToastAction } 
+ 

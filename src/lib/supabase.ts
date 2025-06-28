@@ -253,8 +253,19 @@ export const db = {
   async markNotificationAsRead(id: string) {
     const { data, error } = await supabase
       .from('notifications')
-      .update({ read: true, read_at: new Date().toISOString() })
+      .update({ is_read: true, read_at: new Date().toISOString() })
       .eq('id', id)
+      .select()
+      .single()
+    
+    if (error) throw error
+    return data
+  },
+
+  async createNotification(notification: Omit<NotificationsTable, 'id' | 'created_at'>) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert(notification)
       .select()
       .single()
     

@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import { NotificationDemo } from '@/components/notifications/NotificationDemo'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 
@@ -120,12 +121,12 @@ export default function NotificationsTestPage() {
 
         {/* Back Link */}
         <div className="mt-8 text-center">
-          <a
+          <Link
             href="/"
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             ← Volver al Inicio
-          </a>
+          </Link>
         </div>
       </div>
     </div>
