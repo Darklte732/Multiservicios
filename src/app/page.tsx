@@ -151,12 +151,25 @@ export default function HomePage() {
     setAuthModal({ isOpen: false })
   }
 
-
+  // Debug function to test JavaScript
+  const testJavaScript = () => {
+    console.log('🧪 JavaScript is working!')
+    alert('JavaScript is working! This confirms the issue is not with JS execution.')
+  }
 
   return (
     <div className="min-h-screen relative">
       {/* Animated Glass Background */}
       <div className="glass-background" style={{ pointerEvents: 'none' }}></div>
+      
+      {/* Debug Button - Remove after testing */}
+      <button
+        onClick={testJavaScript}
+        className="fixed top-4 left-4 z-50 bg-red-500 text-white px-4 py-2 rounded-lg font-bold"
+        style={{ pointerEvents: 'auto' }}
+      >
+        TEST JS
+      </button>
       
       {/* Header */}
       <header className="glass-nav sticky top-0 z-40">

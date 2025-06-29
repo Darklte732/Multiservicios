@@ -14,10 +14,17 @@ const services = [
     color: 'bg-red-50 border-red-200 hover:bg-red-100',
     pricing: {
       diagnostic: 'RD$ 500',
-      process: 'Evaluación inmediata + reparación urgente',
-      included: ['Diagnóstico completo', 'Mano de obra de emergencia', 'Materiales básicos', 'Garantía 15 días'],
-      note: 'Tarifa nocturna y fines de semana: +50% - Sin costos ocultos',
-      clarification: 'Costo total del servicio se cotiza después del diagnóstico'
+      process: 'Evaluación de emergencia + reparación inmediata',
+      included: [
+        'Visita técnica especializada de emergencia',
+        'Diagnóstico completo con equipo profesional',
+        'Evaluación detallada del problema eléctrico',
+        'Cotización transparente del trabajo necesario',
+        'Cotización inmediata del trabajo de emergencia',
+        'Garantía de 15 días en el trabajo realizado'
+      ],
+      note: 'Tarifa nocturna y fines de semana: +50% • El costo de materiales se cotiza por separado',
+      clarification: 'Solo pagas la evaluación técnica. Si decides no continuar, no hay costos adicionales.'
     }
   },
   {
@@ -28,10 +35,17 @@ const services = [
     color: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
     pricing: {
       diagnostic: 'RD$ 400',
-      process: 'Evaluación técnica + cotización + instalación',
-      included: ['Evaluación completa del proyecto', 'Cotización detallada', 'Mano de obra especializada', 'Garantía 90 días'],
-      note: 'Cotización gratuita si contrata el servicio',
-      clarification: 'Precio final del proyecto se determina después de la evaluación'
+      process: 'Evaluación del proyecto + cotización detallada + instalación',
+      included: [
+        'Visita técnica y evaluación del sitio',
+        'Análisis técnico completo del proyecto',
+        'Medición y planificación de la instalación',
+        'Cotización detallada de materiales y mano de obra',
+        'Asesoría sobre mejores opciones y alternativas',
+        'Garantía de 90 días en el trabajo completado'
+      ],
+      note: 'La evaluación RD$ 400 es independiente del proyecto • Materiales se cotizan según el proyecto',
+      clarification: 'La evaluación te ayuda a conocer el costo exacto antes de decidir. Sin sorpresas.'
     }
   },
   {
@@ -43,9 +57,17 @@ const services = [
     pricing: {
       diagnostic: 'RD$ 350',
       process: 'Inspección completa + mantenimiento preventivo',
-      included: ['Revisión completa del sistema', 'Limpieza de conexiones', 'Pruebas de seguridad', 'Garantía 60 días'],
-      note: 'Descuento del 20% en contratos anuales',
-      clarification: 'Trabajos adicionales se cotizan por separado'
+      included: [
+        'Visita técnica programada a tu conveniencia',
+        'Inspección completa de todo el sistema eléctrico',
+        'Limpieza básica de breakers durante inspección',
+        'Pruebas de seguridad y funcionamiento',
+        'Reporte detallado del estado de tu instalación',
+        'Recomendaciones para prevenir problemas futuros',
+        'Garantía de 60 días en servicios realizados'
+      ],
+      note: '20% descuento en mantenimientos programados • Materiales de reemplazo se cotizan aparte',
+      clarification: 'La evaluación RD$ 350 cubre el diagnóstico. Cualquier trabajo adicional se cotiza por separado.'
     }
   },
   {
@@ -56,10 +78,18 @@ const services = [
     color: 'bg-purple-50 border-purple-200 hover:bg-purple-100',
     pricing: {
       diagnostic: 'RD$ 400',
-      process: 'Diagnóstico especializado + reparación',
-      included: ['Diagnóstico con equipo especializado', 'Reparación completa', 'Pruebas de funcionamiento', 'Garantía 45 días'],
-      note: 'Descuento del 50% en diagnóstico si contrata la reparación',
-      clarification: 'Costo de reparación se calcula según el problema encontrado'
+      process: 'Diagnóstico especializado + reparación del problema',
+      included: [
+        'Visita técnica con equipo de diagnóstico avanzado',
+        'Identificación precisa de la falla eléctrica',
+        'Evaluación de daños y causas del problema',
+        'Cotización clara de la reparación necesaria',
+        'Cotización detallada de toda reparación necesaria',
+        'Pruebas de funcionamiento y seguridad',
+        'Garantía de 45 días en la reparación'
+      ],
+      note: 'Si requiere materiales especiales, se cotizan por separado • Toda reparación se cotiza después del diagnóstico',
+      clarification: 'La evaluación RD$ 400 identifica el problema. Cualquier reparación se cotiza por separado.'
     }
   }
 ]
@@ -184,23 +214,45 @@ export default function BookingPage() {
             {/* Trust Building Section */}
             <div className="bg-gray-50 rounded-xl p-6 mt-8">
               <h3 className="font-bold text-lg text-gray-900 mb-4 text-center">
-                🛡️ Nuestra Garantía de Transparencia
+                🛡️ Nuestra Garantía de Transparencia Total
               </h3>
               <div className="grid md:grid-cols-3 gap-4 text-sm">
                 <div className="text-center">
-                  <div className="text-2xl mb-2">📋</div>
-                  <div className="font-semibold text-gray-700">Sin Costos Ocultos</div>
-                  <div className="text-gray-600">Te explicamos cada costo antes de comenzar</div>
-                </div>
-                <div className="text-center">
                   <div className="text-2xl mb-2">💰</div>
-                  <div className="font-semibold text-gray-700">Cotización Gratuita</div>
-                  <div className="text-gray-600">Si contratas, no pagas la evaluación</div>
+                  <div className="font-semibold text-gray-700">Precios Transparentes</div>
+                  <div className="text-gray-600">Solo pagas lo que acordamos. Sin costos sorpresa al final del trabajo.</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl mb-2">⭐</div>
-                  <div className="font-semibold text-gray-700">Técnicos Certificados</div>
-                  <div className="text-gray-600">Profesionales con años de experiencia</div>
+                  <div className="text-2xl mb-2">📋</div>
+                  <div className="font-semibold text-gray-700">Cotización Detallada</div>
+                  <div className="text-gray-600">Te explicamos cada material y hora de trabajo antes de comenzar.</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl mb-2">🔧</div>
+                  <div className="font-semibold text-gray-700">Trabajo Garantizado</div>
+                  <div className="text-gray-600">Si algo falla por nuestro trabajo, lo reparamos sin costo adicional.</div>
+                </div>
+              </div>
+              
+              {/* Additional trust elements */}
+              <div className="border-t border-gray-200 mt-6 pt-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center text-xs text-gray-600">
+                  <div className="flex flex-col items-center">
+                    <span className="font-semibold text-green-700">✓ Materiales de Calidad</span>
+                    <span>Marcas reconocidas</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="font-semibold text-blue-700">✓ Técnicos Certificados</span>
+                    <span>Años de experiencia</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="font-semibold text-purple-700">✓ Diagnóstico Honesto</span>
+                    <span>Te decimos lo que necesitas</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="font-semibold text-orange-700">✓ Precios Justos</span>
+                    <span>Competitivos en El Seibo</span>
+                  </div>
                 </div>
               </div>
             </div>
