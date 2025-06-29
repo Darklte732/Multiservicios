@@ -48,10 +48,11 @@ export const useOptimizedAuth = () => {
   const handleLogin = useCallback(async (
     phone: string, 
     userType: UserType,
-    name: string
+    name: string,
+    password: string
   ) => {
     try {
-      return await login(phone, userType, name)
+      return await login(phone, userType, name, password)
     } catch (error) {
       console.error('Login error:', error)
       throw error

@@ -1,22 +1,11 @@
-import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { NotificationProvider } from '@/contexts/NotificationContext'
-import { ToastContainer } from '@/components/notifications/ToastNotification'
-
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-})
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-})
+import { Toaster } from 'react-hot-toast'
 
 export const metadata: Metadata = {
-  title: '⚡ MultiServicios El Seibo - Servicios Eléctricos Profesionales',
+  title: 'MultiServicios El Seibo - Servicios Eléctricos Profesionales',
   description: 'Servicios eléctricos profesionales en El Seibo, República Dominicana. Instalaciones, reparaciones, mantenimiento y emergencias 24/7. Reserva tu cita en línea.',
   keywords: [
     'servicios eléctricos',
@@ -44,7 +33,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: '⚡ MultiServicios El Seibo - Servicios Eléctricos',
+    title: 'MultiServicios El Seibo - Servicios Eléctricos',
     description: 'Servicios eléctricos profesionales en El Seibo, República Dominicana',
     url: 'https://multiservicios-elseibo.com',
     siteName: 'MultiServicios El Seibo',
@@ -53,7 +42,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '⚡ MultiServicios El Seibo',
+    title: 'MultiServicios El Seibo',
     description: 'Servicios eléctricos profesionales en El Seibo',
     creator: '@multiservicios_elseibo',
   },
@@ -79,7 +68,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es-DO" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="es-DO">
       <head>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -91,12 +80,35 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#3b82f6" />
         <meta name="msapplication-tap-highlight" content="no" />
       </head>
-      <body className={`antialiased font-geist-sans min-h-screen`}>
+      <body className="font-sans antialiased min-h-screen">
         <NotificationProvider>
           <ErrorBoundary>
             {children}
           </ErrorBoundary>
-          <ToastContainer />
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+              success: {
+                duration: 3000,
+                iconTheme: {
+                  primary: '#10b981',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                duration: 5000,
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
         </NotificationProvider>
       </body>
     </html>

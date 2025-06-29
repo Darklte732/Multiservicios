@@ -2,20 +2,25 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Zap, Wrench, Thermometer, Droplets, Hammer, Shield, LogIn, UserPlus } from 'lucide-react'
+import { Zap, Wrench, Thermometer, Droplets, Hammer, Shield, LogIn, UserPlus, Settings, Bell, User, Menu, X } from 'lucide-react'
 import { AuthModal } from '@/components/AuthModal'
+import { SettingsModal } from '@/components/SettingsModal'
 import { useAuthStore } from '@/store/auth'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
-import { NotificationDemo } from '@/components/notifications/NotificationDemo'
+
 
 export default function HomePage() {
   const [selectedService, setSelectedService] = useState<string | null>(null)
   const [isNavigating, setIsNavigating] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(false)
   const [authModal, setAuthModal] = useState<{
     isOpen: boolean
     defaultTab?: 'login' | 'register'
     defaultUserType?: 'customer' | 'technician'
   }>({
+    isOpen: false
+  })
+  const [settingsModal, setSettingsModal] = useState({
     isOpen: false
   })
   
@@ -30,10 +35,11 @@ export default function HomePage() {
       title: 'Servicios Eléctricos',
       subtitle: 'Instalaciones, reparaciones y emergencias',
       description: 'Técnicos certificados para instalaciones eléctricas, reparaciones, mantenimiento y servicios de emergencia 24/7.',
-      color: 'border-blue-200 hover:border-blue-300 hover:bg-blue-50',
+      glassClass: 'glass-blue',
       iconColor: 'text-blue-600',
       available: true,
-      badge: 'Disponible'
+      badge: 'Disponible',
+      badgeClass: 'glass-green'
     },
     {
       id: 'plumbing',
@@ -41,10 +47,11 @@ export default function HomePage() {
       title: 'Servicios de Plomería',
       subtitle: 'Instalaciones y reparaciones de tuberías',
       description: 'Reparación de fugas, instalación de tuberías, destapado de drenajes y servicios de fontanería.',
-      color: 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+      glassClass: 'glass-base',
       iconColor: 'text-gray-400',
       available: false,
-      badge: 'Próximamente'
+      badge: 'Próximamente',
+      badgeClass: 'glass-purple'
     },
     {
       id: 'hvac',
@@ -52,10 +59,11 @@ export default function HomePage() {
       title: 'Aire Acondicionado',
       subtitle: 'Instalación y mantenimiento de A/C',
       description: 'Instalación, reparación y mantenimiento de sistemas de aire acondicionado y climatización.',
-      color: 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+      glassClass: 'glass-base',
       iconColor: 'text-gray-400',
       available: false,
-      badge: 'Próximamente'
+      badge: 'Próximamente',
+      badgeClass: 'glass-purple'
     },
     {
       id: 'general',
@@ -63,10 +71,11 @@ export default function HomePage() {
       title: 'Servicios Generales',
       subtitle: 'Reparaciones y mantenimiento del hogar',
       description: 'Carpintería, pintura, reparaciones menores y servicios generales de mantenimiento.',
-      color: 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+      glassClass: 'glass-base',
       iconColor: 'text-gray-400',
       available: false,
-      badge: 'Próximamente'
+      badge: 'Próximamente',
+      badgeClass: 'glass-purple'
     },
     {
       id: 'security',
@@ -74,10 +83,11 @@ export default function HomePage() {
       title: 'Seguridad',
       subtitle: 'Cámaras y sistemas de seguridad',
       description: 'Instalación de cámaras de seguridad, alarmas y sistemas de monitoreo para hogar y empresa.',
-      color: 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+      glassClass: 'glass-base',
       iconColor: 'text-gray-400',
       available: false,
-      badge: 'Próximamente'
+      badge: 'Próximamente',
+      badgeClass: 'glass-purple'
     },
     {
       id: 'appliances',
@@ -85,293 +95,462 @@ export default function HomePage() {
       title: 'Electrodomésticos',
       subtitle: 'Reparación de electrodomésticos',
       description: 'Reparación y mantenimiento de lavadoras, refrigeradoras, estufas y otros electrodomésticos.',
-      color: 'border-gray-200 hover:border-gray-300 hover:bg-gray-50',
+      glassClass: 'glass-base',
       iconColor: 'text-gray-400',
       available: false,
-      badge: 'Próximamente'
+      badge: 'Próximamente',
+      badgeClass: 'glass-purple'
     }
   ]
 
-  const handleServiceSelect = async (serviceId: string) => {
-    const service = serviceCategories.find(s => s.id === serviceId)
-    if (!service?.available) return
+  const handleServiceSelect = (serviceId: string) => {
+    console.log('🚀 Service clicked:', serviceId) // Enhanced debug log
     
-    setSelectedService(serviceId)
-    setIsNavigating(true)
-    
-    // Small delay for visual feedback
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Navigate to booking page for electrical services
-    if (serviceId === 'electrical') {
-      window.location.href = `/booking`
+    try {
+      const service = serviceCategories.find(s => s.id === serviceId)
+      console.log('📋 Service found:', service)
+      
+      if (!service?.available) {
+        console.log('❌ Service not available:', serviceId)
+        alert('Este servicio estará disponible próximamente.')
+        return
+      }
+      
+      console.log('✅ Service available, proceeding...')
+      setSelectedService(serviceId)
+      setIsNavigating(true)
+      
+      // Navigate immediately for electrical services
+      if (serviceId === 'electrical') {
+        console.log('⚡ Navigating to booking page')
+        window.location.href = '/booking'
+      }
+    } catch (error) {
+      console.error('💥 Error in handleServiceSelect:', error)
     }
   }
 
   const openAuthModal = (tab: 'login' | 'register', userType?: 'customer' | 'technician') => {
-    setAuthModal({
-      isOpen: true,
-      defaultTab: tab,
-      defaultUserType: userType
-    })
+    console.log('🔐 Auth button clicked:', tab, userType) // Enhanced debug log
+    
+    try {
+      console.log('📊 Current authModal state:', authModal)
+      setAuthModal({
+        isOpen: true,
+        defaultTab: tab,
+        defaultUserType: userType || 'customer'
+      })
+      console.log('✅ Auth modal should open now')
+    } catch (error) {
+      console.error('💥 Error in openAuthModal:', error)
+    }
   }
 
   const closeAuthModal = () => {
+    console.log('❌ Closing auth modal')
     setAuthModal({ isOpen: false })
   }
 
+
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen relative">
+      {/* Animated Glass Background */}
+      <div className="glass-background" style={{ pointerEvents: 'none' }}></div>
+      
       {/* Header */}
-      <header className="bg-blue-600 text-white py-6">
+      <header className="glass-nav sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center py-4 lg:py-6">
+            {/* Logo Section */}
             <div className="flex items-center space-x-3">
-              <Zap className="h-8 w-8 text-yellow-300" />
-              <div>
-                <h1 className="text-3xl font-bold">MultiServicios</h1>
-                <p className="text-blue-100 text-lg">Servicios Profesionales para el Hogar</p>
+              <div className="p-2 glass-blue rounded-xl">
+                <Zap className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
+              </div>
+              <div className="hidden sm:block">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold glass-text">MultiServicios</h1>
+                <p className="text-gray-700 text-sm lg:text-lg font-semibold">Servicios Profesionales para el Hogar</p>
+              </div>
+              <div className="sm:hidden">
+                <h1 className="text-lg font-bold glass-text">MultiServicios</h1>
               </div>
             </div>
             
-            {/* Authentication Buttons */}
-            <div className="flex items-center space-x-4">
-              {/* Notification Bell */}
-              {user && <NotificationBell />}
-              
+            {/* Desktop Authentication Section */}
+            <div className="hidden lg:flex items-center space-x-3">
               {user ? (
-                <div className="flex items-center space-x-4">
-                  <Link
-                    href={user.user_type === 'technician' ? '/dashboard' : '/customer-dashboard'}
-                    className="px-4 py-2 bg-blue-700 hover:bg-blue-800 rounded-lg transition-colors font-medium"
-                  >
-                    Mi Panel
-                  </Link>
-                  <button
-                    onClick={logout}
-                    className="px-4 py-2 border border-blue-300 hover:bg-blue-700 rounded-lg transition-colors font-medium"
-                  >
-                    Cerrar Sesión
-                  </button>
-                </div>
+                <>
+                  {/* User Actions */}
+                  <div className="flex items-center space-x-2">
+                    {/* Notification Bell */}
+                    <NotificationBell className="glass-button p-3 rounded-xl transition-all duration-300 hover:scale-105" />
+                    
+                    {/* Settings Button */}
+                    <button
+                      onClick={() => setSettingsModal({ isOpen: true })}
+                      className="glass-button p-3 rounded-xl transition-all duration-300 hover:scale-105 hover:rotate-12"
+                      title="Configuración"
+                    >
+                      <Settings className="h-5 w-5 text-blue-600 transition-transform duration-300" />
+                    </button>
+                    
+                    {/* User Profile */}
+                    <div className="flex items-center space-x-3 glass-light rounded-xl px-4 py-3 hover:scale-105 transition-transform duration-300">
+                      <div className="p-2 glass-blue rounded-lg">
+                        <User className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <span className="text-sm font-semibold text-gray-700">{user.name}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Dashboard & Logout */}
+                  <div className="flex items-center space-x-3">
+                    <Link
+                      href={user.user_type === 'technician' ? '/dashboard' : '/customer-dashboard'}
+                      className="glass-button px-6 py-3 rounded-xl font-semibold text-sm text-blue-700 transition-all duration-300 hover:scale-105 hover:shadow-lg transform"
+                    >
+                      Mi Panel
+                    </Link>
+                    <button
+                      onClick={logout}
+                      className="glass-base px-6 py-3 rounded-xl font-semibold text-sm text-gray-700 hover:text-gray-900 transition-all duration-300 hover:scale-105"
+                    >
+                      Cerrar Sesión
+                    </button>
+                  </div>
+                </>
               ) : (
                 <div className="flex items-center space-x-3">
                   <button
-                    onClick={() => openAuthModal('login')}
-                    className="flex items-center space-x-2 px-4 py-2 border border-blue-300 hover:bg-blue-700 rounded-lg transition-colors font-medium"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      console.log('🔐 Login button clicked directly')
+                      openAuthModal('login')
+                    }}
+                    className="glass-ripple glass-base flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold text-gray-700 hover:text-gray-900 transition-all duration-300 transform hover:scale-105 hover:shadow-lg group"
+                    style={{ pointerEvents: 'auto', cursor: 'pointer' }}
                   >
-                    <LogIn className="h-4 w-4" />
+                    <LogIn className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                     <span>Iniciar Sesión</span>
                   </button>
                   <button
-                    onClick={() => openAuthModal('register')}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-700 hover:bg-blue-800 rounded-lg transition-colors font-medium"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      console.log('📝 Register button clicked directly')
+                      openAuthModal('register')
+                    }}
+                    className="glass-ripple glass-button flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold text-blue-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg group relative overflow-hidden"
+                    style={{ pointerEvents: 'auto', cursor: 'pointer' }}
                   >
-                    <UserPlus className="h-4 w-4" />
+                    <UserPlus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-12" />
                     <span>Registrarse</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400/10 to-purple-400/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </button>
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      </header>
 
-      {/* Progress Bar */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-            <span>Paso {currentStep} de {totalSteps}</span>
-            <span>{Math.round((currentStep / totalSteps) * 100)}% completado</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-3">
-              ¿Qué tipo de servicio necesita?
-            </h2>
-            <p className="text-gray-600">
-              Seleccione la categoría de servicio que necesita para su hogar o negocio
-            </p>
+            {/* Mobile Menu Button */}
+            <div className="lg:hidden">
+              <button
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                className="glass-button p-3 rounded-xl transition-all duration-300"
+              >
+                {showMobileMenu ? <X className="h-6 w-6 text-blue-600" /> : <Menu className="h-6 w-6 text-blue-600" />}
+              </button>
+            </div>
           </div>
 
-          {/* Service Categories Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {serviceCategories.map((service) => {
-              const Icon = service.icon
-              const isSelected = selectedService === service.id
-              const isAvailable = service.available
-              
-              return (
-                <button
-                  key={service.id}
-                  onClick={() => handleServiceSelect(service.id)}
-                  disabled={isNavigating || !isAvailable}
-                  className={`
-                    relative p-6 border-2 rounded-lg text-left transition-all duration-200
-                    ${isSelected 
-                      ? 'border-blue-500 bg-blue-50 shadow-md' 
-                      : isAvailable
-                        ? `border-gray-200 bg-white hover:shadow-md ${service.color}`
-                        : 'border-gray-200 bg-gray-50 opacity-75'
-                    }
-                    ${isNavigating || !isAvailable ? 'cursor-not-allowed' : 'cursor-pointer'}
-                  `}
-                >
-                  {/* Service Badge */}
-                  <div className="absolute top-3 right-3">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      isAvailable 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-600'
-                    }`}>
-                      {service.badge}
-                    </span>
-                  </div>
-
-                  {/* Service Icon */}
-                  <div className="flex items-center space-x-4 mb-4">
-                    <div className={`
-                      w-12 h-12 rounded-lg flex items-center justify-center
-                      ${isSelected ? 'bg-blue-100' : isAvailable ? 'bg-gray-100' : 'bg-gray-50'}
-                    `}>
-                      <Icon className={`
-                        w-6 h-6 
-                        ${isSelected ? 'text-blue-600' : service.iconColor}
-                      `} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className={`
-                        text-lg font-semibold
-                        ${isSelected ? 'text-blue-900' : isAvailable ? 'text-gray-900' : 'text-gray-500'}
-                      `}>
-                        {service.title}
-                      </h3>
-                      <p className={`
-                        text-sm
-                        ${isSelected ? 'text-blue-700' : isAvailable ? 'text-gray-600' : 'text-gray-400'}
-                      `}>
-                        {service.subtitle}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Service Description */}
-                  <p className={`
-                    text-sm leading-relaxed
-                    ${isSelected ? 'text-blue-800' : isAvailable ? 'text-gray-600' : 'text-gray-400'}
-                  `}>
-                    {service.description}
-                  </p>
-
-                  {/* "Coming Soon" Overlay for unavailable services */}
-                  {!isAvailable && (
-                    <div className="absolute inset-0 rounded-lg bg-gray-50 bg-opacity-90 flex items-center justify-center">
-                      <div className="text-center">
-                        <p className="text-lg font-medium text-gray-600 mb-1">Próximamente</p>
-                        <p className="text-sm text-gray-500">Este servicio estará disponible pronto</p>
+          {/* Mobile Menu */}
+          {showMobileMenu && (
+            <div className="lg:hidden pb-4">
+              <div className="glass-light rounded-2xl p-6 mt-4 space-y-4">
+                {user ? (
+                  <>
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="p-2 glass-blue rounded-lg">
+                        <User className="h-5 w-5 text-blue-600" />
                       </div>
+                      <span className="font-semibold text-gray-700">{user.name}</span>
                     </div>
-                  )}
-
-                  {/* Selection Indicator for available services */}
-                  {isSelected && isAvailable && (
-                    <div className="absolute inset-0 rounded-lg border-2 border-blue-500 pointer-events-none">
-                      <div className="absolute top-3 left-3 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                        {isNavigating ? (
-                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
-                        ) : (
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Loading State */}
-          {isNavigating && (
-            <div className="text-center py-4">
-              <div className="inline-flex items-center text-blue-600">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                Redirigiendo a servicios eléctricos...
+                    <Link
+                      href={user.user_type === 'technician' ? '/dashboard' : '/customer-dashboard'}
+                      className="glass-button block w-full text-center px-4 py-3 rounded-xl font-semibold text-blue-700 transition-all duration-300"
+                    >
+                      Mi Panel
+                    </Link>
+                    <button
+                      onClick={() => setSettingsModal({ isOpen: true })}
+                      className="glass-base block w-full text-center px-4 py-3 rounded-xl font-semibold text-gray-700 transition-all duration-300"
+                    >
+                      Configuración
+                    </button>
+                    <button
+                      onClick={logout}
+                      className="glass-base block w-full text-center px-4 py-3 rounded-xl font-semibold text-gray-700 transition-all duration-300"
+                    >
+                      Cerrar Sesión
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        openAuthModal('login')
+                      }}
+                      className="glass-base block w-full text-center px-4 py-3 rounded-xl font-semibold text-gray-700 transition-all duration-300"
+                    >
+                      Iniciar Sesión
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        openAuthModal('register')
+                      }}
+                      className="glass-button block w-full text-center px-4 py-3 rounded-xl font-semibold text-blue-700 transition-all duration-300"
+                    >
+                      Registrarse
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}
+        </div>
+      </header>
 
-          {/* Navigation */}
-          <div className="flex justify-between items-center">
-            <button
-              onClick={() => openAuthModal('login', 'technician')}
-              className={`text-gray-600 hover:text-gray-800 font-medium transition-colors ${
-                isNavigating ? 'opacity-50 pointer-events-none' : ''
-              }`}
-            >
-              ¿Eres técnico? Accede al panel
-            </button>
+      {/* Hero Section */}
+      <section className="relative py-12 lg:py-20">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="glass-modal max-w-3xl mx-auto p-8 lg:p-12">
+            {/* Local badge */}
+            <div className="inline-flex items-center gap-2 glass-green px-4 py-2 rounded-full text-sm font-semibold text-green-700 mb-6">
+              <span className="text-lg">🏆</span>
+              <span>El Seibo • Líderes en Servicios Eléctricos</span>
+            </div>
             
-            {!user && (
-              <div className="text-sm text-gray-500">
-                ¿Ya tienes cuenta?{' '}
-                <button
-                  onClick={() => openAuthModal('login')}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Inicia sesión
-                </button>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold glass-text mb-6">
+              Servicios Profesionales para tu Hogar
+            </h2>
+            <p className="text-lg sm:text-xl text-gray-700 font-medium mb-6 max-w-2xl mx-auto leading-relaxed">
+              Conectamos a técnicos certificados con clientes que necesitan servicios de calidad. 
+              <span className="font-bold text-blue-700"> Rápido, confiable y profesional.</span>
+            </p>
+            
+            {/* Service area and credentials */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 text-sm">
+              <div className="flex items-center gap-2 glass-light px-3 py-2 rounded-lg">
+                <span className="text-blue-600">📍</span>
+                <span className="font-medium text-gray-700">El Seibo & Hato Mayor</span>
               </div>
-            )}
+              <div className="flex items-center gap-2 glass-light px-3 py-2 rounded-lg">
+                <span className="text-green-600">✓</span>
+                <span className="font-medium text-gray-700">Técnicos Certificados</span>
+              </div>
+              <div className="flex items-center gap-2 glass-light px-3 py-2 rounded-lg">
+                <span className="text-purple-600">⚡</span>
+                <span className="font-medium text-gray-700">1,000+ Clientes</span>
+              </div>
+            </div>
+            
+            {/* Progress Indicator */}
+            <div className="glass-progress w-full max-w-md mx-auto h-3 mb-8">
+              <div 
+                className="glass-progress-fill h-full transition-all duration-1000 ease-out"
+                style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+              ></div>
+            </div>
+            <p className="text-sm text-gray-700 font-semibold">
+              Paso {currentStep} de {totalSteps}: Selecciona tu servicio
+            </p>
           </div>
         </div>
+      </section>
 
-        {/* Coming Soon Notice */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <div className="flex items-start space-x-3">
-            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <span className="text-white text-sm font-bold">!</span>
+      {/* Services Grid */}
+      <section className="py-8 lg:py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h3 className="text-2xl sm:text-3xl font-bold glass-text mb-4">
+              Nuestros Servicios
+            </h3>
+            <p className="text-gray-700 font-medium max-w-2xl mx-auto">
+              Ofrecemos una amplia gama de servicios profesionales para mantener tu hogar en perfectas condiciones.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+            {serviceCategories.map((service) => {
+              const IconComponent = service.icon
+              const isSelected = selectedService === service.id
+              const isDisabled = !service.available
+
+              return (
+                <div
+                  key={service.id}
+                  className={`glass-card group cursor-pointer transition-all duration-500 transform ${
+                    isSelected ? 'ring-2 ring-blue-400/50 scale-105' : ''
+                  } ${
+                    isDisabled ? 'opacity-75 cursor-not-allowed' : 'hover:scale-105 hover:-translate-y-2'
+                  }`}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    console.log('🔧 Service card clicked:', service.id)
+                    handleServiceSelect(service.id)
+                  }}
+                  style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                >
+                  <div className="p-6 lg:p-8 relative overflow-hidden">
+                    {/* Service Badge with animation */}
+                    <div className="absolute top-4 right-4">
+                      <span className={`${service.badgeClass} px-3 py-1 text-xs font-semibold rounded-full transition-all duration-300 ${
+                        service.available ? 'animate-pulse' : ''
+                      }`}>
+                        {service.badge}
+                      </span>
+                    </div>
+
+                    {/* Service Icon with enhanced hover effects */}
+                    <div className={`${service.glassClass} w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 relative`}>
+                      <IconComponent className={`w-8 h-8 ${service.iconColor} transition-all duration-300 ${
+                        service.available ? 'group-hover:drop-shadow-lg' : ''
+                      }`} />
+                      
+                      {/* Availability indicator */}
+                      {service.available && (
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Service Content with enhanced typography */}
+                    <h4 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-gray-900 transition-colors duration-300">
+                      {service.title}
+                    </h4>
+                    <p className="text-sm font-semibold text-gray-700 mb-4 group-hover:text-gray-800 transition-colors duration-300">
+                      {service.subtitle}
+                    </p>
+                    <p className="text-sm text-gray-600 font-medium leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
+                      {service.description}
+                    </p>
+
+                    {/* Interactive call-to-action for available services */}
+                    {service.available && (
+                      <div className="mt-6 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                        <div className="glass-button px-4 py-2 rounded-lg text-center">
+                          <span className="text-sm font-semibold text-blue-700">
+                            🚀 Solicitar Ahora
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Enhanced loading indicator */}
+                    {isNavigating && isSelected && (
+                      <div className="absolute inset-0 glass-modal-overlay rounded-2xl flex items-center justify-center">
+                        <div className="glass-notification px-6 py-4 flex items-center">
+                          <div className="w-5 h-5 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mr-3"></div>
+                          <span className="text-sm font-semibold text-blue-700">Preparando tu servicio...</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Subtle hover glow effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400/5 to-purple-400/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-16 lg:py-24">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="glass-modal p-8 lg:p-12 text-center">
+            <h3 className="text-2xl sm:text-3xl font-bold glass-text mb-8">
+              ¿Por qué elegir MultiServicios?
+            </h3>
+            
+            {/* Trust indicators section */}
+            <div className="glass-card p-6 mb-8 bg-gradient-to-r from-blue-50 to-green-50">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-center">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-2xl">👥</span>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-green-700">1,000+</p>
+                    <p className="text-sm text-green-600 font-medium">Clientes Satisfechos</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-2xl">🏆</span>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-blue-700">El Seibo</p>
+                    <p className="text-sm text-blue-600 font-medium">Líderes Locales</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                    <span className="text-2xl">⚡</span>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-purple-700">24/7</p>
+                    <p className="text-sm text-purple-600 font-medium">Emergencias</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-blue-900 mb-2">
-                Expandiendo Nuestros Servicios
-              </h3>
-              <p className="text-blue-800 mb-3">
-                Actualmente ofrecemos servicios eléctricos profesionales. Próximamente añadiremos plomería, 
-                aire acondicionado, seguridad y otros servicios para el hogar.
-              </p>
-              <p className="text-sm text-blue-700">
-                ¿Necesita alguno de estos servicios? Contáctenos por WhatsApp y le ayudaremos a encontrar 
-                un proveedor confiable en su área.
-              </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="glass-card p-6">
+                <div className="glass-green w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-6 h-6 text-green-600" />
+                </div>
+                <h4 className="font-bold text-gray-800 mb-2">Técnicos Certificados</h4>
+                <p className="text-sm text-gray-600 font-medium">Profesionales verificados y con experiencia</p>
+              </div>
+              <div className="glass-card p-6">
+                <div className="glass-blue w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Zap className="w-6 h-6 text-blue-600" />
+                </div>
+                <h4 className="font-bold text-gray-800 mb-2">Servicio Rápido</h4>
+                <p className="text-sm text-gray-600 font-medium">Atención inmediata y tiempos de respuesta cortos</p>
+              </div>
+              <div className="glass-card p-6">
+                <div className="glass-purple w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Settings className="w-6 h-6 text-purple-600" />
+                </div>
+                <h4 className="font-bold text-gray-800 mb-2">Garantía</h4>
+                <p className="text-sm text-gray-600 font-medium">Garantía en todos nuestros trabajos</p>
+              </div>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Notification Demo - Show only for logged in users */}
-        {user && (
-          <div className="mt-8">
-            <NotificationDemo />
-          </div>
-        )}
-      </div>
-
-      {/* Authentication Modal */}
+      {/* Modals */}
       <AuthModal
         isOpen={authModal.isOpen}
         onClose={closeAuthModal}
         defaultTab={authModal.defaultTab}
         defaultUserType={authModal.defaultUserType}
+      />
+
+      <SettingsModal
+        isOpen={settingsModal.isOpen}
+        onClose={() => setSettingsModal({ isOpen: false })}
       />
     </div>
   )

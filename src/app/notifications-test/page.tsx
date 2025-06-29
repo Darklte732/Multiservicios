@@ -1,132 +1,170 @@
 'use client'
 
-import React from 'react'
-import Link from 'next/link'
+import { useState, useEffect } from 'react'
+import { useAuthStore } from '@/store/auth'
 import { NotificationDemo } from '@/components/notifications/NotificationDemo'
-import { NotificationBell } from '@/components/notifications/NotificationBell'
 
 export default function NotificationsTestPage() {
+  const { login, user, status, isLoading, error, logout } = useAuthStore()
+  const [phone, setPhone] = useState('')
+  const [name, setName] = useState('')
+  const [password, setPassword] = useState('')
+  const [userType, setUserType] = useState<'customer' | 'technician'>('customer')
+
+  // Pre-fill form for testing
+  useEffect(() => {
+    if (!phone) setPhone('9086205502')
+    if (!name) setName('Usuario de Prueba')
+    if (!password) setPassword('123456')
+  }, [phone, name, password])
+
+  const handleLogin = async () => {
+    try {
+      await login(phone, userType, name, password)
+    } catch (error) {
+      console.error('Login failed:', error)
+    }
+  }
+
+  const handleLogout = () => {
+    logout()
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Sistema de Notificaciones en Tiempo Real
-              </h1>
-              <p className="mt-2 text-gray-600">
-                Prueba todas las funcionalidades del sistema de notificaciones
-              </p>
-            </div>
-            
-            {/* Notification Bell Demo */}
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">Bell de Notificaciones:</span>
-              <NotificationBell className="relative" />
-            </div>
-          </div>
-        </div>
+      <div className="max-w-4xl mx-auto px-4">
+        <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+          🧪 Prueba de Autenticación y Notificaciones
+        </h1>
 
-        {/* Demo Component */}
-        <NotificationDemo />
+        <div className="grid gap-8 md:grid-cols-2">
+          {/* Authentication Section */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold mb-4">🔐 Sistema de Autenticación</h3>
+            
+            {!user ? (
+              <form onSubmit={(e) => {
+                e.preventDefault()
+                handleLogin()
+              }} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Teléfono
+                  </label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="809-555-0123"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Nombre
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Tu nombre completo"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Contraseña
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Mínimo 6 caracteres"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tipo de Usuario
+                  </label>
+                  <select
+                    value={userType}
+                    onChange={(e) => setUserType(e.target.value as 'customer' | 'technician')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    <option value="customer">Cliente</option>
+                    <option value="technician">Técnico</option>
+                  </select>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+                >
+                  {isLoading ? 'Iniciando...' : '🔑 Probar Autenticación'}
+                </button>
+
+                {error && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-red-700 text-sm">Error: {error}</p>
+                  </div>
+                )}
+              </form>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <h4 className="font-medium text-green-900 mb-2">✅ Autenticación exitosa!</h4>
+                  
+                  <div className="text-sm text-green-700 space-y-1">
+                    <p><strong>ID:</strong> {user.id}</p>
+                    <p><strong>Nombre:</strong> {user.name}</p>
+                    <p><strong>Teléfono:</strong> {user.phone}</p>
+                    <p><strong>Tipo:</strong> {user.user_type}</p>
+                    <p><strong>Estado:</strong> {status}</p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  🚪 Cerrar Sesión
+                </button>
+
+                {/* Debug Info */}
+                <details className="mt-4">
+                  <summary className="cursor-pointer text-sm font-medium text-gray-700">
+                    🔍 Datos de Usuario (Debug)
+                  </summary>
+                  <pre className="mt-2 p-3 bg-gray-100 rounded text-xs overflow-x-auto">
+                    {JSON.stringify(user, null, 2)}
+                  </pre>
+                </details>
+              </div>
+            )}
+          </div>
+
+          {/* Notifications Section */}
+          <NotificationDemo />
+        </div>
 
         {/* Instructions */}
-        <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Instrucciones de Prueba
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Notificaciones de Base de Datos</h3>
-              <ul className="text-sm text-gray-600 space-y-2">
-                <li>• Se almacenan permanentemente en Supabase</li>
-                <li>• Aparecen en el panel de notificaciones (campana)</li>
-                <li>• Se sincronizan en tiempo real entre dispositivos</li>
-                <li>• Incluyen estados de leído/no leído</li>
-                <li>• Pueden incluir acciones (botones)</li>
-                <li>• Se pueden marcar como leídas individualmente</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Notificaciones Toast</h3>
-              <ul className="text-sm text-gray-600 space-y-2">
-                <li>• Aparecen temporalmente en la esquina superior derecha</li>
-                <li>• Se auto-ocultan después del tiempo configurado</li>
-                <li>• Pueden incluir botones de acción</li>
-                <li>• Diferentes estilos según el tipo</li>
-                <li>• Se pueden cerrar manualmente</li>
-                <li>• Incluyen animaciones suaves</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-semibold text-blue-900 mb-2">Configuración del Sistema:</h4>
-            <div className="text-sm text-blue-800 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ul className="space-y-1">
-                <li>• <strong>Sonidos:</strong> Diferentes tonos por tipo de notificación</li>
-                <li>• <strong>Push:</strong> Notificaciones del navegador (permiso requerido)</li>
-                <li>• <strong>Real-time:</strong> WebSocket de Supabase para sincronización</li>
-              </ul>
-              <ul className="space-y-1">
-                <li>• <strong>Persistencia:</strong> Guardado automático en base de datos</li>
-                <li>• <strong>Limpieza:</strong> Auto-eliminación después de 30 días</li>
-                <li>• <strong>Seguridad:</strong> RLS activado para privacidad</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Technical Details */}
-        <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Detalles Técnicos
-          </h2>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Context API</h3>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• NotificationContext</li>
-                <li>• Estado global de notificaciones</li>
-                <li>• Gestión de conexiones WebSocket</li>
-                <li>• Control de configuración de usuario</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Componentes</h3>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• NotificationBell - Panel principal</li>
-                <li>• ToastNotification - Mensajes flotantes</li>
-                <li>• NotificationDemo - Herramienta de prueba</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold text-gray-900 mb-3">Base de Datos</h3>
-              <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Tabla notifications con RLS</li>
-                <li>• Índices optimizados</li>
-                <li>• Triggers para updated_at</li>
-                <li>• Función de limpieza automática</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Back Link */}
-        <div className="mt-8 text-center">
-          <Link
-            href="/"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            ← Volver al Inicio
-          </Link>
+        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-2">📋 Instrucciones de Prueba</h3>
+          <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+            <li>Primero, inicia sesión con cualquier teléfono y nombre</li>
+            <li>Verifica que no aparezcan errores en la consola del navegador</li>
+            <li>Observa que el estado de conexión de notificaciones esté &quot;Conectado&quot;</li>
+            <li>Los datos de usuario deben aparecer correctamente</li>
+            <li>Las notificaciones deben cargar sin errores de UUID</li>
+          </ol>
         </div>
       </div>
     </div>

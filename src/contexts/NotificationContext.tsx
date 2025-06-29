@@ -1,410 +1,262 @@
 'use client'
 
-import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback } from 'react'
-import { db } from '@/lib/supabase'
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
+import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/auth'
 import type { DashboardNotification, NotificationType } from '@/types'
+import toast from 'react-hot-toast'
 
-// Export types for component usage
-export type { NotificationType, DashboardNotification } from '@/types'
-
-export interface ToastNotification {
-  id: string
-  title: string
-  message: string
-  type: NotificationType
-  duration: number
-  timestamp: number
-  actions?: ToastAction[]
-}
-
-export interface ToastAction {
-  label: string
-  action: () => void
-  style?: 'primary' | 'secondary' | 'danger'
-}
-
-interface NotificationState {
+// Notification Context Types
+interface NotificationContextType {
   notifications: DashboardNotification[]
   unreadCount: number
-  isConnected: boolean
-  toasts: ToastNotification[]
-  soundEnabled: boolean
-  pushEnabled: boolean
-}
-
-
-
-type NotificationAction =
-  | { type: 'SET_NOTIFICATIONS'; payload: DashboardNotification[] }
-  | { type: 'ADD_NOTIFICATION'; payload: DashboardNotification }
-  | { type: 'MARK_AS_READ'; payload: string }
-  | { type: 'MARK_ALL_AS_READ' }
-  | { type: 'SET_CONNECTION_STATUS'; payload: boolean }
-  | { type: 'ADD_TOAST'; payload: ToastNotification }
-  | { type: 'REMOVE_TOAST'; payload: string }
-  | { type: 'TOGGLE_SOUND'; payload: boolean }
-  | { type: 'TOGGLE_PUSH'; payload: boolean }
-
-interface NotificationContextType {
-  state: NotificationState
-  addNotification: (notification: Omit<DashboardNotification, 'id' | 'created_at'>) => Promise<void>
-  markAsRead: (id: string) => Promise<void>
+  connectionStatus: 'connected' | 'disconnected' | 'connecting'
+  markAsRead: (notificationId: string) => Promise<void>
   markAllAsRead: () => Promise<void>
-  showToast: (toast: Omit<ToastNotification, 'id' | 'timestamp'>) => void
-  removeToast: (id: string) => void
-  toggleSound: () => void
-  togglePush: () => void
-  refreshNotifications: () => Promise<void>
-}
-
-const initialState: NotificationState = {
-  notifications: [],
-  unreadCount: 0,
-  isConnected: false,
-  toasts: [],
-  soundEnabled: typeof window !== 'undefined' ? localStorage.getItem('notifications-sound') !== 'false' : true,
-  pushEnabled: typeof window !== 'undefined' ? localStorage.getItem('notifications-push') === 'true' : false
-}
-
-function notificationReducer(state: NotificationState, action: NotificationAction): NotificationState {
-  switch (action.type) {
-    case 'SET_NOTIFICATIONS':
-      return {
-        ...state,
-        notifications: action.payload,
-        unreadCount: action.payload.filter(n => !n.is_read).length
-      }
-    
-    case 'ADD_NOTIFICATION':
-      const newNotifications = [action.payload, ...state.notifications]
-      return {
-        ...state,
-        notifications: newNotifications,
-        unreadCount: newNotifications.filter(n => !n.is_read).length
-      }
-    
-    case 'MARK_AS_READ':
-      const updatedNotifications = state.notifications.map(n =>
-        n.id === action.payload ? { ...n, is_read: true, read_at: new Date().toISOString() } : n
-      )
-      return {
-        ...state,
-        notifications: updatedNotifications,
-        unreadCount: updatedNotifications.filter(n => !n.is_read).length
-      }
-    
-    case 'MARK_ALL_AS_READ':
-      const allReadNotifications = state.notifications.map(n => ({ 
-        ...n, 
-        is_read: true, 
-        read_at: new Date().toISOString() 
-      }))
-      return {
-        ...state,
-        notifications: allReadNotifications,
-        unreadCount: 0
-      }
-    
-    case 'SET_CONNECTION_STATUS':
-      return {
-        ...state,
-        isConnected: action.payload
-      }
-    
-    case 'ADD_TOAST':
-      return {
-        ...state,
-        toasts: [...state.toasts, action.payload]
-      }
-    
-    case 'REMOVE_TOAST':
-      return {
-        ...state,
-        toasts: state.toasts.filter(t => t.id !== action.payload)
-      }
-    
-    case 'TOGGLE_SOUND':
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('notifications-sound', action.payload.toString())
-      }
-      return {
-        ...state,
-        soundEnabled: action.payload
-      }
-    
-    case 'TOGGLE_PUSH':
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('notifications-push', action.payload.toString())
-      }
-      return {
-        ...state,
-        pushEnabled: action.payload
-      }
-    
-    default:
-      return state
-  }
+  fetchNotifications: () => Promise<void>
+  addToast: (message: string, type?: 'success' | 'error' | 'loading' | 'custom') => void
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined)
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(notificationReducer, initialState)
   const { user } = useAuthStore()
-  const subscriptionRef = useRef<any>(null)
-  const audioContextRef = useRef<AudioContext | null>(null)
+  const [notifications, setNotifications] = useState<DashboardNotification[]>([])
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'connecting'>('disconnected')
+  
+  // Calculate unread count
+  const unreadCount = notifications.filter(n => !n.read).length
 
-  // Initialize audio context for notification sounds
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'AudioContext' in window) {
-      audioContextRef.current = new AudioContext()
+  // Add toast notification using React Hot Toast
+  const addToast = useCallback((message: string, type: 'success' | 'error' | 'loading' | 'custom' = 'custom') => {
+    switch (type) {
+      case 'success':
+        toast.success(message)
+        break
+      case 'error':
+        toast.error(message)
+        break
+      case 'loading':
+        toast.loading(message)
+        break
+      default:
+        toast(message, {
+          icon: '🔔',
+          style: {
+            borderRadius: '10px',
+            background: '#333',
+            color: '#fff',
+          },
+        })
     }
   }, [])
 
-  // Play notification sound
-  const playNotificationSound = useCallback(async (type: NotificationType) => {
-    if (!state.soundEnabled || !audioContextRef.current) return
-
-    try {
-      // Create different tones for different notification types
-      const frequencies = {
-        info: 800,
-        success: 1000,
-        warning: 600,
-        error: 400,
-        service_update: 900,
-        appointment_reminder: 750
-      }
-
-      const frequency = frequencies[type] || 800
-      const oscillator = audioContextRef.current.createOscillator()
-      const gainNode = audioContextRef.current.createGain()
-
-      oscillator.connect(gainNode)
-      gainNode.connect(audioContextRef.current.destination)
-
-      oscillator.frequency.setValueAtTime(frequency, audioContextRef.current.currentTime)
-      oscillator.type = 'sine'
-
-      gainNode.gain.setValueAtTime(0, audioContextRef.current.currentTime)
-      gainNode.gain.linearRampToValueAtTime(0.3, audioContextRef.current.currentTime + 0.1)
-      gainNode.gain.linearRampToValueAtTime(0, audioContextRef.current.currentTime + 0.5)
-
-      oscillator.start(audioContextRef.current.currentTime)
-      oscillator.stop(audioContextRef.current.currentTime + 0.5)
-    } catch (error) {
-      console.warn('Could not play notification sound:', error)
-    }
-  }, [state.soundEnabled])
-
-  // Request push notification permission
-  const requestPushPermission = useCallback(async () => {
-    if ('Notification' in window && 'serviceWorker' in navigator) {
-      const permission = await Notification.requestPermission()
-      const enabled = permission === 'granted'
-      dispatch({ type: 'TOGGLE_PUSH', payload: enabled })
-      return enabled
-    }
-    return false
-  }, [])
-
-  // Show browser push notification
-  const showPushNotification = useCallback((notification: DashboardNotification) => {
-    if (!state.pushEnabled || !('Notification' in window) || Notification.permission !== 'granted') {
+  // Fetch notifications from database
+  const fetchNotifications = useCallback(async () => {
+    if (!user?.id) {
       return
     }
 
-    const notif = new Notification(notification.title, {
-      body: notification.message,
-      icon: '/icon-192x192.png',
-      badge: '/icon-192x192.png',
-      tag: notification.id,
-      requireInteraction: notification.type === 'error' || notification.type === 'appointment_reminder',
-      data: {
-        notificationId: notification.id,
-        actionUrl: notification.action_url
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching notifications:', error)
+        addToast('Error loading notifications', 'error')
+        return
       }
-    })
+      
+      // Transform data to match DashboardNotification type
+      const transformedNotifications: DashboardNotification[] = data.map(notification => ({
+        id: notification.id,
+        title: notification.title,
+        message: notification.message,
+        type: notification.type as NotificationType,
+        read: notification.read || false,
+        created_at: notification.created_at,
+        read_at: notification.read_at || undefined,
+        user_id: notification.user_id
+      }))
 
-    notif.onclick = () => {
-      window.focus()
-      if (notification.action_url) {
-        window.location.href = notification.action_url
-      }
-      notif.close()
+      setNotifications(transformedNotifications)
+    } catch (error) {
+      console.error('Unexpected error fetching notifications:', error)
+      addToast('Failed to load notifications', 'error')
     }
+  }, [user?.id, addToast])
 
-    // Auto-close after 10 seconds unless it requires interaction
-    if (!notif.requireInteraction) {
-      setTimeout(() => notif.close(), 10000)
-    }
-  }, [state.pushEnabled])
-
-  // Load notifications from database
-  const refreshNotifications = useCallback(async () => {
+  // Mark notification as read
+  const markAsRead = useCallback(async (notificationId: string) => {
     if (!user?.id) return
 
     try {
-      const notifications = await db.getNotifications(user.id)
-      dispatch({ type: 'SET_NOTIFICATIONS', payload: notifications || [] })
-    } catch (error) {
-      console.error('Error loading notifications:', error)
-    }
-  }, [user?.id])
-
-  const removeToast = useCallback((id: string) => {
-    dispatch({ type: 'REMOVE_TOAST', payload: id })
-  }, [])
-
-  const showToast = useCallback((toast: Omit<ToastNotification, 'id' | 'timestamp'>) => {
-    const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-    const toastWithId: ToastNotification = {
-      ...toast,
-      id,
-      timestamp: Date.now()
-    }
-
-    dispatch({ type: 'ADD_TOAST', payload: toastWithId })
-
-    // Auto-remove toast after duration
-    setTimeout(() => {
-      removeToast(id)
-    }, toast.duration || 5000)
-  }, [removeToast])
-
-  // Setup real-time subscription
-  useEffect(() => {
-    if (!user?.id) return
-
-    const setupSubscription = async () => {
-      try {
-        // Load initial notifications
-        await refreshNotifications()
-
-        // Setup real-time subscription
-        subscriptionRef.current = db.subscribeToNotifications(user.id, (payload) => {
-          console.log('Real-time notification:', payload)
-          
-          if (payload.eventType === 'INSERT') {
-            const newNotification = payload.new as DashboardNotification
-            
-            // Add to state
-            dispatch({ type: 'ADD_NOTIFICATION', payload: newNotification })
-            
-            // Play sound
-            playNotificationSound(newNotification.type)
-            
-            // Show push notification
-            showPushNotification(newNotification)
-            
-            // Show toast
-            showToast({
-              title: newNotification.title,
-              message: newNotification.message,
-              type: newNotification.type,
-              duration: 5000,
-              actions: newNotification.action_url ? [{
-                label: newNotification.action_label || 'Ver',
-                action: () => window.location.href = newNotification.action_url!,
-                style: 'primary'
-              }] : undefined
-            })
-          }
+      const { error } = await supabase
+        .from('notifications')
+        .update({ 
+          read: true,
+          read_at: new Date().toISOString()
         })
+        .eq('id', notificationId)
+        .eq('user_id', user.id)
 
-        dispatch({ type: 'SET_CONNECTION_STATUS', payload: true })
-      } catch (error) {
-        console.error('Error setting up notification subscription:', error)
-        dispatch({ type: 'SET_CONNECTION_STATUS', payload: false })
-      }
-    }
-
-    setupSubscription()
-
-    return () => {
-      if (subscriptionRef.current) {
-        subscriptionRef.current.unsubscribe()
-      }
-    }
-  }, [user?.id, playNotificationSound, showPushNotification, refreshNotifications, showToast])
-
-  // Context methods
-  const addNotification = useCallback(async (notification: Omit<DashboardNotification, 'id' | 'created_at'>) => {
-    if (!user?.id) return
-
-    try {
-      const newNotification: Omit<DashboardNotification, 'id'> = {
-        ...notification,
-        user_id: user.id,
-        created_at: new Date().toISOString()
+      if (error) {
+        console.error('Error marking notification as read:', error)
+        addToast('Error updating notification', 'error')
+        return
       }
 
-      // Insert into database (this will trigger the real-time subscription)
-      await db.createNotification(newNotification)
-
+      // Update local state
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification.id === notificationId 
+            ? { ...notification, read: true, read_at: new Date().toISOString() }
+            : notification
+        )
+      )
     } catch (error) {
-      console.error('Error adding notification:', error)
+      console.error('Unexpected error marking notification as read:', error)
+      addToast('Failed to update notification', 'error')
     }
-  }, [user?.id])
+  }, [user?.id, addToast])
 
-  const markAsRead = useCallback(async (id: string) => {
-    try {
-      await db.markNotificationAsRead(id)
-      dispatch({ type: 'MARK_AS_READ', payload: id })
-    } catch (error) {
-      console.error('Error marking notification as read:', error)
-    }
-  }, [])
-
+  // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
-    if (!user?.id) return
+    if (!user?.id || unreadCount === 0) return
 
     try {
-      const unreadIds = state.notifications
-        .filter(n => !n.is_read)
+      const unreadIds = notifications
+        .filter(n => !n.read)
         .map(n => n.id)
 
-      // Update all unread notifications in database
-      await Promise.all(
-        unreadIds.map(id => db.markNotificationAsRead(id))
+      if (unreadIds.length === 0) return
+
+      const { error } = await supabase
+        .from('notifications')
+        .update({ 
+          read: true,
+          read_at: new Date().toISOString()
+        })
+        .in('id', unreadIds)
+        .eq('user_id', user.id)
+
+      if (error) {
+        console.error('Error marking all notifications as read:', error)
+        addToast('Error updating notifications', 'error')
+        return
+      }
+
+      // Update local state
+      const readAt = new Date().toISOString()
+      setNotifications(prev => 
+        prev.map(notification => 
+          !notification.read 
+            ? { ...notification, read: true, read_at: readAt }
+            : notification
+        )
       )
 
-      dispatch({ type: 'MARK_ALL_AS_READ' })
+      addToast('All notifications marked as read', 'success')
     } catch (error) {
-      console.error('Error marking all notifications as read:', error)
+      console.error('Unexpected error marking all notifications as read:', error)
+      addToast('Failed to update notifications', 'error')
     }
-  }, [user?.id, state.notifications])
+  }, [user?.id, notifications, unreadCount, addToast])
 
-
-
-  const toggleSound = useCallback(() => {
-    dispatch({ type: 'TOGGLE_SOUND', payload: !state.soundEnabled })
-  }, [state.soundEnabled])
-
-  const togglePush = useCallback(async () => {
-    if (!state.pushEnabled) {
-      const enabled = await requestPushPermission()
-      if (!enabled) return
-    } else {
-      dispatch({ type: 'TOGGLE_PUSH', payload: false })
+  // Set up real-time subscription
+  useEffect(() => {
+    if (!user?.id) {
+      setConnectionStatus('disconnected')
+      return
     }
-  }, [state.pushEnabled, requestPushPermission])
 
-  const contextValue: NotificationContextType = {
-    state,
-    addNotification,
+    setConnectionStatus('connecting')
+
+    // Initial fetch
+    fetchNotifications()
+
+    // Set up real-time subscription
+    const subscription = supabase
+      .channel('notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newNotification = payload.new as any
+            const transformedNotification: DashboardNotification = {
+              id: newNotification.id,
+              title: newNotification.title,
+              message: newNotification.message,
+              type: newNotification.type as NotificationType,
+              read: newNotification.read || false,
+              created_at: newNotification.created_at,
+              read_at: newNotification.read_at || undefined,
+              user_id: newNotification.user_id
+            }
+            
+            setNotifications(prev => [transformedNotification, ...prev])
+            
+            // Show toast for new notification
+            addToast(`${newNotification.title}: ${newNotification.message}`, 'custom')
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedNotification = payload.new as any
+            const transformedNotification: DashboardNotification = {
+              id: updatedNotification.id,
+              title: updatedNotification.title,
+              message: updatedNotification.message,
+              type: updatedNotification.type as NotificationType,
+              read: updatedNotification.read || false,
+              created_at: updatedNotification.created_at,
+              read_at: updatedNotification.read_at || undefined,
+              user_id: updatedNotification.user_id
+            }
+            
+            setNotifications(prev => 
+              prev.map(notification => 
+                notification.id === updatedNotification.id 
+                  ? transformedNotification
+                  : notification
+              )
+            )
+          } else if (payload.eventType === 'DELETE') {
+            setNotifications(prev => 
+              prev.filter(notification => notification.id !== payload.old.id)
+            )
+          }
+        }
+      )
+      .subscribe((status) => {
+        setConnectionStatus(status === 'SUBSCRIBED' ? 'connected' : 'disconnected')
+      })
+
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe()
+      setConnectionStatus('disconnected')
+    }
+  }, [user?.id, fetchNotifications, addToast])
+
+  const value: NotificationContextType = {
+    notifications,
+    unreadCount,
+    connectionStatus,
     markAsRead,
     markAllAsRead,
-    showToast,
-    removeToast,
-    toggleSound,
-    togglePush,
-    refreshNotifications
+    fetchNotifications,
+    addToast
   }
 
   return (
-    <NotificationContext.Provider value={contextValue}>
+    <NotificationContext.Provider value={value}>
       {children}
     </NotificationContext.Provider>
   )
@@ -417,5 +269,8 @@ export function useNotifications() {
   }
   return context
 }
+
+// Export types for component usage  
+export type { NotificationType, DashboardNotification } from '@/types'
 
  

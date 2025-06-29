@@ -1,301 +1,250 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { useNotifications } from '@/contexts/NotificationContext'
-import { Bell, Zap, Calendar, AlertTriangle, CheckCircle, Info, AlertCircle } from 'lucide-react'
+import { useAuthStore } from '@/store/auth'
+import { Bell, Send, TestTube } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 export function NotificationDemo() {
-  const { addNotification, showToast } = useNotifications()
+  const { notifications, unreadCount, connectionStatus, addToast } = useNotifications()
+  const { user } = useAuthStore()
+  const [isCreating, setIsCreating] = useState(false)
+  const [testNotification, setTestNotification] = useState({
+    title: 'Nueva notificación de prueba',
+    message: 'Esta es una notificación generada para probar el sistema.',
+    type: 'system' as const
+  })
 
-  const triggerNotification = async (type: 'info' | 'success' | 'warning' | 'error' | 'service_update' | 'appointment_reminder') => {
-    const notifications = {
-      info: {
-        title: 'Información',
-        message: 'Esta es una notificación informativa de prueba',
-        type: 'info' as const,
-        action_url: '/dashboard',
-        action_label: 'Ver Dashboard'
-      },
-      success: {
-        title: 'Servicio Completado',
-        message: 'Tu instalación eléctrica ha sido completada exitosamente',
-        type: 'success' as const,
-        action_url: '/customer-dashboard',
-        action_label: 'Ver Detalles'
-      },
-      warning: {
-        title: 'Cita Pendiente',
-        message: 'Tu técnico llegará en 30 minutos. Por favor prepara el área de trabajo',
-        type: 'warning' as const,
-        action_url: '/booking',
-        action_label: 'Ver Cita'
-      },
-      error: {
-        title: 'Error de Conexión',
-        message: 'No se pudo conectar con el servidor. Verificando conexión...',
-        type: 'error' as const,
-        action_url: undefined,
-        action_label: undefined
-      },
-      service_update: {
-        title: 'Actualización de Servicio',
-        message: 'El técnico Juan Pérez está en camino a tu ubicación',
-        type: 'service_update' as const,
-        action_url: '/pre-service',
-        action_label: 'Ver Estado'
-      },
-      appointment_reminder: {
-        title: 'Recordatorio de Cita',
-        message: 'Tu cita de mantenimiento eléctrico es mañana a las 2:00 PM',
-        type: 'appointment_reminder' as const,
-        action_url: '/confirmation',
-        action_label: 'Ver Detalles'
-      }
+  const handleCreateTestNotification = async () => {
+    if (!user?.id) {
+      addToast('Debes iniciar sesión para crear notificaciones', 'error')
+      return
     }
 
-    const notification = notifications[type]
-    
-    // Add to database (triggers real-time notification)
-    await addNotification({
-      user_id: 'demo-user',
-      title: notification.title,
-      message: notification.message,
-      type: notification.type,
-      is_read: false,
-      action_url: notification.action_url || undefined,
-      action_label: notification.action_label || undefined
-    })
+    setIsCreating(true)
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .insert({
+          user_id: user.id,
+          title: testNotification.title,
+          message: testNotification.message,
+          type: testNotification.type,
+          read: false
+        })
+
+      if (error) {
+        throw error
+      }
+
+      addToast('Notificación de prueba creada exitosamente', 'success')
+      
+      // Reset form
+      setTestNotification({
+        title: 'Nueva notificación de prueba',
+        message: 'Esta es una notificación generada para probar el sistema.',
+        type: 'system'
+      })
+    } catch (error) {
+      console.error('Error creating test notification:', error)
+      addToast('Error al crear la notificación de prueba', 'error')
+    } finally {
+      setIsCreating(false)
+    }
   }
 
-  const triggerToast = (type: 'info' | 'success' | 'warning' | 'error' | 'service_update' | 'appointment_reminder') => {
-    const toasts = {
-      info: {
-        title: 'Nueva Información',
-        message: 'Toast de información con acción',
-        type: 'info' as const,
-        duration: 5000,
-        actions: [{
-          label: 'Ver Más',
-          action: () => console.log('Ver más clicked'),
-          style: 'primary' as const
-        }]
-      },
-      success: {
-        title: '¡Éxito!',
-        message: 'Operación completada correctamente',
-        type: 'success' as const,
-        duration: 4000
-      },
-      warning: {
-        title: 'Atención',
-        message: 'Revisa la información antes de continuar',
-        type: 'warning' as const,
-        duration: 6000,
-        actions: [
-          {
-            label: 'Revisar',
-            action: () => console.log('Revisar clicked'),
-            style: 'primary' as const
-          },
-          {
-            label: 'Ignorar',
-            action: () => console.log('Ignorar clicked'),
-            style: 'secondary' as const
-          }
-        ]
-      },
-      error: {
-        title: 'Error',
-        message: 'Algo salió mal. Por favor intenta nuevamente',
-        type: 'error' as const,
-        duration: 8000,
-        actions: [{
-          label: 'Reintentar',
-          action: () => console.log('Reintentar clicked'),
-          style: 'danger' as const
-        }]
-      },
-      service_update: {
-        title: 'Actualización de Servicio',
-        message: 'Tu técnico ha actualizado el estado del trabajo',
-        type: 'service_update' as const,
-        duration: 5000,
-        actions: [{
-          label: 'Ver Estado',
-          action: () => console.log('Ver estado clicked'),
-          style: 'primary' as const
-        }]
-      },
-      appointment_reminder: {
-        title: 'Recordatorio',
-        message: 'Tu cita es en 1 hora',
-        type: 'appointment_reminder' as const,
-        duration: 7000,
-        actions: [
-          {
-            label: 'Confirmar',
-            action: () => console.log('Confirmar clicked'),
-            style: 'primary' as const
-          },
-          {
-            label: 'Reprogramar',
-            action: () => console.log('Reprogramar clicked'),
-            style: 'secondary' as const
-          }
-        ]
-      }
+  const handleToastTest = (type: 'success' | 'error' | 'loading' | 'custom') => {
+    switch (type) {
+      case 'success':
+        addToast('¡Operación exitosa!', 'success')
+        break
+      case 'error':
+        addToast('Error en la operación', 'error')
+        break
+      case 'loading':
+        addToast('Procesando...', 'loading')
+        break
+      case 'custom':
+        addToast('Notificación personalizada', 'custom')
+        break
     }
-
-    showToast(toasts[type])
   }
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-lg max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <Bell className="w-6 h-6 text-blue-600" />
-          Demo de Notificaciones en Tiempo Real
-        </h2>
+    <div className="max-w-4xl mx-auto p-6 space-y-8">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Sistema de Notificaciones
+        </h1>
         <p className="text-gray-600">
-          Prueba el sistema de notificaciones con diferentes tipos y estilos
+          Demostración del sistema de notificaciones en tiempo real
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Database Notifications */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-blue-600" />
-            Notificaciones de Base de Datos
-          </h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Estas notificaciones se guardan en la base de datos y aparecen en el panel de notificaciones
-          </p>
-          <div className="space-y-3">
-            <button
-              onClick={() => triggerNotification('info')}
-              className="w-full flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
-            >
-              <Info className="w-5 h-5 text-blue-600" />
-              <span className="text-blue-800 font-medium">Información</span>
-            </button>
-            
-            <button
-              onClick={() => triggerNotification('success')}
-              className="w-full flex items-center gap-3 p-3 bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg transition-colors"
-            >
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="text-green-800 font-medium">Éxito</span>
-            </button>
-            
-            <button
-              onClick={() => triggerNotification('warning')}
-              className="w-full flex items-center gap-3 p-3 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 rounded-lg transition-colors"
-            >
-              <AlertTriangle className="w-5 h-5 text-yellow-600" />
-              <span className="text-yellow-800 font-medium">Advertencia</span>
-            </button>
-            
-            <button
-              onClick={() => triggerNotification('error')}
-              className="w-full flex items-center gap-3 p-3 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
-            >
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              <span className="text-red-800 font-medium">Error</span>
-            </button>
-            
-            <button
-              onClick={() => triggerNotification('service_update')}
-              className="w-full flex items-center gap-3 p-3 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-colors"
-            >
-              <Zap className="w-5 h-5 text-purple-600" />
-              <span className="text-purple-800 font-medium">Actualización de Servicio</span>
-            </button>
-            
-            <button
-              onClick={() => triggerNotification('appointment_reminder')}
-              className="w-full flex items-center gap-3 p-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors"
-            >
-              <Calendar className="w-5 h-5 text-indigo-600" />
-              <span className="text-indigo-800 font-medium">Recordatorio de Cita</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Toast Notifications */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-orange-600" />
-            Notificaciones Toast
-          </h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Estas notificaciones aparecen temporalmente en la esquina superior derecha
-          </p>
-          <div className="space-y-3">
-            <button
-              onClick={() => triggerToast('info')}
-              className="w-full flex items-center gap-3 p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors"
-            >
-              <Info className="w-5 h-5 text-blue-600" />
-              <span className="text-blue-800 font-medium">Toast Información</span>
-            </button>
-            
-            <button
-              onClick={() => triggerToast('success')}
-              className="w-full flex items-center gap-3 p-3 bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg transition-colors"
-            >
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="text-green-800 font-medium">Toast Éxito</span>
-            </button>
-            
-            <button
-              onClick={() => triggerToast('warning')}
-              className="w-full flex items-center gap-3 p-3 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 rounded-lg transition-colors"
-            >
-              <AlertTriangle className="w-5 h-5 text-yellow-600" />
-              <span className="text-yellow-800 font-medium">Toast Advertencia</span>
-            </button>
-            
-            <button
-              onClick={() => triggerToast('error')}
-              className="w-full flex items-center gap-3 p-3 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
-            >
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              <span className="text-red-800 font-medium">Toast Error</span>
-            </button>
-            
-            <button
-              onClick={() => triggerToast('service_update')}
-              className="w-full flex items-center gap-3 p-3 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg transition-colors"
-            >
-              <Zap className="w-5 h-5 text-purple-600" />
-              <span className="text-purple-800 font-medium">Toast Servicio</span>
-            </button>
-            
-            <button
-              onClick={() => triggerToast('appointment_reminder')}
-              className="w-full flex items-center gap-3 p-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-lg transition-colors"
-            >
-              <Calendar className="w-5 h-5 text-indigo-600" />
-              <span className="text-indigo-800 font-medium">Toast Recordatorio</span>
-            </button>
-          </div>
+      {/* Connection Status */}
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <h2 className="text-xl font-semibold mb-4 flex items-center">
+          <Bell className="w-5 h-5 mr-2" />
+          Estado de Conexión
+        </h2>
+        <div className="flex items-center space-x-3">
+          <div className={`w-3 h-3 rounded-full ${
+            connectionStatus === 'connected' ? 'bg-green-500' : 
+            connectionStatus === 'connecting' ? 'bg-yellow-500' : 'bg-red-500'
+          }`} />
+          <span className="font-medium">
+            {connectionStatus === 'connected' ? 'Conectado' : 
+             connectionStatus === 'connecting' ? 'Conectando...' : 'Desconectado'}
+          </span>
+          <span className="text-gray-500">
+            ({notifications.length} notificaciones, {unreadCount} sin leer)
+          </span>
         </div>
       </div>
 
-      <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-        <h4 className="font-semibold text-gray-900 mb-2">Características del Sistema:</h4>
-        <ul className="text-sm text-gray-600 space-y-1">
-          <li>• <strong>Real-time:</strong> Notificaciones instantáneas vía Supabase WebSocket</li>
-          <li>• <strong>Sonidos:</strong> Tonos diferentes para cada tipo de notificación</li>
-          <li>• <strong>Push:</strong> Notificaciones del navegador (requiere permisos)</li>
-          <li>• <strong>Persistencia:</strong> Las notificaciones se guardan en la base de datos</li>
-          <li>• <strong>Acciones:</strong> Botones interactivos en toasts y notificaciones</li>
-          <li>• <strong>Configuración:</strong> Control de sonidos y notificaciones push</li>
-        </ul>
+      {/* Toast Test Buttons */}
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <h2 className="text-xl font-semibold mb-4">
+          Prueba de Toasts
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <button
+            onClick={() => handleToastTest('success')}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Toast Éxito
+          </button>
+          <button
+            onClick={() => handleToastTest('error')}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Toast Error
+          </button>
+          <button
+            onClick={() => handleToastTest('loading')}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Toast Cargando
+          </button>
+          <button
+            onClick={() => handleToastTest('custom')}
+            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Toast Personalizado
+          </button>
+        </div>
+      </div>
+
+      {/* Create Test Notification */}
+      {user && (
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <h2 className="text-xl font-semibold mb-4 flex items-center">
+            <TestTube className="w-5 h-5 mr-2" />
+            Crear Notificación de Prueba
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Título
+              </label>
+              <input
+                type="text"
+                value={testNotification.title}
+                onChange={(e) => setTestNotification({...testNotification, title: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Mensaje
+              </label>
+              <textarea
+                value={testNotification.message}
+                onChange={(e) => setTestNotification({...testNotification, message: e.target.value})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                rows={3}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tipo
+              </label>
+              <select
+                value={testNotification.type}
+                onChange={(e) => setTestNotification({...testNotification, type: e.target.value as any})}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="system">Sistema</option>
+                <option value="appointment">Cita</option>
+                <option value="emergency">Emergencia</option>
+                <option value="marketing">Marketing</option>
+              </select>
+            </div>
+            <button
+              onClick={handleCreateTestNotification}
+              disabled={isCreating}
+              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-blue-300 transition-colors"
+            >
+              <Send className="w-4 h-4" />
+              <span>{isCreating ? 'Creando...' : 'Crear Notificación'}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Current Notifications */}
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <h2 className="text-xl font-semibold mb-4">
+          Notificaciones Actuales ({notifications.length})
+        </h2>
+        {notifications.length === 0 ? (
+          <p className="text-gray-500 text-center py-8">
+            No hay notificaciones para mostrar
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {notifications.slice(0, 5).map((notification) => (
+              <div
+                key={notification.id}
+                className={`p-4 rounded-lg border ${
+                  notification.read ? 'bg-gray-50 border-gray-200' : 'bg-blue-50 border-blue-200'
+                }`}
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">{notification.title}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {new Date(notification.created_at).toLocaleString('es-DO')}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      notification.type === 'system' ? 'bg-blue-100 text-blue-800' :
+                      notification.type === 'appointment' ? 'bg-green-100 text-green-800' :
+                      notification.type === 'emergency' ? 'bg-red-100 text-red-800' :
+                      'bg-purple-100 text-purple-800'
+                    }`}>
+                      {notification.type}
+                    </span>
+                    {notification.read ? (
+                      <span className="text-xs text-gray-500">Leída</span>
+                    ) : (
+                      <span className="text-xs text-blue-600 font-medium">Nueva</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            {notifications.length > 5 && (
+              <p className="text-sm text-gray-500 text-center">
+                ... y {notifications.length - 5} más
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
-}
-
-export default NotificationDemo 
+} 

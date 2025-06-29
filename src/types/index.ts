@@ -7,7 +7,7 @@ export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
 export type ServiceStatus = 'pending' | 'confirmed' | 'en_route' | 'in_progress' | 'completed' | 'cancelled';
 
-export type NotificationType = 'info' | 'success' | 'warning' | 'error' | 'service_update' | 'appointment_reminder';
+export type NotificationType = 'system' | 'appointment' | 'emergency' | 'marketing';
 
 // Core interfaces
 export interface Customer {
@@ -65,6 +65,7 @@ export interface User {
   profile_picture?: string;
   is_active: boolean;
   last_login?: string;
+  password_hash?: string;
   created_at: string;
   updated_at: string;
   electrician_profile?: ElectricianProfile;
@@ -132,10 +133,11 @@ export interface DashboardNotification {
   title: string;
   message: string;
   type: NotificationType;
-  is_read: boolean;
+  read: boolean;
+  priority?: 'low' | 'medium' | 'high';
+  data?: any;
   action_url?: string;
   action_label?: string;
-  related_service_id?: string;
   created_at: string;
   read_at?: string;
 }
@@ -263,6 +265,7 @@ export interface UsersTable {
   name: string;
   user_type: UserType;
   email?: string;
+  password_hash: string;
   profile_picture?: string;
   is_active: boolean;
   last_login?: string;
@@ -441,10 +444,8 @@ export const STATUS_TRANSLATIONS: Record<ServiceStatus, string> = {
 };
 
 export const NOTIFICATION_TRANSLATIONS: Record<NotificationType, string> = {
-  info: 'Información',
-  success: 'Éxito',
-  warning: 'Advertencia',
-  error: 'Error',
-  service_update: 'Actualización de Servicio',
-  appointment_reminder: 'Recordatorio de Cita'
+  system: 'Sistema',
+  appointment: 'Cita',
+  emergency: 'Emergencia',
+  marketing: 'Marketing'
 }; 

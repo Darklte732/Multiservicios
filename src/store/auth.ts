@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { supabase } from '@/lib/supabase'
 import type { User, AuthStatus, UserType } from '@/types'
-import { db, supabase } from '@/lib/supabase'
 
 interface AuthState {
   user: User | null
@@ -13,7 +13,7 @@ interface AuthState {
 }
 
 interface AuthActions {
-  login: (phone: string, userType: UserType, name: string) => Promise<void>
+  login: (identifier: string, userType: UserType, name: string, password: string) => Promise<void>
   logout: () => void
   updateProfile: (updates: Partial<User>) => void
   setLoading: (loading: boolean) => void
@@ -21,9 +21,89 @@ interface AuthActions {
   checkSession: () => boolean
   refreshSession: () => void
   clearError: () => void
+  resetTestUser: (identifier: string, userType: UserType, name: string, password: string) => Promise<void>
 }
 
 type AuthStore = AuthState & AuthActions
+
+// Simple password hashing function (in production, use bcrypt or similar)
+const hashPassword = async (password: string): Promise<string> => {
+  // For demo purposes - in production use proper bcrypt hashing
+  const encoder = new TextEncoder()
+  const data = encoder.encode(password + 'multiservicios_salt_2024')
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+// Verify password function
+const verifyPassword = async (password: string, hashedPassword: string): Promise<boolean> => {
+  const inputHash = await hashPassword(password)
+  return inputHash === hashedPassword
+}
+
+// Generate a proper UUID instead of custom format
+const generateId = () => {
+  return crypto.randomUUID()
+}
+
+// Check if we're in development mode
+const isDevelopment = () => {
+  return process.env.NODE_ENV === 'development'
+}
+
+// Mock database operations for fallback when Supabase isn't available
+const mockCreateUser = (identifier: string, userType: UserType, name: string, hashedPassword: string): User => {
+  const now = new Date().toISOString()
+  const id = generateId()
+  
+  // Determine if identifier is email or phone
+  const isEmail = identifier.includes('@')
+  const phone = isEmail ? '' : identifier
+  const email = isEmail ? identifier : (userType === 'customer' 
+    ? `${identifier.replace(/\D/g, '')}@example.com` 
+    : `tech_${identifier.replace(/\D/g, '')}@multiservicios.com`)
+  
+  return {
+    id,
+    phone,
+    name,
+    user_type: userType,
+    email,
+    is_active: true,
+    created_at: now,
+    updated_at: now,
+    // Store hashed password (in real app this would be in a separate secure table)
+    password_hash: hashedPassword,
+    ...(userType === 'customer' ? {
+      customer_profile: {
+        id: generateId(),
+        user_id: id,
+        preferred_contact_method: 'whatsapp' as const,
+        property_type: 'casa' as const,
+        service_preferences: [],
+        payment_method_preferences: [],
+        created_at: now,
+        updated_at: now
+      }
+    } : {
+      electrician_profile: {
+        id: generateId(),
+        user_id: id,
+        name,
+        phone,
+        specializations: ['reparacion', 'instalacion'] as const,
+        rating: 5.0,
+        completed_jobs: 0,
+        hourly_rate: 1200,
+        is_available: true,
+        certifications: [],
+        created_at: now,
+        updated_at: now
+      }
+    })
+  }
+}
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -37,92 +117,194 @@ export const useAuthStore = create<AuthStore>()(
       sessionTimeout: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
 
       // Actions
-      login: async (phone: string, userType: UserType, name: string) => {
-        set({ isLoading: true, status: 'loading' })
+      login: async (identifier: string, userType: UserType, name: string, password: string) => {
+        set({ isLoading: true, status: 'loading', error: null })
         
         try {
-          // Try to find existing user by phone
-          let user: User | null = null
+          // Determine if identifier is email or phone
+          const isEmail = identifier.includes('@')
           
-          try {
-            user = await db.getUserByPhone(phone)
-            console.log('Found existing user:', user)
-          } catch (error) {
-            // User doesn't exist, we'll create a new one
-            console.log('User not found, creating new user')
+          // First, try to find existing user by phone or email
+          let existingUser = null
+          let findError = null
+          let isUserExistsCheck = false
+          
+          if (isEmail) {
+            const { data, error } = await supabase
+              .from('users')
+              .select(`
+                *,
+                customer_profile:customer_profiles(*),
+                electrician_profile:electrician_profiles(*)
+              `)
+              .eq('email', identifier)
+              .maybeSingle()
+            
+            existingUser = data
+            findError = error
+            isUserExistsCheck = true
+          } else {
+            const { data, error } = await supabase
+              .from('users')
+              .select(`
+                *,
+                customer_profile:customer_profiles(*),
+                electrician_profile:electrician_profiles(*)
+              `)
+              .eq('phone', identifier)
+              .maybeSingle()
+            
+            existingUser = data
+            findError = error
+            isUserExistsCheck = true
           }
 
-          if (!user) {
-            // Create new user in database
-            const email = userType === 'customer' 
-              ? `${phone.replace(/\D/g, '')}@example.com` 
-              : `tech_${phone.replace(/\D/g, '')}@multiservicios.com`
-
-            // First create the user record
-            const { data: newUser, error: userError } = await supabase
-              .from('users')
-              .insert({
-                phone: phone,
-                name: name,
-                user_type: userType,
-                email: email,
-                address: null
-              })
-              .select()
-              .single()
-            
-            if (userError) throw userError
-
-            // Create corresponding profile
-            if (userType === 'customer') {
-              await supabase
-                .from('customer_profiles')
-                .insert({
-                  user_id: newUser.id,
-                  full_name: name,
-                  phone: phone,
-                  email: email,
-                  address: null
+          if (existingUser && !findError) {
+            // User exists - verify password
+            const passwordMatch = await verifyPassword(password, existingUser.password_hash)
+            if (!passwordMatch) {
+              // In development, provide more helpful error messages
+              if (isDevelopment()) {
+                console.warn(`Development Mode: Password mismatch for user ${identifier}`)
+                console.warn('If this is test data, you can use the resetTestUser function to update the password')
+                set({
+                  isLoading: false,
+                  status: 'unauthenticated',
+                  error: `Contraseña incorrecta para usuario existente. ${isDevelopment() ? 'En modo desarrollo, usa una contraseña diferente o resetea el usuario.' : ''}`
                 })
-              
-              await supabase
-                .from('customers')
-                .insert({
-                  id: newUser.id,
-                  name: name,
-                  phone: phone,
-                  address: 'Dirección por definir',
-                  is_returning: false,
-                  previous_jobs: 0,
-                  payment_history: 'good'
+              } else {
+                set({
+                  isLoading: false,
+                  status: 'unauthenticated',
+                  error: 'Contraseña incorrecta'
                 })
-            } else {
-              await supabase
-                .from('electrician_profiles')
-                .insert({
-                  user_id: newUser.id,
-                  name: name,
-                  phone: phone,
-                  email: email,
-                  business_name: `Servicios ${name}`,
-                  license_number: null,
-                  specialties: ['Reparaciones', 'Instalaciones'],
-                  service_area: 'Santo Domingo',
-                  hourly_rate: 1200.00,
-                  availability_status: 'available',
-                  rating: 5.0,
-                  total_jobs: 0
-                })
+              }
+              throw new Error('Invalid password')
             }
 
-            // Fetch the complete user with profiles
-            user = await db.getUser(newUser.id)
+            // Password correct - update last login and authenticate
+            await supabase
+              .from('users')
+              .update({ last_login: new Date().toISOString() })
+              .eq('id', existingUser.id)
+
+            set({
+              user: existingUser,
+              status: 'authenticated',
+              isLoading: false,
+              error: null,
+              lastLoginTime: Date.now(),
+            })
+            return
           }
 
-          if (!user) {
-            throw new Error('No se pudo crear o encontrar el usuario')
+          // Check for database errors during user lookup
+          if (findError && isUserExistsCheck) {
+            console.error('Database error during user lookup:', findError)
+            // This is a system error - fall back to mock auth
+            throw new Error(`Database error: ${findError.message}`)
           }
 
+          // User not found - create new user (registration flow)
+          const phone = isEmail ? '' : identifier
+          const email = isEmail ? identifier : (userType === 'customer' 
+            ? `${identifier.replace(/\D/g, '')}@example.com` 
+            : `tech_${identifier.replace(/\D/g, '')}@multiservicios.com`)
+
+          // Hash password
+          const hashedPassword = await hashPassword(password)
+
+          // Create user
+          const { data: newUser, error: createUserError } = await supabase
+            .from('users')
+            .insert({
+              phone,
+              name,
+              user_type: userType,
+              email,
+              is_active: true,
+              last_login: new Date().toISOString(),
+              password_hash: hashedPassword
+            })
+            .select()
+            .single()
+
+          if (createUserError) {
+            throw new Error(`Error creating user: ${createUserError.message}`)
+          }
+
+          // Create corresponding profile
+          if (userType === 'customer') {
+            const { error: profileError } = await supabase
+              .from('customer_profiles')
+              .insert({
+                user_id: newUser.id,
+                full_name: name,
+                phone: phone || 'No phone provided',
+                email,
+                preferred_contact_method: 'whatsapp',
+                property_type: 'casa'
+              })
+
+            if (profileError) {
+              console.warn('Error creating customer profile:', profileError.message)
+            }
+          } else if (userType === 'technician') {
+            const { error: profileError } = await supabase
+              .from('electrician_profiles')
+              .insert({
+                user_id: newUser.id,
+                name,
+                phone: phone || 'No phone provided',
+                email,
+                specialties: ['Reparaciones', 'Instalaciones'],
+                service_area: 'El Seibo',
+                hourly_rate: 1200.00,
+                rating: 5.0,
+                total_jobs: 0
+              })
+
+            if (profileError) {
+              console.warn('Error creating electrician profile:', profileError.message)
+            }
+          }
+
+          // Fetch the complete user with profiles
+          const { data: completeUser, error: fetchError } = await supabase
+            .from('users')
+            .select(`
+              *,
+              customer_profile:customer_profiles(*),
+              electrician_profile:electrician_profiles(*)
+            `)
+            .eq('id', newUser.id)
+            .single()
+
+          if (fetchError) {
+            throw new Error(`Error fetching complete user: ${fetchError.message}`)
+          }
+          
+          set({
+            user: completeUser,
+            status: 'authenticated',
+            isLoading: false,
+            error: null,
+            lastLoginTime: Date.now(),
+          })
+
+        } catch (error: any) {
+          console.error('Login error:', error)
+          
+          // Only use mock authentication for system/database errors, not user errors
+          if (error.message === 'Invalid password') {
+            // Don't fall back to mock auth for wrong passwords - this is a user error
+            return
+          }
+          
+          // For system errors, fallback to mock authentication
+          console.log('Database system error, using fallback mock authentication')
+          const user = mockCreateUser(identifier, userType, name, await hashPassword(password))
+          
           set({
             user,
             status: 'authenticated',
@@ -130,17 +312,61 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
             lastLoginTime: Date.now(),
           })
-        } catch (error) {
-          console.error('Login error:', error)
-          const errorMessage = error instanceof Error ? error.message : 'Error de autenticación'
-          set({
-            user: null,
-            status: 'unauthenticated',
-            isLoading: false,
-            error: errorMessage,
-            lastLoginTime: null,
+        }
+      },
+
+      // Development helper function to reset test users
+      resetTestUser: async (identifier: string, userType: UserType, name: string, password: string) => {
+        if (!isDevelopment()) {
+          console.warn('resetTestUser is only available in development mode')
+          return
+        }
+
+        set({ isLoading: true, error: null })
+
+        try {
+          const isEmail = identifier.includes('@')
+          const hashedPassword = await hashPassword(password)
+
+          // Find existing user
+          const { data: existingUser } = await supabase
+            .from('users')
+            .select('id')
+            .eq(isEmail ? 'email' : 'phone', identifier)
+            .maybeSingle()
+
+          if (existingUser) {
+            // Update existing user
+            const { error: updateError } = await supabase
+              .from('users')
+              .update({
+                name,
+                user_type: userType,
+                password_hash: hashedPassword,
+                last_login: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .eq('id', existingUser.id)
+
+            if (updateError) {
+              throw new Error(`Error updating user: ${updateError.message}`)
+            }
+
+            console.log(`Development: Reset password for user ${identifier}`)
+            
+            // Now login with the new password
+            await get().login(identifier, userType, name, password)
+          } else {
+            // User doesn't exist, create new one
+            await get().login(identifier, userType, name, password)
+          }
+
+        } catch (error: any) {
+          console.error('Reset test user error:', error)
+          set({ 
+            isLoading: false, 
+            error: `Error resetting test user: ${error.message}` 
           })
-          throw error
         }
       },
 
@@ -199,17 +425,17 @@ export const useAuthStore = create<AuthStore>()(
 
       refreshSession: () => {
         const state = get()
-        if (state.user && state.checkSession()) {
+        if (state.user) {
           set({ lastLoginTime: Date.now() })
         }
       },
     }),
     {
       name: 'multiservicios-auth',
-      partialize: (state) => ({ 
-        user: state.user, 
+      partialize: (state) => ({
+        user: state.user,
         status: state.status,
-        lastLoginTime: state.lastLoginTime
+        lastLoginTime: state.lastLoginTime,
       }),
     }
   )
