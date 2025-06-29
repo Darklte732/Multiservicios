@@ -13,7 +13,7 @@ const services = [
     icon: '🚨',
     color: 'bg-red-50 border-red-200 hover:bg-red-100',
     pricing: {
-      diagnostic: 'RD$ 500',
+      diagnostic: 'RD$ 4,000 - 8,000',
       process: 'Evaluación de emergencia + reparación inmediata',
       included: [
         'Visita técnica especializada de emergencia',
@@ -23,8 +23,8 @@ const services = [
         'Cotización inmediata del trabajo de emergencia',
         'Garantía de 15 días en el trabajo realizado'
       ],
-      note: 'Tarifa nocturna y fines de semana: +50% • El costo de materiales se cotiza por separado',
-      clarification: 'Solo pagas la evaluación técnica. Si decides no continuar, no hay costos adicionales.'
+      note: 'Tarifa nocturna y fines de semana: +50% • Evaluación GRATIS si contratas el servicio',
+      clarification: '💡 Si decides contratar nuestro servicio, la evaluación es COMPLETAMENTE GRATIS. Solo pagas si no contratas.'
     }
   },
   {
@@ -34,7 +34,7 @@ const services = [
     icon: '🔌',
     color: 'bg-blue-50 border-blue-200 hover:bg-blue-100',
     pricing: {
-      diagnostic: 'RD$ 400',
+      diagnostic: 'RD$ 3,000 - 6,000',
       process: 'Evaluación del proyecto + cotización detallada + instalación',
       included: [
         'Visita técnica y evaluación del sitio',
@@ -44,8 +44,8 @@ const services = [
         'Asesoría sobre mejores opciones y alternativas',
         'Garantía de 90 días en el trabajo completado'
       ],
-      note: 'La evaluación RD$ 400 es independiente del proyecto • Materiales se cotizan según el proyecto',
-      clarification: 'La evaluación te ayuda a conocer el costo exacto antes de decidir. Sin sorpresas.'
+      note: 'Evaluación GRATIS si contratas la instalación • Materiales se cotizan según el proyecto',
+      clarification: '💡 Si decides contratar la instalación con nosotros, la evaluación es COMPLETAMENTE GRATIS. Solo pagas si no contratas.'
     }
   },
   {
@@ -55,7 +55,7 @@ const services = [
     icon: '🔧',
     color: 'bg-green-50 border-green-200 hover:bg-green-100',
     pricing: {
-      diagnostic: 'RD$ 350',
+      diagnostic: 'RD$ 3,000 - 5,000',
       process: 'Inspección completa + mantenimiento preventivo',
       included: [
         'Visita técnica programada a tu conveniencia',
@@ -66,8 +66,8 @@ const services = [
         'Recomendaciones para prevenir problemas futuros',
         'Garantía de 60 días en servicios realizados'
       ],
-      note: '20% descuento en mantenimientos programados • Materiales de reemplazo se cotizan aparte',
-      clarification: 'La evaluación RD$ 350 cubre el diagnóstico. Cualquier trabajo adicional se cotiza por separado.'
+      note: 'Evaluación GRATIS si contratas el mantenimiento • 20% descuento en mantenimientos programados',
+      clarification: '💡 Si decides contratar el mantenimiento con nosotros, la evaluación es COMPLETAMENTE GRATIS. Solo pagas si no contratas.'
     }
   },
   {
@@ -77,7 +77,7 @@ const services = [
     icon: '⚡',
     color: 'bg-purple-50 border-purple-200 hover:bg-purple-100',
     pricing: {
-      diagnostic: 'RD$ 400',
+      diagnostic: 'RD$ 3,000 - 7,000',
       process: 'Diagnóstico especializado + reparación del problema',
       included: [
         'Visita técnica con equipo de diagnóstico avanzado',
@@ -88,8 +88,8 @@ const services = [
         'Pruebas de funcionamiento y seguridad',
         'Garantía de 45 días en la reparación'
       ],
-      note: 'Si requiere materiales especiales, se cotizan por separado • Toda reparación se cotiza después del diagnóstico',
-      clarification: 'La evaluación RD$ 400 identifica el problema. Cualquier reparación se cotiza por separado.'
+      note: 'Evaluación GRATIS si contratas la reparación • Materiales especiales se cotizan por separado',
+      clarification: '💡 Si decides contratar la reparación con nosotros, la evaluación es COMPLETAMENTE GRATIS. Solo pagas si no contratas.'
     }
   }
 ]
@@ -169,7 +169,7 @@ export default function BookingPage() {
                       {/* New Transparent Pricing Structure */}
                       <div className="bg-white rounded-lg p-4 border border-gray-200">
                         <div className="flex justify-between items-center mb-2">
-                          <span className="font-semibold text-gray-700">Solo Evaluación Técnica:</span>
+                          <span className="font-semibold text-gray-700">Evaluación Técnica:</span>
                           <span className="font-bold text-lg text-blue-600">
                             {service.pricing.diagnostic}
                           </span>
@@ -178,6 +178,9 @@ export default function BookingPage() {
                         <div className="bg-yellow-50 border border-yellow-200 rounded p-2 mb-3">
                           <p className="text-xs text-yellow-800 font-medium">
                             ⚠️ {service.pricing.clarification}
+                          </p>
+                          <p className="text-xs text-yellow-700 mt-1">
+                            *El precio varía según el tamaño y complejidad del trabajo
                           </p>
                         </div>
                         
