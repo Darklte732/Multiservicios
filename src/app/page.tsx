@@ -33,12 +33,12 @@ export default function HomePage() {
       id: 'electrical',
       icon: Zap,
       title: 'Servicios Eléctricos',
-      subtitle: 'Instalaciones, reparaciones y emergencias',
-      description: 'Técnicos certificados para instalaciones eléctricas, reparaciones, mantenimiento y servicios de emergencia 24/7.',
+      subtitle: '¡COMIENZA AQUÍ! - Tu solución eléctrica completa',
+      description: '🔌 ¿Problemas eléctricos? ¡Estamos listos! Técnicos expertos disponibles AHORA para instalaciones, reparaciones, mantenimiento y emergencias 24/7.',
       glassClass: 'glass-blue',
       iconColor: 'text-blue-600',
       available: true,
-      badge: 'Disponible',
+      badge: '✨ ACTIVO AHORA',
       badgeClass: 'glass-green'
     },
     {
@@ -47,8 +47,8 @@ export default function HomePage() {
       title: 'Servicios de Plomería',
       subtitle: 'Instalaciones y reparaciones de tuberías',
       description: 'Reparación de fugas, instalación de tuberías, destapado de drenajes y servicios de fontanería.',
-      glassClass: 'glass-base',
-      iconColor: 'text-gray-400',
+      glassClass: 'glass-blue',
+      iconColor: 'text-blue-500',
       available: false,
       badge: 'Próximamente',
       badgeClass: 'glass-purple'
@@ -59,8 +59,8 @@ export default function HomePage() {
       title: 'Aire Acondicionado',
       subtitle: 'Instalación y mantenimiento de A/C',
       description: 'Instalación, reparación y mantenimiento de sistemas de aire acondicionado y climatización.',
-      glassClass: 'glass-base',
-      iconColor: 'text-gray-400',
+      glassClass: 'glass-blue',
+      iconColor: 'text-blue-500',
       available: false,
       badge: 'Próximamente',
       badgeClass: 'glass-purple'
@@ -71,8 +71,8 @@ export default function HomePage() {
       title: 'Servicios Generales',
       subtitle: 'Reparaciones y mantenimiento del hogar',
       description: 'Carpintería, pintura, reparaciones menores y servicios generales de mantenimiento.',
-      glassClass: 'glass-base',
-      iconColor: 'text-gray-400',
+      glassClass: 'glass-blue',
+      iconColor: 'text-blue-500',
       available: false,
       badge: 'Próximamente',
       badgeClass: 'glass-purple'
@@ -83,8 +83,8 @@ export default function HomePage() {
       title: 'Seguridad',
       subtitle: 'Cámaras y sistemas de seguridad',
       description: 'Instalación de cámaras de seguridad, alarmas y sistemas de monitoreo para hogar y empresa.',
-      glassClass: 'glass-base',
-      iconColor: 'text-gray-400',
+      glassClass: 'glass-blue',
+      iconColor: 'text-blue-500',
       available: false,
       badge: 'Próximamente',
       badgeClass: 'glass-purple'
@@ -95,8 +95,8 @@ export default function HomePage() {
       title: 'Electrodomésticos',
       subtitle: 'Reparación de electrodomésticos',
       description: 'Reparación y mantenimiento de lavadoras, refrigeradoras, estufas y otros electrodomésticos.',
-      glassClass: 'glass-base',
-      iconColor: 'text-gray-400',
+      glassClass: 'glass-blue',
+      iconColor: 'text-blue-500',
       available: false,
       badge: 'Próximamente',
       badgeClass: 'glass-purple'
@@ -398,7 +398,9 @@ export default function HomePage() {
                   className={`glass-card group cursor-pointer transition-all duration-500 transform ${
                     isSelected ? 'ring-2 ring-blue-400/50 scale-105' : ''
                   } ${
-                    isDisabled ? 'opacity-75 cursor-not-allowed' : 'hover:scale-105 hover:-translate-y-2'
+                    isDisabled ? 'opacity-60 cursor-not-allowed hover:opacity-70' : 'hover:scale-105 hover:-translate-y-2 hover:shadow-2xl'
+                  } ${
+                    service.available ? 'ring-2 ring-blue-500 shadow-blue-200 shadow-lg bg-gradient-to-br from-blue-50 to-white relative overflow-visible' : 'ring-1 ring-blue-200 hover:ring-blue-300'
                   }`}
                   onClick={(e) => {
                     e.preventDefault()
@@ -409,6 +411,15 @@ export default function HomePage() {
                   style={{ pointerEvents: 'auto', cursor: 'pointer' }}
                 >
                   <div className="p-6 lg:p-8 relative overflow-hidden">
+                    {/* Special treatment for electrical services */}
+                    {service.id === 'electrical' && (
+                      <div className="absolute -top-6 -right-4 z-20">
+                        <div className="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold shadow-lg animate-bounce">
+                          ¡DISPONIBLE!
+                        </div>
+                      </div>
+                    )}
+                    
                     {/* Service Badge with animation */}
                     <div className="absolute top-4 right-4">
                       <span className={`${service.badgeClass} px-3 py-1 text-xs font-semibold rounded-full transition-all duration-300 ${
@@ -419,36 +430,79 @@ export default function HomePage() {
                     </div>
 
                     {/* Service Icon with enhanced hover effects */}
-                    <div className={`${service.glassClass} w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 relative`}>
-                      <IconComponent className={`w-8 h-8 ${service.iconColor} transition-all duration-300 ${
+                    <div className={`${service.glassClass} ${
+                      service.id === 'electrical' ? 'w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 ring-2 ring-blue-300' : 'w-16 h-16'
+                    } rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 relative`}>
+                      <IconComponent className={`${
+                        service.id === 'electrical' ? 'w-10 h-10' : 'w-8 h-8'
+                      } ${service.iconColor} transition-all duration-300 ${
                         service.available ? 'group-hover:drop-shadow-lg' : ''
+                      } ${
+                        service.id === 'electrical' ? 'drop-shadow-md' : ''
                       }`} />
                       
-                      {/* Availability indicator */}
-                      {service.available && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
-                        </div>
+                      {/* Special electrical services glow effect */}
+                      {service.id === 'electrical' && (
+                        <div className="absolute inset-0 bg-blue-400 rounded-2xl opacity-20 animate-pulse"></div>
                       )}
+                      
+
                     </div>
 
                     {/* Service Content with enhanced typography */}
-                    <h4 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-gray-900 transition-colors duration-300">
+                    <h4 className={`text-xl font-bold mb-2 transition-colors duration-300 ${
+                      service.available ? 'text-gray-800 group-hover:text-gray-900' : 'text-gray-700 group-hover:text-gray-800'
+                    }`}>
                       {service.title}
                     </h4>
-                    <p className="text-sm font-semibold text-gray-700 mb-4 group-hover:text-gray-800 transition-colors duration-300">
+                    <p className={`text-sm font-semibold mb-4 transition-colors duration-300 ${
+                      service.available ? 'text-gray-700 group-hover:text-gray-800' : 'text-gray-600 group-hover:text-gray-700'
+                    }`}>
                       {service.subtitle}
                     </p>
-                    <p className="text-sm text-gray-600 font-medium leading-relaxed group-hover:text-gray-700 transition-colors duration-300">
+                    <p className={`text-sm font-medium leading-relaxed transition-colors duration-300 ${
+                      service.available ? 'text-gray-600 group-hover:text-gray-700' : 'text-gray-500 group-hover:text-gray-600'
+                    }`}>
                       {service.description}
                     </p>
 
-                    {/* Interactive call-to-action for available services */}
-                    {service.available && (
-                      <div className="mt-6 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                        <div className="glass-button px-4 py-2 rounded-lg text-center">
-                          <span className="text-sm font-semibold text-blue-700">
-                            🚀 Solicitar Ahora
+                    {/* Enhanced call-to-action for available services */}
+                    {service.available ? (
+                      <div className="mt-6">
+                        {service.id === 'electrical' ? (
+                          // Special prominent button for electrical services
+                          <div className="relative">
+                            <div className="glass-button px-6 py-4 rounded-xl text-center transition-all duration-300 transform hover:scale-110 border-3 border-blue-400 hover:border-blue-600 bg-gradient-to-r from-blue-50 to-blue-100 shadow-lg hover:shadow-xl">
+                              <span className="text-base font-bold text-blue-800 flex items-center justify-center gap-3">
+                                <span className="text-2xl animate-bounce">👆</span>
+                                ¡CLICK AQUÍ PARA EMPEZAR!
+                                <span className="text-2xl animate-pulse">⚡</span>
+                              </span>
+                              <p className="text-xs text-blue-700 mt-1 font-semibold">
+                                Agenda tu servicio en 2 minutos
+                              </p>
+                            </div>
+                            {/* Glowing effect for electrical services */}
+                            <div className="absolute inset-0 bg-blue-400 rounded-xl opacity-20 animate-pulse -z-10"></div>
+                          </div>
+                        ) : (
+                          // Regular button for other services
+                          <div className="glass-button px-4 py-3 rounded-lg text-center animate-pulse hover:animate-none transition-all duration-300 transform hover:scale-105 border-2 border-blue-300 hover:border-blue-500">
+                            <span className="text-sm font-bold text-blue-700 flex items-center justify-center gap-2">
+                              👆 Toca Aquí para Solicitar
+                              <span className="text-lg">⚡</span>
+                            </span>
+                          </div>
+                        )}
+                        <p className="text-xs text-gray-600 text-center mt-2 font-medium">
+                          {service.id === 'electrical' ? 'TÉCNICOS LISTOS • Respuesta en minutos' : 'Disponible 24/7 • Respuesta inmediata'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="mt-6">
+                        <div className="glass-button px-4 py-3 rounded-lg text-center border-2 border-blue-200 bg-gradient-to-r from-blue-50/50 to-blue-100/50">
+                          <span className="text-sm font-medium text-blue-600">
+                            Próximamente Disponible
                           </span>
                         </div>
                       </div>
@@ -483,15 +537,15 @@ export default function HomePage() {
             </h3>
             
             {/* Trust indicators section */}
-            <div className="glass-card p-6 mb-8 bg-gradient-to-r from-blue-50 to-green-50">
+            <div className="glass-card p-6 mb-8 bg-gradient-to-r from-blue-50 to-blue-100">
               <div className="flex flex-col md:flex-row items-center justify-center gap-6 text-center">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-2xl">👥</span>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-green-700">1,000+</p>
-                    <p className="text-sm text-green-600 font-medium">Clientes Satisfechos</p>
+                    <p className="text-2xl font-bold text-blue-700">1,000+</p>
+                    <p className="text-sm text-blue-600 font-medium">Clientes Satisfechos</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -504,12 +558,12 @@ export default function HomePage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                     <span className="text-2xl">⚡</span>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-purple-700">24/7</p>
-                    <p className="text-sm text-purple-600 font-medium">Emergencias</p>
+                    <p className="text-2xl font-bold text-blue-700">24/7</p>
+                    <p className="text-sm text-blue-600 font-medium">Emergencias</p>
                   </div>
                 </div>
               </div>
@@ -517,8 +571,8 @@ export default function HomePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="glass-card p-6">
-                <div className="glass-green w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Shield className="w-6 h-6 text-green-600" />
+                <div className="glass-blue w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Shield className="w-6 h-6 text-blue-600" />
                 </div>
                 <h4 className="font-bold text-gray-800 mb-2">Técnicos Certificados</h4>
                 <p className="text-sm text-gray-600 font-medium">Profesionales verificados y con experiencia</p>
@@ -531,8 +585,8 @@ export default function HomePage() {
                 <p className="text-sm text-gray-600 font-medium">Atención inmediata y tiempos de respuesta cortos</p>
               </div>
               <div className="glass-card p-6">
-                <div className="glass-purple w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Settings className="w-6 h-6 text-purple-600" />
+                <div className="glass-blue w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Settings className="w-6 h-6 text-blue-600" />
                 </div>
                 <h4 className="font-bold text-gray-800 mb-2">Garantía</h4>
                 <p className="text-sm text-gray-600 font-medium">Garantía en todos nuestros trabajos</p>

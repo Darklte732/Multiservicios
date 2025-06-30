@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://multiservicios-elseibo.com'),
+  metadataBase: new URL('https://multiservicios.app'),
   alternates: {
     canonical: '/',
     languages: {
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'MultiServicios El Seibo - Servicios Eléctricos',
     description: 'Servicios eléctricos profesionales en El Seibo, República Dominicana',
-    url: 'https://multiservicios-elseibo.com',
+    url: 'https://multiservicios.app',
     siteName: 'MultiServicios El Seibo',
     locale: 'es_DO',
     type: 'website',

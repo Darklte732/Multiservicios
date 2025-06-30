@@ -57,7 +57,7 @@ npm run dev
 Follow the detailed guide in `CALENDLY_SETUP.md` to configure your Calendly account.
 
 5. **Open your browser**:
-Navigate to [http://localhost:3001](http://localhost:3001) to view the application.
+Navigate to [http://localhost:3000](http://localhost:3000) to view the application.
 
 ## 🏗 Project Structure
 
@@ -278,7 +278,7 @@ Potential features for expansion:
 
 For technical support or business inquiries:
 - **WhatsApp**: +1 (809) 555-0123
-- **Email**: info@multiservicios-elseibo.com
+- **Email**: info@multiservicios.app
 - **Location**: El Seibo, República Dominicana
 
 ---

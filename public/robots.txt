@@ -4,7 +4,7 @@ User-agent: *
 Allow: /
 
 # Sitemaps
-Sitemap: https://multiservicios-elseibo.com/sitemap.xml
+Sitemap: https://multiservicios.app/sitemap.xml
 
 # Allow all search engines to index our electrical services
 Allow: /booking
@@ -18,4 +18,4 @@ Disallow: /api/
 Crawl-delay: 1
 
 # Host specification
-Host: multiservicios-elseibo.com 
+Host: multiservicios.app 

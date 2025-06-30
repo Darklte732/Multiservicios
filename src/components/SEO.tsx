@@ -41,7 +41,7 @@ export const SEO = memo(function SEO({
   nofollow = false,
   structuredData
 }: SEOProps) {
-  const baseUrl = 'https://multiservicios-elseibo.com'
+  const baseUrl = 'https://multiservicios.app'
   const fullCanonical = canonical ? `${baseUrl}${canonical}` : baseUrl
   const fullOgImage = ogImage.startsWith('http') ? ogImage : `${baseUrl}${ogImage}`
 
@@ -53,7 +53,7 @@ export const SEO = memo(function SEO({
     "description": description,
     "url": baseUrl,
     "telephone": "+18095551234",
-    "email": "contacto@multiservicios-elseibo.com",
+    "email": "contacto@multiservicios.app",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Calle Principal #123",
@@ -224,9 +224,9 @@ export const generateLocalBusinessStructuredData = () => {
     "@type": "LocalBusiness",
     "name": "MultiServicios El Seibo",
     "description": "Servicios eléctricos profesionales en El Seibo, República Dominicana",
-    "url": "https://multiservicios-elseibo.com",
+    "url": "https://multiservicios.app",
     "telephone": "+18095551234",
-    "email": "contacto@multiservicios-elseibo.com",
+    "email": "contacto@multiservicios.app",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Calle Principal #123",
@@ -245,7 +245,7 @@ export const generateLocalBusinessStructuredData = () => {
       "Sa 08:00-16:00"
     ],
     "priceRange": "$$",
-    "image": "https://multiservicios-elseibo.com/og-image.jpg",
+    "image": "https://multiservicios.app/og-image.jpg",
     "serviceArea": {
       "@type": "GeoCircle",
       "geoMidpoint": {
@@ -355,7 +355,7 @@ export const StructuredData = memo(function StructuredData({
 
 // Generate complete metadata for Next.js App Router
 export const generateMetadata = (seoProps: SEOProps) => {
-  const baseUrl = 'https://multiservicios-elseibo.com'
+  const baseUrl = 'https://multiservicios.app'
   const {
     title = 'MultiServicios El Seibo - Servicios Eléctricos Profesionales',
     description = 'Servicios eléctricos profesionales en El Seibo, República Dominicana.',

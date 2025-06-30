@@ -166,7 +166,7 @@ For new features:
 
 For questions or support:
 - **WhatsApp**: +1 (809) 555-0123
-- **Email**: dev@multiservicios-elseibo.com
+- **Email**: dev@multiservicios.app
 - **Issues**: Use GitHub Issues for bugs and features
 
 ## 📄 License
