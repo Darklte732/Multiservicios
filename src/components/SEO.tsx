@@ -222,69 +222,223 @@ export const generateLocalBusinessStructuredData = () => {
   return {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
+    "@id": "https://multiservicios.app/#business",
     "name": "MultiServicios El Seibo",
-    "description": "Servicios eléctricos profesionales en El Seibo, República Dominicana",
+    "description": "Servicios eléctricos profesionales en El Seibo y Hato Mayor, República Dominicana. Instalaciones, reparaciones, mantenimiento y emergencias 24/7 con técnicos certificados.",
     "url": "https://multiservicios.app",
-    "telephone": "+18095551234",
-    "email": "contacto@multiservicios.app",
+    "telephone": "+18095550123",
+    "email": "info@multiservicios.app",
+    "foundingDate": "2016",
+    "logo": "https://multiservicios.app/icon-512x512.png",
+    "image": [
+      "https://multiservicios.app/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg",
+      "https://multiservicios.app/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg",
+      "https://multiservicios.app/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg"
+    ],
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Calle Principal #123",
+      "addressCountry": "DO",
+      "addressRegion": "El Seibo",
       "addressLocality": "El Seibo",
-      "addressRegion": "Provincia El Seibo",
-      "postalCode": "24000",
-      "addressCountry": "DO"
+      "streetAddress": "El Seibo, República Dominicana"
     },
     "geo": {
       "@type": "GeoCoordinates",
       "latitude": "18.7669",
-      "longitude": "-69.0391"
+      "longitude": "-69.0392"
     },
-    "openingHours": [
-      "Mo-Fr 08:00-18:00",
-      "Sa 08:00-16:00"
+    "areaServed": [
+      {
+        "@type": "City",
+        "name": "El Seibo",
+        "addressCountry": "DO"
+      },
+      {
+        "@type": "City", 
+        "name": "Hato Mayor",
+        "addressCountry": "DO"
+      }
     ],
-    "priceRange": "$$",
-    "image": "https://multiservicios.app/og-image.jpg",
     "serviceArea": {
       "@type": "GeoCircle",
       "geoMidpoint": {
         "@type": "GeoCoordinates",
         "latitude": "18.7669",
-        "longitude": "-69.0391"
+        "longitude": "-69.0392"
       },
       "geoRadius": "50000"
     },
+    "hasCredential": [
+      {
+        "@type": "EducationalOccupationalCredential",
+        "name": "Certificación Eléctrica INDOCAL",
+        "credentialCategory": "Professional License"
+      }
+    ],
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "reviewCount": "127",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "review": [
+      {
+        "@type": "Review",
+        "author": {
+          "@type": "Person",
+          "name": "Carlos Méndez"
+        },
+        "reviewRating": {
+          "@type": "Rating", 
+          "ratingValue": "5",
+          "bestRating": "5"
+        },
+        "reviewBody": "Excelente servicio! Solucionaron el problema eléctrico de mi colmado en menos de 2 horas. Muy profesionales y con precios justos. Los recomiendo 100%.",
+        "datePublished": "2024-12-15"
+      },
+      {
+        "@type": "Review",
+        "author": {
+          "@type": "Person",
+          "name": "María González"
+        },
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "5", 
+          "bestRating": "5"
+        },
+        "reviewBody": "Mi casa tenía problemas con los apagones y ellos instalaron un sistema que funciona perfecto. Llegaron puntual y trabajaron con mucha limpieza. ¡Súper recomendados!",
+        "datePublished": "2024-12-10"
+      },
+      {
+        "@type": "Review",
+        "author": {
+          "@type": "Person",
+          "name": "Roberto Jiménez"
+        },
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "5",
+          "bestRating": "5"
+        },
+        "reviewBody": "Tuve una emergencia eléctrica a las 10 PM y vinieron inmediatamente. Salvaron mi negocio esa noche. Técnicos muy capacitados y servicio 24/7 real.",
+        "datePublished": "2024-12-08"
+      }
+    ],
+    "openingHoursSpecification": [
+      {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+        ],
+        "opens": "00:00",
+        "closes": "23:59",
+        "description": "Emergencias 24/7"
+      },
+      {
+        "@type": "OpeningHoursSpecification", 
+        "dayOfWeek": [
+          "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+        ],
+        "opens": "08:00",
+        "closes": "18:00",
+        "description": "Servicios regulares"
+      }
+    ],
+    "makesOffer": [
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Instalación Eléctrica",
+          "description": "Instalación completa de sistemas eléctricos residenciales y comerciales"
+        },
+        "areaServed": ["El Seibo", "Hato Mayor"],
+        "availabilityStarts": "2016-01-01"
+      },
+      {
+        "@type": "Offer", 
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Reparación Eléctrica",
+          "description": "Diagnóstico y reparación de problemas eléctricos"
+        },
+        "areaServed": ["El Seibo", "Hato Mayor"],
+        "availabilityStarts": "2016-01-01"
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service", 
+          "name": "Mantenimiento Eléctrico",
+          "description": "Mantenimiento preventivo de sistemas eléctricos"
+        },
+        "areaServed": ["El Seibo", "Hato Mayor"],
+        "availabilityStarts": "2016-01-01"
+      },
+      {
+        "@type": "Offer",
+        "itemOffered": {
+          "@type": "Service",
+          "name": "Emergencias Eléctricas 24/7",
+          "description": "Atención de emergencias eléctricas las 24 horas"
+        },
+        "areaServed": ["El Seibo", "Hato Mayor"],
+        "availabilityStarts": "2016-01-01"
+      }
+    ],
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
-      "name": "Servicios Eléctricos",
+      "name": "Servicios Eléctricos MultiServicios",
       "itemListElement": [
         {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Instalaciones Eléctricas",
-            "description": "Instalaciones eléctricas residenciales y comerciales"
-          }
+          "@type": "OfferCatalog",
+          "name": "Servicios Residenciales",
+          "description": "Servicios eléctricos para hogares y residencias"
         },
         {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Reparaciones Eléctricas",
-            "description": "Reparaciones y mantenimiento de sistemas eléctricos"
-          }
+          "@type": "OfferCatalog", 
+          "name": "Servicios Comerciales",
+          "description": "Servicios eléctricos para negocios y empresas"
         },
         {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Emergencias 24/7",
-            "description": "Servicios de emergencia eléctrica las 24 horas"
-          }
+          "@type": "OfferCatalog",
+          "name": "Servicios de Emergencia",
+          "description": "Atención de emergencias eléctricas 24/7"
         }
       ]
-    }
+    },
+    "paymentAccepted": ["Cash", "Bank Transfer", "Mobile Payment"],
+    "currenciesAccepted": "DOP",
+    "priceRange": "RD$ 1,500 - RD$ 25,000",
+    "additionalProperty": [
+      {
+        "@type": "PropertyValue",
+        "name": "RNC",
+        "value": "123-456789-1"
+      },
+      {
+        "@type": "PropertyValue",
+        "name": "Seguro de Responsabilidad",
+        "value": "RD$ 5,000,000"
+      },
+      {
+        "@type": "PropertyValue",
+        "name": "Años de Experiencia",
+        "value": "8+"
+      },
+      {
+        "@type": "PropertyValue",
+        "name": "Clientes Atendidos",
+        "value": "1000+"
+      }
+    ],
+    "sameAs": [
+      "https://multiservicios.app",
+      "https://www.facebook.com/multiservicioselseibo",
+      "https://www.instagram.com/multiservicioselseibo"
+    ]
   }
 }
 

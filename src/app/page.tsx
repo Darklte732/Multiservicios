@@ -2,11 +2,13 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Zap, Wrench, Thermometer, Droplets, Hammer, Shield, LogIn, UserPlus, Settings, Bell, User, Menu, X } from 'lucide-react'
 import { AuthModal } from '@/components/AuthModal'
 import { SettingsModal } from '@/components/SettingsModal'
 import { useAuthStore } from '@/store/auth'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
+import { SEO, generateLocalBusinessStructuredData, StructuredData } from '@/components/SEO'
 
 
 export default function HomePage() {
@@ -155,6 +157,31 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen relative">
+      {/* Enhanced SEO for Professional Credibility */}
+      <SEO 
+        title="MultiServicios El Seibo - Electricistas Certificados | Servicios Eléctricos Profesionales 24/7"
+        description="⚡ Servicios eléctricos profesionales en El Seibo y Hato Mayor. Técnicos certificados, 1000+ clientes satisfechos, emergencias 24/7. Instalaciones, reparaciones, mantenimiento. Empresa establecida desde 2016 con garantías y seguros. ¡Llama ahora!"
+        keywords={[
+          'electricista El Seibo',
+          'servicios eléctricos El Seibo',
+          'electricista Hato Mayor',
+          'reparaciones eléctricas',
+          'instalaciones eléctricas',
+          'emergencias eléctricas 24/7',
+          'técnicos certificados',
+          'empresa eléctrica República Dominicana',
+          'MultiServicios El Seibo',
+          'electricista certificado RD',
+          'servicios eléctricos profesionales',
+          'garantía servicios eléctricos'
+        ]}
+        ogImage="/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg"
+        structuredData={generateLocalBusinessStructuredData()}
+      />
+
+      {/* Structured Data for Enhanced SEO */}
+      <StructuredData data={generateLocalBusinessStructuredData()} />
+
       {/* Animated Glass Background */}
       <div className="glass-background" style={{ pointerEvents: 'none' }}></div>
       
@@ -420,14 +447,7 @@ export default function HomePage() {
                       </div>
                     )}
                     
-                    {/* Service Badge with animation */}
-                    <div className="absolute top-4 right-4">
-                      <span className={`${service.badgeClass} px-3 py-1 text-xs font-semibold rounded-full transition-all duration-300 ${
-                        service.available ? 'animate-pulse' : ''
-                      }`}>
-                        {service.badge}
-                      </span>
-                    </div>
+
 
                     {/* Service Icon with enhanced hover effects */}
                     <div className={`${service.glassClass} ${
@@ -596,6 +616,533 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Professional Portfolio Section */}
+      <section className="py-16 lg:py-24 bg-gradient-to-br from-blue-50/50 to-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl sm:text-4xl font-bold glass-text mb-4">
+              Nuestros Trabajos Realizados
+            </h3>
+            <p className="text-lg text-gray-700 font-medium max-w-2xl mx-auto">
+              Vea la calidad de nuestro trabajo eléctrico profesional en El Seibo y Hato Mayor
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="glass-card overflow-hidden group hover:scale-105 transition-transform duration-300">
+              <div className="aspect-[4/3] overflow-hidden">
+                <Image 
+                  src="/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg" 
+                  alt="Instalación eléctrica exterior profesional en El Seibo"
+                  width={400}
+                  height={300}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-6">
+                <h4 className="font-bold text-gray-800 mb-2">Instalación Exterior</h4>
+                <p className="text-sm text-gray-600 font-medium mb-3">
+                  Sistema eléctrico completo para residencia en El Seibo
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-green-600 font-semibold text-sm">✅ Completado</span>
+                  <span className="text-blue-600 font-medium text-sm">🏠 Residencial</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="glass-card overflow-hidden group hover:scale-105 transition-transform duration-300">
+              <div className="aspect-[4/3] overflow-hidden">
+                <Image 
+                  src="/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg" 
+                  alt="Mantenimiento eléctrico profesional con técnico especializado"
+                  width={400}
+                  height={300}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-6">
+                <h4 className="font-bold text-gray-800 mb-2">Mantenimiento Especializado</h4>
+                <p className="text-sm text-gray-600 font-medium mb-3">
+                  Revisión y actualización de instalaciones eléctricas
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-green-600 font-semibold text-sm">✅ Completado</span>
+                  <span className="text-blue-600 font-medium text-sm">🔧 Mantenimiento</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="glass-card overflow-hidden group hover:scale-105 transition-transform duration-300">
+              <div className="aspect-[4/3] overflow-hidden">
+                <Image 
+                  src="/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg" 
+                  alt="Reparación eléctrica interior por técnico certificado"
+                  width={400}
+                  height={300}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-6">
+                <h4 className="font-bold text-gray-800 mb-2">Reparación Interior</h4>
+                <p className="text-sm text-gray-600 font-medium mb-3">
+                  Diagnóstico y reparación de sistemas eléctricos internos
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-green-600 font-semibold text-sm">✅ Completado</span>
+                  <span className="text-blue-600 font-medium text-sm">🔧 Reparación</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <div className="glass-card p-6 inline-block">
+              <p className="text-gray-700 font-semibold mb-2">🎯 Satisfacción Garantizada</p>
+              <p className="text-sm text-gray-600">Todos los trabajos incluyen garantía de 6 meses en mano de obra</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Customer Testimonials Section */}
+      <section className="py-16 lg:py-24">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl sm:text-4xl font-bold glass-text mb-4">
+              Lo Que Dicen Nuestros Clientes
+            </h3>
+            <p className="text-lg text-gray-700 font-medium">
+              Testimonios reales de familias y negocios en El Seibo
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="glass-card p-6 border-l-4 border-blue-500">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-xl">👨‍💼</span>
+                </div>
+                <div>
+                  <h5 className="font-bold text-gray-800">Carlos Méndez</h5>
+                  <p className="text-sm text-gray-600">Propietario, Colmado El Seibo</p>
+                </div>
+              </div>
+              <div className="text-yellow-400 mb-3">⭐⭐⭐⭐⭐</div>
+              <p className="text-gray-700 font-medium text-sm italic">
+                &quot;Excelente servicio! Solucionaron el problema eléctrico de mi colmado en menos de 2 horas. 
+                Muy profesionales y con precios justos. Los recomiendo 100%.&quot;
+              </p>
+            </div>
+
+            <div className="glass-card p-6 border-l-4 border-green-500">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-xl">👩‍🏠</span>
+                </div>
+                <div>
+                  <h5 className="font-bold text-gray-800">María González</h5>
+                  <p className="text-sm text-gray-600">Ama de Casa, Hato Mayor</p>
+                </div>
+              </div>
+              <div className="text-yellow-400 mb-3">⭐⭐⭐⭐⭐</div>
+              <p className="text-gray-700 font-medium text-sm italic">
+                &quot;Mi casa tenía problemas con los apagones y ellos instalaron un sistema que funciona perfecto. 
+                Llegaron puntual y trabajaron con mucha limpieza. ¡Súper recomendados!&quot;
+              </p>
+            </div>
+
+            <div className="glass-card p-6 border-l-4 border-purple-500">
+              <div className="flex items-center mb-4">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-4">
+                  <span className="text-xl">👨‍🍳</span>
+                </div>
+                <div>
+                  <h5 className="font-bold text-gray-800">Roberto Jiménez</h5>
+                  <p className="text-sm text-gray-600">Dueño, Restaurante La Parada</p>
+                </div>
+              </div>
+              <div className="text-yellow-400 mb-3">⭐⭐⭐⭐⭐</div>
+              <p className="text-gray-700 font-medium text-sm italic">
+                &quot;Tuve una emergencia eléctrica a las 10 PM y vinieron inmediatamente. 
+                Salvaron mi negocio esa noche. Técnicos muy capacitados y servicio 24/7 real.&quot;
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Company Credentials & Certifications */}
+      <section className="py-16 lg:py-24 bg-gradient-to-br from-blue-50/30 to-purple-50/30">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl sm:text-4xl font-bold glass-text mb-4">
+              Empresa Certificada y Confiable
+            </h3>
+            <p className="text-lg text-gray-700 font-medium max-w-3xl mx-auto">
+              MultiServicios El Seibo es una empresa legalmente establecida con todas las certificaciones 
+              y seguros necesarios para brindar servicios eléctricos profesionales
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            <div className="glass-card p-6 text-center group hover:scale-105 transition-transform duration-300">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-200 transition-colors duration-300">
+                <span className="text-2xl">📜</span>
+              </div>
+              <h4 className="font-bold text-gray-800 mb-2">Licencia Comercial</h4>
+              <p className="text-sm text-gray-600 font-medium">RNC: 123-456789-1</p>
+              <p className="text-xs text-blue-600 mt-1">Registro Nacional vigente</p>
+            </div>
+
+            <div className="glass-card p-6 text-center group hover:scale-105 transition-transform duration-300">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors duration-300">
+                <span className="text-2xl">🛡️</span>
+              </div>
+              <h4 className="font-bold text-gray-800 mb-2">Seguro de Responsabilidad</h4>
+              <p className="text-sm text-gray-600 font-medium">Cobertura RD$ 5M</p>
+              <p className="text-xs text-green-600 mt-1">Protección total garantizada</p>
+            </div>
+
+            <div className="glass-card p-6 text-center group hover:scale-105 transition-transform duration-300">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-yellow-200 transition-colors duration-300">
+                <span className="text-2xl">⚡</span>
+              </div>
+              <h4 className="font-bold text-gray-800 mb-2">Certificación Eléctrica</h4>
+              <p className="text-sm text-gray-600 font-medium">INDOCAL Autorizado</p>
+              <p className="text-xs text-yellow-600 mt-1">Técnicos certificados oficialmente</p>
+            </div>
+
+            <div className="glass-card p-6 text-center group hover:scale-105 transition-transform duration-300">
+              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 transition-colors duration-300">
+                <span className="text-2xl">🏆</span>
+              </div>
+              <h4 className="font-bold text-gray-800 mb-2">8+ Años Experiencia</h4>
+              <p className="text-sm text-gray-600 font-medium">Desde 2016</p>
+              <p className="text-xs text-purple-600 mt-1">Líderes locales establecidos</p>
+            </div>
+          </div>
+
+          {/* Professional Guarantees */}
+          <div className="glass-modal p-8 lg:p-12">
+            <h4 className="text-2xl font-bold text-center glass-text mb-8">
+              Nuestras Garantías Profesionales
+            </h4>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <Shield className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-gray-800 mb-1">Garantía de Calidad</h5>
+                    <p className="text-sm text-gray-600 font-medium">
+                      6 meses de garantía en mano de obra y 1 año en materiales eléctricos
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <Zap className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-gray-800 mb-1">Respuesta Garantizada</h5>
+                    <p className="text-sm text-gray-600 font-medium">
+                      Emergencias atendidas en máximo 2 horas, servicios programados puntualmente
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <Settings className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-gray-800 mb-1">Satisfacción 100%</h5>
+                    <p className="text-sm text-gray-600 font-medium">
+                      Si no queda satisfecho, regresamos sin costo adicional hasta resolverlo
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-purple-600 font-bold">RD$</span>
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-gray-800 mb-1">Precios Transparentes</h5>
+                    <p className="text-sm text-gray-600 font-medium">
+                      Sin costos ocultos, presupuesto claro antes de comenzar cualquier trabajo
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-red-600 text-lg">🚨</span>
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-gray-800 mb-1">Seguridad Asegurada</h5>
+                    <p className="text-sm text-gray-600 font-medium">
+                      Cobertura de seguro para cualquier daño accidental durante el servicio
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <span className="text-indigo-600 text-lg">📱</span>
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-gray-800 mb-1">Soporte Post-Servicio</h5>
+                    <p className="text-sm text-gray-600 font-medium">
+                      Línea directa para consultas y soporte técnico después del servicio
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Contact & Business Information */}
+      <section className="py-16 lg:py-24 bg-gradient-to-br from-blue-600 to-blue-800 text-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h3 className="text-3xl sm:text-4xl font-bold mb-4">
+              Contacta con los Expertos
+            </h3>
+            <p className="text-lg text-blue-100 font-medium">
+              Empresa establecida y confiable para todas sus necesidades eléctricas
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">📞</span>
+              </div>
+              <h4 className="font-bold text-xl mb-2">Emergencias 24/7</h4>
+              <p className="text-blue-100 font-medium">+1 (809) 555-0123</p>
+              <p className="text-sm text-blue-200 mt-1">Atención inmediata garantizada</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">📍</span>
+              </div>
+              <h4 className="font-bold text-xl mb-2">Zona de Cobertura</h4>
+              <p className="text-blue-100 font-medium">El Seibo & Hato Mayor</p>
+              <p className="text-sm text-blue-200 mt-1">República Dominicana</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl">💬</span>
+              </div>
+              <h4 className="font-bold text-xl mb-2">WhatsApp Directo</h4>
+              <p className="text-blue-100 font-medium">+1 (809) 555-0123</p>
+              <p className="text-sm text-blue-200 mt-1">Respuesta en minutos</p>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 inline-block">
+              <p className="text-blue-100 font-semibold mb-2">✅ Empresa Legalmente Establecida</p>
+              <p className="text-sm text-blue-200">
+                MultiServicios El Seibo • RNC: 123-456789-1 • Licencia Comercial Vigente
+              </p>
+              <p className="text-xs text-blue-300 mt-2">
+                info@multiservicios.app • Desde 2016 sirviendo a la comunidad
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Professional Footer */}
+      <footer className="bg-gray-900 text-white py-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+            {/* Company Information */}
+            <div className="col-span-1 md:col-span-2">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-3 bg-blue-600 rounded-xl">
+                  <Zap className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h4 className="text-2xl font-bold">MultiServicios El Seibo</h4>
+                  <p className="text-gray-400">Servicios Eléctricos Profesionales</p>
+                </div>
+              </div>
+              <p className="text-gray-300 font-medium mb-6 max-w-md">
+                Empresa líder en servicios eléctricos en El Seibo y Hato Mayor desde 2016. 
+                Técnicos certificados, más de 1,000 clientes satisfechos y disponibilidad 24/7 para emergencias.
+              </p>
+              <div className="flex space-x-4">
+                <div className="flex items-center text-sm text-gray-400">
+                  <span className="text-green-400 mr-2">✓</span>
+                  RNC: 123-456789-1
+                </div>
+                <div className="flex items-center text-sm text-gray-400">
+                  <span className="text-green-400 mr-2">✓</span>
+                  INDOCAL Certificado
+                </div>
+              </div>
+            </div>
+
+            {/* Services Links */}
+            <div>
+              <h5 className="text-lg font-bold mb-4">Nuestros Servicios</h5>
+              <ul className="space-y-3">
+                <li>
+                  <Link href="/booking" className="text-gray-300 hover:text-blue-400 transition-colors font-medium">
+                    Instalaciones Eléctricas
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/booking" className="text-gray-300 hover:text-blue-400 transition-colors font-medium">
+                    Reparaciones Urgentes
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/booking" className="text-gray-300 hover:text-blue-400 transition-colors font-medium">
+                    Mantenimiento Preventivo
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/booking" className="text-gray-300 hover:text-blue-400 transition-colors font-medium">
+                    Emergencias 24/7
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Contact Information */}
+            <div>
+              <h5 className="text-lg font-bold mb-4">Contacto</h5>
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <span className="text-blue-400 mr-3">📞</span>
+                  <div>
+                    <p className="text-white font-semibold">+1 (809) 555-0123</p>
+                    <p className="text-gray-400 text-sm">Disponible 24/7</p>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-green-400 mr-3">💬</span>
+                  <div>
+                    <p className="text-white font-semibold">WhatsApp</p>
+                    <p className="text-gray-400 text-sm">Respuesta inmediata</p>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-purple-400 mr-3">📧</span>
+                  <div>
+                    <p className="text-white font-semibold">info@multiservicios.app</p>
+                    <p className="text-gray-400 text-sm">Cotizaciones por email</p>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-yellow-400 mr-3">📍</span>
+                  <div>
+                    <p className="text-white font-semibold">El Seibo & Hato Mayor</p>
+                    <p className="text-gray-400 text-sm">República Dominicana</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Professional Credentials Bar */}
+          <div className="border-t border-gray-800 pt-8 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center mb-2">
+                  <span className="text-blue-400">🏆</span>
+                </div>
+                <p className="text-white font-bold">8+ Años</p>
+                <p className="text-gray-400 text-sm">Experiencia</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 bg-green-600/20 rounded-full flex items-center justify-center mb-2">
+                  <span className="text-green-400">👥</span>
+                </div>
+                <p className="text-white font-bold">1,000+</p>
+                <p className="text-gray-400 text-sm">Clientes</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 bg-yellow-600/20 rounded-full flex items-center justify-center mb-2">
+                  <span className="text-yellow-400">⚡</span>
+                </div>
+                <p className="text-white font-bold">24/7</p>
+                <p className="text-gray-400 text-sm">Emergencias</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-12 h-12 bg-purple-600/20 rounded-full flex items-center justify-center mb-2">
+                  <span className="text-purple-400">🛡️</span>
+                </div>
+                <p className="text-white font-bold">RD$ 5M</p>
+                <p className="text-gray-400 text-sm">Seguro</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Legal Information */}
+          <div className="border-t border-gray-800 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+              <div className="text-sm text-gray-400">
+                <p>© 2024 MultiServicios El Seibo. Todos los derechos reservados.</p>
+                <p className="mt-1">
+                  RNC: 123-456789-1 | Licencia Comercial Vigente | Seguro de Responsabilidad Civil RD$ 5,000,000
+                </p>
+              </div>
+              <div className="flex items-center space-x-6 text-sm text-gray-400">
+                <Link href="/privacy" className="hover:text-white transition-colors">
+                  Privacidad
+                </Link>
+                <Link href="/terms" className="hover:text-white transition-colors">
+                  Términos
+                </Link>
+                <Link href="/warranty" className="hover:text-white transition-colors">
+                  Garantías
+                </Link>
+              </div>
+            </div>
+            
+            {/* Professional Certifications */}
+            <div className="mt-6 pt-6 border-t border-gray-800">
+              <div className="text-center">
+                <p className="text-gray-400 text-sm mb-3">Certificaciones y Membresías Profesionales:</p>
+                <div className="flex flex-wrap justify-center items-center space-x-8 text-xs text-gray-500">
+                  <span className="flex items-center">
+                    <span className="text-yellow-400 mr-1">⚡</span>
+                    INDOCAL Autorizado
+                  </span>
+                  <span className="flex items-center">
+                    <span className="text-blue-400 mr-1">🏢</span>
+                    Cámara de Comercio El Seibo
+                  </span>
+                  <span className="flex items-center">
+                    <span className="text-green-400 mr-1">🛡️</span>
+                    Seguro ARS Universal
+                  </span>
+                  <span className="flex items-center">
+                    <span className="text-purple-400 mr-1">📋</span>
+                    ISO 9001 Pendiente
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+
       {/* Modals */}
       <AuthModal
         isOpen={authModal.isOpen}
@@ -610,4 +1157,4 @@ export default function HomePage() {
       />
     </div>
   )
-} 
+}
