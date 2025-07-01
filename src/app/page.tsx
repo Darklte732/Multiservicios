@@ -791,34 +791,34 @@ export default function HomePage() {
                 <span className="text-2xl">📜</span>
               </div>
               <h4 className="font-bold text-gray-800 mb-2">Licencia Comercial</h4>
-              <p className="text-sm text-gray-600 font-medium">RNC: 123-456789-1</p>
+              <p className="text-sm text-gray-600 font-medium">RNC: 1-31-45678-9</p>
               <p className="text-xs text-blue-600 mt-1">Registro Nacional vigente</p>
             </div>
 
             <div className="glass-card p-6 text-center group hover:scale-105 transition-transform duration-300">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-green-200 transition-colors duration-300">
-                <span className="text-2xl">🛡️</span>
+                <span className="text-2xl">✅</span>
               </div>
-              <h4 className="font-bold text-gray-800 mb-2">Seguro de Responsabilidad</h4>
-              <p className="text-sm text-gray-600 font-medium">Cobertura RD$ 5M</p>
-              <p className="text-xs text-green-600 mt-1">Protección total garantizada</p>
+              <h4 className="font-bold text-gray-800 mb-2">Calidad Garantizada</h4>
+              <p className="text-sm text-gray-600 font-medium">Trabajo de Calidad</p>
+              <p className="text-xs text-green-600 mt-1">Satisfacción garantizada</p>
             </div>
 
             <div className="glass-card p-6 text-center group hover:scale-105 transition-transform duration-300">
               <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-yellow-200 transition-colors duration-300">
                 <span className="text-2xl">⚡</span>
               </div>
-              <h4 className="font-bold text-gray-800 mb-2">Certificación Eléctrica</h4>
-              <p className="text-sm text-gray-600 font-medium">INDOCAL Autorizado</p>
-              <p className="text-xs text-yellow-600 mt-1">Técnicos certificados oficialmente</p>
+              <h4 className="font-bold text-gray-800 mb-2">Técnicos Certificados</h4>
+              <p className="text-sm text-gray-600 font-medium">Profesionales Calificados</p>
+              <p className="text-xs text-yellow-600 mt-1">Certificación profesional</p>
             </div>
 
             <div className="glass-card p-6 text-center group hover:scale-105 transition-transform duration-300">
               <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-purple-200 transition-colors duration-300">
                 <span className="text-2xl">🏆</span>
               </div>
-              <h4 className="font-bold text-gray-800 mb-2">8+ Años Experiencia</h4>
-              <p className="text-sm text-gray-600 font-medium">Desde 2016</p>
+              <h4 className="font-bold text-gray-800 mb-2">30+ Años Experiencia</h4>
+              <p className="text-sm text-gray-600 font-medium">Empresa Establecida</p>
               <p className="text-xs text-purple-600 mt-1">Líderes locales establecidos</p>
             </div>
           </div>
@@ -886,9 +886,9 @@ export default function HomePage() {
                     <span className="text-red-600 text-lg">🚨</span>
                   </div>
                   <div>
-                    <h5 className="font-bold text-gray-800 mb-1">Seguridad Asegurada</h5>
+                    <h5 className="font-bold text-gray-800 mb-1">Seguridad Garantizada</h5>
                     <p className="text-sm text-gray-600 font-medium">
-                      Cobertura de seguro para cualquier daño accidental durante el servicio
+                      Trabajamos con las más altas medidas de seguridad en cada servicio
                     </p>
                   </div>
                 </div>
@@ -955,10 +955,10 @@ export default function HomePage() {
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 inline-block">
               <p className="text-blue-100 font-semibold mb-2">✅ Empresa Legalmente Establecida</p>
               <p className="text-sm text-blue-200">
-                MultiServicios El Seibo • RNC: 123-456789-1 • Licencia Comercial Vigente
+                MultiServicios El Seibo • RNC: 1-31-45678-9 • Licencia Comercial Vigente
               </p>
               <p className="text-xs text-blue-300 mt-2">
-                info@multiservicios.app • Desde 2016 sirviendo a la comunidad
+                info@multiservicios.app • Más de 30 años sirviendo a la comunidad
               </p>
             </div>
           </div>
@@ -981,17 +981,17 @@ export default function HomePage() {
                 </div>
               </div>
               <p className="text-gray-300 font-medium mb-6 max-w-md">
-                Empresa líder en servicios eléctricos en El Seibo y Hato Mayor desde 2016. 
+                Empresa líder en servicios eléctricos en El Seibo y Hato Mayor con más de 30 años de experiencia. 
                 Técnicos certificados, más de 1,000 clientes satisfechos y disponibilidad 24/7 para emergencias.
               </p>
               <div className="flex space-x-4">
                 <div className="flex items-center text-sm text-gray-400">
                   <span className="text-green-400 mr-2">✓</span>
-                  RNC: 123-456789-1
+                  RNC: 1-31-45678-9
                 </div>
                 <div className="flex items-center text-sm text-gray-400">
                   <span className="text-green-400 mr-2">✓</span>
-                  INDOCAL Certificado
+                  Técnicos Certificados
                 </div>
               </div>
             </div>
@@ -1066,7 +1066,7 @@ export default function HomePage() {
                 <div className="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center mb-2">
                   <span className="text-blue-400">🏆</span>
                 </div>
-                <p className="text-white font-bold">8+ Años</p>
+                <p className="text-white font-bold">30+ Años</p>
                 <p className="text-gray-400 text-sm">Experiencia</p>
               </div>
               <div className="flex flex-col items-center">
@@ -1085,10 +1085,10 @@ export default function HomePage() {
               </div>
               <div className="flex flex-col items-center">
                 <div className="w-12 h-12 bg-purple-600/20 rounded-full flex items-center justify-center mb-2">
-                  <span className="text-purple-400">🛡️</span>
+                  <span className="text-purple-400">✅</span>
                 </div>
-                <p className="text-white font-bold">RD$ 5M</p>
-                <p className="text-gray-400 text-sm">Seguro</p>
+                <p className="text-white font-bold">100%</p>
+                <p className="text-gray-400 text-sm">Confiable</p>
               </div>
             </div>
           </div>
@@ -1099,7 +1099,7 @@ export default function HomePage() {
               <div className="text-sm text-gray-400">
                 <p>© 2024 MultiServicios El Seibo. Todos los derechos reservados.</p>
                 <p className="mt-1">
-                  RNC: 123-456789-1 | Licencia Comercial Vigente | Seguro de Responsabilidad Civil RD$ 5,000,000
+                  RNC: 1-31-45678-9 | Licencia Comercial Vigente | Técnicos Certificados
                 </p>
               </div>
               <div className="flex items-center space-x-6 text-sm text-gray-400">
@@ -1122,19 +1122,19 @@ export default function HomePage() {
                 <div className="flex flex-wrap justify-center items-center space-x-8 text-xs text-gray-500">
                   <span className="flex items-center">
                     <span className="text-yellow-400 mr-1">⚡</span>
-                    INDOCAL Autorizado
+                    Técnicos Certificados
                   </span>
                   <span className="flex items-center">
                     <span className="text-blue-400 mr-1">🏢</span>
                     Cámara de Comercio El Seibo
                   </span>
                   <span className="flex items-center">
-                    <span className="text-green-400 mr-1">🛡️</span>
-                    Seguro ARS Universal
+                    <span className="text-green-400 mr-1">✅</span>
+                    Calidad Garantizada
                   </span>
                   <span className="flex items-center">
-                    <span className="text-purple-400 mr-1">📋</span>
-                    ISO 9001 Pendiente
+                    <span className="text-purple-400 mr-1">🏆</span>
+                    30+ Años Experiencia
                   </span>
                 </div>
               </div>

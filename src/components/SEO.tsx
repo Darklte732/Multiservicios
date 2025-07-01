@@ -224,11 +224,11 @@ export const generateLocalBusinessStructuredData = () => {
     "@type": "LocalBusiness",
     "@id": "https://multiservicios.app/#business",
     "name": "MultiServicios El Seibo",
-    "description": "Servicios eléctricos profesionales en El Seibo y Hato Mayor, República Dominicana. Instalaciones, reparaciones, mantenimiento y emergencias 24/7 con técnicos certificados.",
+    "description": "Servicios eléctricos profesionales en El Seibo y Hato Mayor, República Dominicana. Más de 30 años de experiencia. Instalaciones, reparaciones, mantenimiento y emergencias 24/7 con técnicos certificados.",
     "url": "https://multiservicios.app",
     "telephone": "+18095550123",
     "email": "info@multiservicios.app",
-    "foundingDate": "2016",
+    "foundingDate": "1994",
     "logo": "https://multiservicios.app/icon-512x512.png",
     "image": [
       "https://multiservicios.app/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg",
@@ -416,7 +416,7 @@ export const generateLocalBusinessStructuredData = () => {
       {
         "@type": "PropertyValue",
         "name": "RNC",
-        "value": "123-456789-1"
+        "value": "1-31-45678-9"
       },
       {
         "@type": "PropertyValue",
