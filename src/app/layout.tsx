@@ -60,6 +60,35 @@ export const metadata: Metadata = {
   verification: {
     google: 'google-site-verification-code',
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      {
+        rel: 'mask-icon',
+        url: '/favicon.ico',
+        color: '#3b82f6',
+      },
+    ],
+  },
+  manifest: '/manifest.json',
+}
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#3b82f6' },
+    { media: '(prefers-color-scheme: dark)', color: '#1e40af' },
+  ],
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
 }
 
 export default function RootLayout({
@@ -70,15 +99,34 @@ export default function RootLayout({
   return (
     <html lang="es-DO">
       <head>
-        <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
+        
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="mask-icon" href="/favicon.ico" color="#3b82f6" />
+        
+        <link rel="manifest" href="/manifest.json" />
+        
         <meta name="theme-color" content="#3b82f6" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="MultiServicios" />
         <meta name="mobile-web-app-capable" content="yes" />
+        
         <meta name="msapplication-TileColor" content="#3b82f6" />
+        <meta name="msapplication-TileImage" content="/icon-192x192.png" />
         <meta name="msapplication-tap-highlight" content="no" />
+        <meta name="msapplication-config" content="/browserconfig.xml" />
+        
+        <meta name="application-name" content="MultiServicios El Seibo" />
+        <meta name="format-detection" content="telephone=no" />
+        
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        
+        <link rel="dns-prefetch" href="//calendly.com" />
+        <link rel="dns-prefetch" href="//api.whatsapp.com" />
       </head>
       <body className="font-sans antialiased min-h-screen">
         <NotificationProvider>
