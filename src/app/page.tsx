@@ -5,7 +5,7 @@ import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from
 import { useSpring as useReactSpring, animated } from '@react-spring/web'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Zap, Wrench, Thermometer, Droplets, Hammer, Shield, LogIn, UserPlus, Settings, Bell, User, Menu, X, Star, Trophy, Gauge, Sparkles, Atom, Rocket, ArrowRight, CheckCircle, Heart } from 'lucide-react'
+import { Zap, Wrench, Thermometer, Droplets, Hammer, Shield, LogIn, UserPlus, Settings, Bell, User, Menu, X, Star, Trophy, Gauge, Sparkles, Atom, Rocket, ArrowRight, CheckCircle, Heart, Eye } from 'lucide-react'
 import { AuthModal } from '@/components/AuthModal'
 import { SettingsModal } from '@/components/SettingsModal'
 import { useAuthStore } from '@/store/auth'
@@ -78,22 +78,32 @@ const CustomCursor = () => {
 // Floating Particles Background
 const FloatingParticles = () => {
   const [dimensions, setDimensions] = useState({ width: 1200, height: 800 })
-  const particles = Array.from({ length: 20 }, (_, i) => i)
+  const [isClient, setIsClient] = useState(false)
+  const [particles, setParticles] = useState<Array<{
+    id: number;
+    initialX: number;
+    initialY: number;
+    targetX: number;
+    targetY: number;
+    duration: number;
+  }>>([])
 
   useEffect(() => {
-    // Set initial dimensions on client side
+    // Mark as client-side and set initial dimensions
+    setIsClient(true)
+    
     if (typeof window !== 'undefined') {
-      setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      })
-
-      // Update dimensions on window resize
-      const handleResize = () => {
+      const updateDimensions = () => {
         setDimensions({
           width: window.innerWidth,
           height: window.innerHeight
         })
+      }
+
+      updateDimensions()
+
+      const handleResize = () => {
+        updateDimensions()
       }
 
       window.addEventListener('resize', handleResize)
@@ -101,24 +111,44 @@ const FloatingParticles = () => {
     }
   }, [])
 
+  useEffect(() => {
+    // Generate particle data only on client side after dimensions are set
+    if (isClient && dimensions.width > 0) {
+      const particleData = Array.from({ length: 20 }, (_, i) => ({
+        id: i,
+        initialX: Math.random() * dimensions.width,
+        initialY: Math.random() * dimensions.height,
+        targetX: Math.random() * dimensions.width,
+        targetY: Math.random() * dimensions.height,
+        duration: Math.random() * 20 + 10
+      }))
+      setParticles(particleData)
+    }
+  }, [isClient, dimensions])
+
+  // Don't render particles on server side
+  if (!isClient || particles.length === 0) {
+    return <div className="floating-particles" />
+  }
+
   return (
     <div className="floating-particles">
       {particles.map((particle) => (
         <motion.div
-          key={particle}
+          key={particle.id}
           className="particle"
           initial={{
-            x: Math.random() * dimensions.width,
-            y: Math.random() * dimensions.height,
+            x: particle.initialX,
+            y: particle.initialY,
             opacity: 0
           }}
           animate={{
-            x: Math.random() * dimensions.width,
-            y: Math.random() * dimensions.height,
+            x: particle.targetX,
+            y: particle.targetY,
             opacity: [0, 0.6, 0],
           }}
           transition={{
-            duration: Math.random() * 20 + 10,
+            duration: particle.duration,
             repeat: Infinity,
             ease: "linear"
           }}
@@ -576,7 +606,7 @@ export default function HomePage() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.6 }}
               >
-                <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2">
                   <Gauge className="h-4 w-4 text-blue-500" />
                   <span className="text-sm font-medium">Nivel {userExperience.level}</span>
                   <Star className="h-4 w-4 text-yellow-500" />
@@ -593,11 +623,11 @@ export default function HomePage() {
                     isUnlocked={userExperience.achievements.includes(achievement.id)}
                   />
                 ))}
-              </div>
-            </div>
-
+                    </div>
+                  </div>
+                  
             {/* Enhanced Auth Buttons */}
-            <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-3">
               {user ? (
                 <motion.div 
                   className="flex items-center space-x-3"
@@ -614,7 +644,7 @@ export default function HomePage() {
                     <Settings className="h-5 w-5 text-gray-700" />
                   </motion.button>
                   <motion.button
-                    onClick={logout}
+                      onClick={logout}
                     className="glass-button px-4 py-2 rounded-xl text-red-600 font-medium"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
@@ -650,8 +680,8 @@ export default function HomePage() {
                 </motion.div>
               )}
             </div>
+            </div>
           </div>
-        </div>
       </motion.header>
 
       {/* Modern Progress Indicator */}
@@ -697,7 +727,7 @@ export default function HomePage() {
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.4, type: "spring" }}
               >
-                <div className="text-2xl font-black text-purple-600">8años</div>
+                <div className="text-2xl font-black text-purple-600">30+ años</div>
                 <div className="text-xs font-medium text-gray-700">Experiencia</div>
               </motion.div>
             </div>
@@ -735,13 +765,187 @@ export default function HomePage() {
                         pageSpeed === 'fast' ? '⚡ SÚPER RÁPIDO' : 
                         pageSpeed === 'good' ? '🚀 RÁPIDO' : '⏳ OPTIMIZANDO'
                       }
-                    </div>
+              </div>
                     <div className="text-xs text-gray-600">Tiempo de Carga</div>
-                  </div>
+            </div>
                 </div>
               </motion.div>
-            )}
+          )}
+        </div>
+        </motion.div>
+
+        {/* Infinite Carousel of Electrical Work Photos */}
+        <motion.div 
+          className="mb-12 sm:mb-16 overflow-hidden"
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          <motion.div 
+            className="text-center mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1 }}
+          >
+            <h3 className="text-2xl sm:text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Nuestros Trabajos Realizados
+            </h3>
+            <p className="text-gray-600 text-sm sm:text-base">
+              Instalaciones y reparaciones eléctricas profesionales en El Seibo
+            </p>
+          </motion.div>
+
+          {/* Infinite Sliding Gallery */}
+          <div className="relative">
+            {/* Left Gradient Fade */}
+            <div className="absolute left-0 top-0 h-full w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+            
+            {/* Right Gradient Fade */}
+            <div className="absolute right-0 top-0 h-full w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+            
+            {/* Infinite Scrolling Container */}
+            <motion.div
+              className="flex space-x-6"
+              animate={{
+                x: [0, -1920] // Move the entire container
+              }}
+              transition={{
+                duration: 30, // 30 seconds for full cycle
+                repeat: Infinity,
+                ease: "linear"
+              }}
+              style={{ width: "fit-content" }}
+            >
+              {/* First Set of Images */}
+              {[
+                { src: '/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg', title: 'Instalación Residencial Moderna' },
+                { src: '/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg', title: 'Panel Eléctrico Comercial' },
+                { src: '/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg', title: 'Cableado Industrial' },
+                { src: '/2394664b-563a-48aa-900e-7ff62152b422.jpeg', title: 'Sistema de Emergencia' },
+                { src: '/43a0a5cf-6fea-49e8-b174-7382d6ebfa5d.jpeg', title: 'Instalación LED' },
+                { src: '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg', title: 'Mantenimiento Preventivo' },
+                { src: '/7108a911-e716-4416-a620-97be93f4c140.jpeg', title: 'Reparación Especializada' },
+                { src: '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg', title: 'Instalación Completa' },
+                { src: '/b420cfaa-cec4-47a5-a363-d8bebabcef4d.jpeg', title: 'Sistema Domótico' },
+                { src: '/cf629f37-1d13-4d7b-8774-7a5ce95bf946.jpeg', title: 'Tablero Principal' },
+                { src: '/cf856cdc-a1e1-40ef-b079-eeab55418c17.jpeg', title: 'Conexiones Seguras' },
+                { src: '/db2d6452-ebcc-4f8a-8588-9df01d849b74.jpeg', title: 'Trabajo Profesional' },
+                { src: '/e2f858db-6d50-48ad-b286-36a67483dfe5.jpeg', title: 'Instalación Completa' }
+              ].map((image, index) => (
+                <motion.div
+                  key={`first-${index}`}
+                  className="relative flex-shrink-0 group"
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <div className="w-72 h-48 rounded-2xl overflow-hidden relative glass-card border-2 border-white/20">
+                    <img 
+                      src={image.src}
+                      alt={image.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                    {/* Overlay with gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    
+                    {/* Title overlay */}
+                    <motion.div 
+                      className="absolute bottom-0 left-0 right-0 p-4 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+                      initial={{ opacity: 0 }}
+                      whileHover={{ opacity: 1 }}
+                    >
+                      <h4 className="font-bold text-sm">{image.title}</h4>
+                      <p className="text-xs opacity-80">MultiServicios El Seibo</p>
+                    </motion.div>
+
+                    {/* Quality badge */}
+                    <motion.div 
+                      className="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      initial={{ scale: 0 }}
+                      whileHover={{ scale: 1 }}
+                    >
+                      <span className="text-xs font-bold">✓ Garantizado</span>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              ))}
+              
+              {/* Duplicate Set for Seamless Loop */}
+              {[
+                { src: '/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg', title: 'Instalación Residencial Moderna' },
+                { src: '/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg', title: 'Panel Eléctrico Comercial' },
+                { src: '/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg', title: 'Cableado Industrial' },
+                { src: '/2394664b-563a-48aa-900e-7ff62152b422.jpeg', title: 'Sistema de Emergencia' },
+                { src: '/43a0a5cf-6fea-49e8-b174-7382d6ebfa5d.jpeg', title: 'Instalación LED' },
+                { src: '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg', title: 'Mantenimiento Preventivo' },
+                { src: '/7108a911-e716-4416-a620-97be93f4c140.jpeg', title: 'Reparación Especializada' },
+                { src: '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg', title: 'Instalación Completa' },
+                { src: '/b420cfaa-cec4-47a5-a363-d8bebabcef4d.jpeg', title: 'Sistema Domótico' },
+                { src: '/cf629f37-1d13-4d7b-8774-7a5ce95bf946.jpeg', title: 'Tablero Principal' },
+                { src: '/cf856cdc-a1e1-40ef-b079-eeab55418c17.jpeg', title: 'Conexiones Seguras' },
+                { src: '/db2d6452-ebcc-4f8a-8588-9df01d849b74.jpeg', title: 'Trabajo Profesional' },
+                { src: '/e2f858db-6d50-48ad-b286-36a67483dfe5.jpeg', title: 'Instalación Completa' }
+              ].map((image, index) => (
+                <motion.div
+                  key={`second-${index}`}
+                  className="relative flex-shrink-0 group"
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                >
+                  <div className="w-72 h-48 rounded-2xl overflow-hidden relative glass-card border-2 border-white/20">
+                    <img 
+                      src={image.src}
+                      alt={image.title}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                    {/* Overlay with gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    
+                    {/* Title overlay */}
+                    <motion.div 
+                      className="absolute bottom-0 left-0 right-0 p-4 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+                      initial={{ opacity: 0 }}
+                      whileHover={{ opacity: 1 }}
+                    >
+                      <h4 className="font-bold text-sm">{image.title}</h4>
+                      <p className="text-xs opacity-80">MultiServicios El Seibo</p>
+                    </motion.div>
+
+                    {/* Quality badge */}
+                    <motion.div 
+                      className="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      initial={{ scale: 0 }}
+                      whileHover={{ scale: 1 }}
+                    >
+                      <span className="text-xs font-bold">✓ Garantizado</span>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
+
+          {/* Bottom call-to-action */}
+          <motion.div 
+            className="text-center mt-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2 }}
+          >
+            <motion.button
+              className="modern-cta-button px-8 py-3 rounded-xl font-bold text-white"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <span className="flex items-center space-x-2">
+                <Eye className="h-5 w-5" />
+                <span>Ver Más Trabajos</span>
+                <ArrowRight className="h-5 w-5" />
+              </span>
+            </motion.button>
+            <p className="text-xs text-gray-500 mt-2">+500 proyectos completados exitosamente</p>
+          </motion.div>
         </motion.div>
 
         {/* Hero Section with Advanced Animations - Mobile Optimized */}
@@ -850,7 +1054,7 @@ export default function HomePage() {
           <div className="bento-grid gap-6">
             {serviceCategories.map((service, index) => (
               <motion.div
-                key={service.id}
+                  key={service.id}
                 className={`service-card ${service.id === 'electrical' ? 'featured-card' : ''} ${service.available ? 'available' : 'coming-soon'}`}
                 initial={{ opacity: 0, y: 50, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -908,7 +1112,7 @@ export default function HomePage() {
                         transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                       />
                     )}
-                  </div>
+                    </div>
                 </motion.div>
 
                 {/* Service Content */}
@@ -922,8 +1126,8 @@ export default function HomePage() {
                     </p>
                     <p className="text-gray-600 text-sm leading-relaxed">
                       {service.description}
-                    </p>
-                  </div>
+                              </p>
+                            </div>
 
                   {/* HOLY TRINITY: Trust Signals + Instant Booking */}
                   {service.available && (
@@ -939,18 +1143,18 @@ export default function HomePage() {
                           <div className="flex items-center space-x-1">
                             <Star className="h-3 w-3 text-yellow-500" />
                             <span className="font-bold">{service.rating} • {service.trustSignals?.satisfaction}</span>
-                          </div>
+                        </div>
                           <div className="flex items-center space-x-1 text-green-600 font-bold">
                             <span>🟢 {service.trustSignals?.recentBookings}</span>
-                          </div>
-                        </div>
+                      </div>
+                  </div>
                         
                         <div className="flex justify-between text-xs">
                           <span className="text-blue-600 font-medium">⚡ {service.trustSignals?.responseTime}</span>
                           <span className="text-purple-600 font-medium">💰 {service.priceRange}</span>
-                        </div>
-                      </div>
-                      
+              </div>
+            </div>
+
                       {/* Trust Certifications */}
                       <div className="flex flex-wrap gap-1">
                         {service.trustSignals?.certifications.map((cert, certIndex) => (
@@ -964,7 +1168,7 @@ export default function HomePage() {
                             ✅ {cert}
                           </motion.span>
                         ))}
-                      </div>
+                </div>
 
                       {/* Features */}
                       <div className="flex flex-wrap gap-1">
@@ -979,8 +1183,8 @@ export default function HomePage() {
                             {feature}
                           </motion.span>
                         ))}
-                      </div>
-
+          </div>
+          
                       {/* Instant Booking CTA */}
                       <div className="pt-2">
                         <motion.div
@@ -1013,7 +1217,7 @@ export default function HomePage() {
                         <p className="text-xs text-center text-gray-500 mt-1">
                           ⏱️ {service.completionTime} • 📞 Sin compromiso
                         </p>
-                      </div>
+                </div>
                     </motion.div>
                   )}
 
@@ -1034,10 +1238,10 @@ export default function HomePage() {
                         </motion.div>
                         <p className="text-purple-600 font-bold text-sm">Próximamente</p>
                         <p className="text-xs text-gray-500 mt-1">+{service.experience} puntos de experiencia</p>
-                      </div>
+              </div>
                     </motion.div>
                   )}
-                </div>
+            </div>
 
                 {/* Desktop-only Hover Effects with Mouse Position */}
                 {!isMobile && (
@@ -1074,7 +1278,7 @@ export default function HomePage() {
                 )}
               </motion.div>
             ))}
-          </div>
+              </div>
         </motion.div>
 
         {/* Trust Indicators with Advanced Animations */}
@@ -1089,7 +1293,7 @@ export default function HomePage() {
               Confianza que Respalda Nuestro Trabajo
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Más de 8 años brindando servicios profesionales con la mejor tecnología y personal capacitado
+              Más de 30 años brindando servicios profesionales con la mejor tecnología y personal capacitado
             </p>
           </div>
 
@@ -1144,7 +1348,7 @@ export default function HomePage() {
                 />
               </motion.div>
             ))}
-          </div>
+                </div>
         </motion.div>
       </main>
 
@@ -1195,14 +1399,14 @@ export default function HomePage() {
       </AnimatePresence>
 
       {/* Modals */}
-      <AuthModal 
+      <AuthModal
         isOpen={authModal.isOpen}
         onClose={closeAuthModal}
         defaultTab={authModal.defaultTab}
         defaultUserType={authModal.defaultUserType}
       />
-      
-      <SettingsModal 
+
+      <SettingsModal
         isOpen={settingsModal.isOpen}
         onClose={() => setSettingsModal({ isOpen: false })}
       />

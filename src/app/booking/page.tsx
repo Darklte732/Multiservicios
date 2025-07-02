@@ -70,20 +70,32 @@ const CustomCursor = () => {
 // Floating Particles (same as homepage)
 const FloatingParticles = () => {
   const [dimensions, setDimensions] = useState({ width: 1200, height: 800 })
-  const particles = Array.from({ length: 15 }, (_, i) => i)
+  const [isClient, setIsClient] = useState(false)
+  const [particles, setParticles] = useState<Array<{
+    id: number;
+    initialX: number;
+    initialY: number;
+    targetX: number;
+    targetY: number;
+    duration: number;
+  }>>([])
 
   useEffect(() => {
+    // Mark as client-side and set initial dimensions
+    setIsClient(true)
+    
     if (typeof window !== 'undefined') {
-      setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      })
-
-      const handleResize = () => {
+      const updateDimensions = () => {
         setDimensions({
           width: window.innerWidth,
           height: window.innerHeight
         })
+      }
+
+      updateDimensions()
+
+      const handleResize = () => {
+        updateDimensions()
       }
 
       window.addEventListener('resize', handleResize)
@@ -91,24 +103,44 @@ const FloatingParticles = () => {
     }
   }, [])
 
+  useEffect(() => {
+    // Generate particle data only on client side after dimensions are set
+    if (isClient && dimensions.width > 0) {
+      const particleData = Array.from({ length: 15 }, (_, i) => ({
+        id: i,
+        initialX: Math.random() * dimensions.width,
+        initialY: Math.random() * dimensions.height,
+        targetX: Math.random() * dimensions.width,
+        targetY: Math.random() * dimensions.height,
+        duration: Math.random() * 25 + 15
+      }))
+      setParticles(particleData)
+    }
+  }, [isClient, dimensions])
+
+  // Don't render particles on server side
+  if (!isClient || particles.length === 0) {
+    return <div className="floating-particles" />
+  }
+
   return (
     <div className="floating-particles">
       {particles.map((particle) => (
         <motion.div
-          key={particle}
+          key={particle.id}
           className="particle"
           initial={{
-            x: Math.random() * dimensions.width,
-            y: Math.random() * dimensions.height,
+            x: particle.initialX,
+            y: particle.initialY,
             opacity: 0
           }}
           animate={{
-            x: Math.random() * dimensions.width,
-            y: Math.random() * dimensions.height,
+            x: particle.targetX,
+            y: particle.targetY,
             opacity: [0, 0.4, 0],
           }}
           transition={{
-            duration: Math.random() * 25 + 15,
+            duration: particle.duration,
             repeat: Infinity,
             ease: "linear"
           }}
@@ -363,7 +395,7 @@ export default function BookingPage() {
                 <p className="text-sm text-gray-600 font-medium">
                   Reserva tu Servicio
                 </p>
-              </div>
+            </div>
             </motion.div>
           </div>
         </div>
@@ -373,7 +405,7 @@ export default function BookingPage() {
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <AnimatePresence mode="wait">
-          {!selectedService ? (
+        {!selectedService ? (
             <motion.div 
               key="service-selection"
               initial={{ opacity: 0, y: 50 }}
@@ -524,11 +556,11 @@ export default function BookingPage() {
                     <div className="space-y-4">
                       <div>
                         <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
-                          {service.name}
-                        </h3>
+                        {service.name}
+                      </h3>
                         <p className="text-sm font-medium text-gray-600 mb-4">
-                          {service.description}
-                        </p>
+                      {service.description}
+                    </p>
                       </div>
 
                       <div className="flex items-center justify-between">
@@ -656,9 +688,9 @@ export default function BookingPage() {
                       )}
                     </AnimatePresence>
                   </motion.div>
-                ))}
-              </div>
-              
+              ))}
+            </div>
+            
               {/* Enhanced Trust Building Section */}
               <motion.div 
                 className="glass-card p-8 mt-12"
@@ -706,9 +738,9 @@ export default function BookingPage() {
                       <div className="text-gray-600 text-sm leading-relaxed">{item.description}</div>
                     </motion.div>
                   ))}
-                </div>
-                
-                {/* Additional trust elements */}
+              </div>
+              
+              {/* Additional trust elements */}
                 <motion.div 
                   className="border-t border-gray-200 pt-6"
                   initial={{ opacity: 0 }}
@@ -728,6 +760,105 @@ export default function BookingPage() {
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 3.8 + index * 0.1, type: "spring" }}
+                      >
+                        <span className={`font-bold ${item.color}`}>{item.label}</span>
+                        <span className="text-gray-600 text-xs mt-1">{item.sub}</span>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
+              </motion.div>
+              
+              {/* Professional Work Gallery */}
+              <motion.div 
+                className="glass-card p-8 mt-12"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 4 }}
+              >
+                <motion.h3 
+                  className="font-bold text-2xl lg:text-3xl text-gray-900 mb-8 text-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 4.2 }}
+                >
+                  🔧 Trabajos <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Profesionales Realizados</span>
+                </motion.h3>
+                
+                {/* Image Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+                  {[
+                    { src: '/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg', title: 'Instalación Moderna', category: 'Residencial' },
+                    { src: '/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg', title: 'Panel Industrial', category: 'Comercial' },
+                    { src: '/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg', title: 'Cableado Completo', category: 'Industrial' },
+                    { src: '/2394664b-563a-48aa-900e-7ff62152b422.jpeg', title: 'Sistema Emergencia', category: 'Crítico' },
+                    { src: '/43a0a5cf-6fea-49e8-b174-7382d6ebfa5d.jpeg', title: 'Iluminación LED', category: 'Eficiente' },
+                    { src: '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg', title: 'Mantenimiento', category: 'Preventivo' },
+                    { src: '/7108a911-e716-4416-a620-97be93f4c140.jpeg', title: 'Reparación Pro', category: 'Especializada' },
+                    { src: '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg', title: 'Instalación Total', category: 'Completa' }
+                  ].map((work, index) => (
+                    <motion.div
+                      key={work.src}
+                      className="relative group cursor-pointer overflow-hidden rounded-xl"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 4.4 + index * 0.1, type: "spring" }}
+                      whileHover={{ scale: 1.05, y: -5 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <div className="aspect-square relative overflow-hidden rounded-xl glass-base border-2 border-white/20">
+                        <img 
+                          src={work.src}
+                          alt={work.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          loading="lazy"
+                        />
+                        
+                        {/* Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        
+                        {/* Content */}
+                        <motion.div 
+                          className="absolute bottom-0 left-0 right-0 p-3 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"
+                          initial={{ opacity: 0 }}
+                          whileHover={{ opacity: 1 }}
+                        >
+                          <h4 className="font-bold text-sm">{work.title}</h4>
+                          <p className="text-xs opacity-80">{work.category}</p>
+                        </motion.div>
+                        
+                        {/* Quality indicator */}
+                        <motion.div 
+                          className="absolute top-2 right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                          whileHover={{ scale: 1.1 }}
+                        >
+                          <CheckCircle className="h-4 w-4 text-white" />
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+                
+                {/* Stats Row */}
+                <motion.div 
+                  className="border-t border-gray-200 pt-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 5 }}
+                >
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center text-sm">
+                    {[
+                      { label: '✓ +500 Proyectos', sub: 'Completados exitosamente', color: 'text-green-700' },
+                      { label: '✓ 30+ Años', sub: 'De experiencia profesional', color: 'text-blue-700' },
+                      { label: '✓ 100% Garantía', sub: 'En todos nuestros trabajos', color: 'text-purple-700' },
+                      { label: '✓ Materiales Premium', sub: 'Calidad certificada', color: 'text-orange-700' }
+                    ].map((item, index) => (
+                      <motion.div 
+                        key={item.label}
+                        className="flex flex-col items-center"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 5.2 + index * 0.1, type: "spring" }}
                       >
                         <span className={`font-bold ${item.color}`}>{item.label}</span>
                         <span className="text-gray-600 text-xs mt-1">{item.sub}</span>
@@ -756,9 +887,9 @@ export default function BookingPage() {
                   className="flex items-center gap-2 glass-button px-4 py-3 rounded-xl font-medium"
                   whileHover={{ scale: 1.05, x: -5 }}
                   whileTap={{ scale: 0.95 }}
-                >
-                  <ArrowLeft size={20} />
-                  Cambiar servicio
+            >
+              <ArrowLeft size={20} />
+              Cambiar servicio
                 </motion.button>
                 
                 <motion.div
@@ -779,10 +910,10 @@ export default function BookingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <CalendlyEmbed selectedService={selectedService} />
+            <CalendlyEmbed selectedService={selectedService} />
               </motion.div>
             </motion.div>
-          )}
+        )}
         </AnimatePresence>
       </main>
     </div>
