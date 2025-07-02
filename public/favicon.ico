@@ -1,4 +1,7 @@
-# Favicon placeholder
-# This file should be replaced with an actual .ico file containing the ⚡ lightning bolt icon for MultiServicios
-# You can create a favicon at https://favicon.io/ or similar online tools
-# Recommended: Use the ⚡ emoji or lightning bolt design in blue (#3b82f6) color scheme 
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" rx="7" fill="#3b82f6"/>
+  <path d="M16 7L20 18H12L16 7Z" fill="white"/>
+  <path d="M12 18H20L18 25H14L12 18Z" fill="white"/>
+  <circle cx="16" cy="10" r="2" fill="#3b82f6"/>
+</svg> 

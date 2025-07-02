@@ -786,4 +786,122 @@
     outline: 3px solid rgba(59, 130, 246, 0.5);
     outline-offset: 2px;
   }
+}
+
+/* Mini Carousel Effects */
+.service-card .aspect-video {
+  overflow: hidden;
+  position: relative;
+}
+
+.service-card .aspect-video img {
+  transition: transform 0.3s ease, filter 0.3s ease;
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.service-card:hover .aspect-video img {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+/* Mini carousel overlay effects */
+.service-card .aspect-video::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.service-card:hover .aspect-video::after {
+  opacity: 1;
+}
+
+/* Carousel indicator dots */
+.carousel-indicators {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  z-index: 10;
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+}
+
+.carousel-dot.active {
+  background: white;
+  transform: scale(1.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Eye icon overlay */
+.carousel-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.6) 0%,
+    transparent 50%,
+    transparent 100%
+  );
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.service-card:hover .carousel-overlay,
+.service-card.touched .carousel-overlay {
+  opacity: 1;
+}
+
+/* Mobile touch optimization for carousel */
+@media (max-width: 768px) {
+  .service-card .aspect-video {
+    aspect-ratio: 16 / 10; /* Slightly taller for mobile */
+  }
+  
+  .carousel-overlay {
+    padding: 8px;
+  }
+  
+  .carousel-dot {
+    width: 10px;
+    height: 10px;
+  }
+}
+
+/* Enhanced backdrop blur support */
+@supports (backdrop-filter: blur(10px)) {
+  .service-card .backdrop-blur-sm {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+@supports not (backdrop-filter: blur(10px)) {
+  .service-card .backdrop-blur-sm {
+    background-color: rgba(255, 255, 255, 0.25) !important;
+  }
 } 

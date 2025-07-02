@@ -1,3 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="180" height="180" rx="40" fill="#3b82f6"/>
+  <path d="M90 40L110 100H70L90 40Z" fill="white"/>
+  <path d="M70 100H110L100 140H80L70 100Z" fill="white"/>
+  <circle cx="90" cy="55" r="8" fill="#3b82f6"/>
+  <text x="90" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white">MS</text>
+</svg>
+
 # Apple Touch Icon Placeholder
 # This file should be replaced with an actual 180x180 PNG icon
 # Design specifications:

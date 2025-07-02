@@ -206,6 +206,11 @@ const services = [
     rating: 4.9,
     responseTime: '< 30 min',
     priority: 'ALTA',
+    images: [
+      '/2394664b-563a-48aa-900e-7ff62152b422.jpeg',
+      '/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg',
+      '/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg'
+    ],
     pricing: {
       diagnostic: 'RD$ 4,000 - 8,000',
       process: 'Evaluación de emergencia + reparación inmediata',
@@ -233,6 +238,11 @@ const services = [
     rating: 4.8,
     responseTime: '< 2 horas',
     priority: 'ESTÁNDAR',
+    images: [
+      '/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg',
+      '/43a0a5cf-6fea-49e8-b174-7382d6ebfa5d.jpeg',
+      '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg'
+    ],
     pricing: {
       diagnostic: 'RD$ 3,000 - 6,000',
       process: 'Evaluación del proyecto + cotización detallada + instalación',
@@ -260,6 +270,11 @@ const services = [
     rating: 4.7,
     responseTime: '< 4 horas',
     priority: 'PREVENTIVO',
+    images: [
+      '/7108a911-e716-4416-a620-97be93f4c140.jpeg',
+      '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg',
+      '/b420cfaa-cec4-47a5-a363-d8bebabcef4d.jpeg'
+    ],
     pricing: {
       diagnostic: 'RD$ 3,000 - 5,000',
       process: 'Inspección completa + mantenimiento preventivo',
@@ -288,6 +303,11 @@ const services = [
     rating: 4.8,
     responseTime: '< 3 horas',
     priority: 'URGENTE',
+    images: [
+      '/cf629f37-1d13-4d7b-8774-7a5ce95bf946.jpeg',
+      '/cf856cdc-a1e1-40ef-b079-eeab55418c17.jpeg',
+      '/db2d6452-ebcc-4f8a-8588-9df01d849b74.jpeg'
+    ],
     pricing: {
       diagnostic: 'RD$ 3,000 - 7,000',
       process: 'Diagnóstico especializado + reparación del problema',
@@ -312,6 +332,7 @@ export default function BookingPage() {
   const [isMobile, setIsMobile] = useState(false)
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
   const [touchedCard, setTouchedCard] = useState<string | null>(null)
+  const [imageIndexes, setImageIndexes] = useState<{[key: string]: number}>({})
 
   useEffect(() => {
     const checkMobile = () => {
@@ -329,6 +350,26 @@ export default function BookingPage() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  // Auto-cycling image carousel
+  useEffect(() => {
+    const intervals: {[key: string]: NodeJS.Timeout} = {}
+
+    services.forEach(service => {
+      if (hoveredCard === service.id || touchedCard === service.id) {
+        intervals[service.id] = setInterval(() => {
+          setImageIndexes(prev => ({
+            ...prev,
+            [service.id]: ((prev[service.id] || 0) + 1) % service.images.length
+          }))
+        }, 1500) // Change image every 1.5 seconds
+      }
+    })
+
+    return () => {
+      Object.values(intervals).forEach(interval => clearInterval(interval))
+    }
+  }, [hoveredCard, touchedCard])
 
   const handleServiceSelect = (serviceId: string) => {
     setSelectedService(serviceId)
@@ -521,12 +562,13 @@ export default function BookingPage() {
                     onTouchEnd={() => isMobile && setTimeout(() => setTouchedCard(null), 150)}
                     onClick={() => handleServiceSelect(service.id)}
                   >
+                    {/* Priority Badge */}
                     <motion.div
-                      className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold z-10 ${
-                        service.priority === 'ALTA' ? 'bg-red-100 text-red-700 border border-red-200' :
-                        service.priority === 'URGENTE' ? 'bg-orange-100 text-orange-700 border border-orange-200' :
-                        service.priority === 'PREVENTIVO' ? 'bg-green-100 text-green-700 border border-green-200' :
-                        'bg-blue-100 text-blue-700 border border-blue-200'
+                      className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold z-20 ${
+                        service.priority === 'ALTA' ? 'bg-red-500/90 text-white border border-red-300/50' :
+                        service.priority === 'URGENTE' ? 'bg-orange-500/90 text-white border border-orange-300/50' :
+                        service.priority === 'PREVENTIVO' ? 'bg-green-500/90 text-white border border-green-300/50' :
+                        'bg-blue-500/90 text-white border border-blue-300/50'
                       }`}
                       initial={{ scale: 0, rotate: -180 }}
                       animate={{ scale: 1, rotate: 0 }}
@@ -535,113 +577,153 @@ export default function BookingPage() {
                       {service.priority}
                     </motion.div>
 
-                    <motion.div
-                      className="relative mb-6"
-                      animate={{
-                        rotate: (hoveredCard === service.id || touchedCard === service.id) ? [0, -15, 15, 0] : 0,
-                        scale: (hoveredCard === service.id || touchedCard === service.id) ? 1.1 : 1
-                      }}
-                      transition={{ duration: 0.6 }}
+                    {/* Mini Carousel Section */}
+                    <motion.div 
+                      className="relative mb-6 overflow-hidden rounded-2xl bg-white/5 border border-white/10"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 1.8 + index * 0.1 }}
                     >
-                      <div className={`p-4 ${service.color} rounded-2xl inline-block relative overflow-hidden border-2 border-white/20`}>
-                        <service.iconComponent className="h-10 w-10 text-current relative z-10" />
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30"
-                          animate={{ x: [-100, 100] }}
-                          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                        />
+                      <div className="aspect-video relative">
+                        <AnimatePresence mode="wait">
+                          <motion.img
+                            key={`${service.id}-${imageIndexes[service.id] || 0}`}
+                            src={service.images[imageIndexes[service.id] || 0]}
+                            alt={`${service.name} trabajo ${(imageIndexes[service.id] || 0) + 1}`}
+                            className="w-full h-full object-cover"
+                            initial={{ opacity: 0, scale: 1.1 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            transition={{ duration: 0.5 }}
+                          />
+                        </AnimatePresence>
+                        
+                        {/* Image overlay during interaction */}
+                        {(hoveredCard === service.id || touchedCard === service.id) && (
+                          <motion.div
+                            className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent flex items-end justify-between p-3"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                          >
+                            <motion.div
+                              className="flex items-center space-x-1 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full"
+                              initial={{ scale: 0, x: -20 }}
+                              animate={{ scale: 1, x: 0 }}
+                              transition={{ delay: 0.2 }}
+                            >
+                              <Eye className="h-3 w-3 text-white" />
+                              <span className="text-xs text-white font-medium">
+                                {(imageIndexes[service.id] || 0) + 1} de {service.images.length}
+                              </span>
+                            </motion.div>
+                            
+                            <motion.div
+                              className="flex space-x-1"
+                              initial={{ scale: 0, x: 20 }}
+                              animate={{ scale: 1, x: 0 }}
+                              transition={{ delay: 0.3 }}
+                            >
+                              {service.images.map((_, imgIndex) => (
+                                <div
+                                  key={imgIndex}
+                                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                    imgIndex === (imageIndexes[service.id] || 0)
+                                      ? 'bg-white scale-125'
+                                      : 'bg-white/50'
+                                  }`}
+                                />
+                              ))}
+                            </motion.div>
+                          </motion.div>
+                        )}
                       </div>
                     </motion.div>
 
                     <div className="space-y-4">
+                      {/* Service Info */}
                       <div>
-                        <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
-                        {service.name}
-                      </h3>
+                        <div className="flex items-center space-x-3 mb-3">
+                          <motion.div
+                            className="p-3 bg-white/10 backdrop-blur-sm rounded-xl relative overflow-hidden"
+                            animate={{
+                              rotate: (hoveredCard === service.id || touchedCard === service.id) ? [0, -10, 10, 0] : 0,
+                              scale: (hoveredCard === service.id || touchedCard === service.id) ? 1.1 : 1
+                            }}
+                            transition={{ duration: 0.6 }}
+                          >
+                            <service.iconComponent className="h-8 w-8 text-gray-700 relative z-10" />
+                            <motion.div
+                              className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30"
+                              animate={{ x: [-100, 100] }}
+                              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                            />
+                          </motion.div>
+                          <div>
+                            <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1">
+                              {service.name}
+                            </h3>
+                            <div className="flex items-center space-x-2 text-sm">
+                              <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                              <span className="font-bold">{service.rating}</span>
+                              <div className="flex items-center space-x-1 text-blue-600">
+                                <Clock className="h-3 w-3" />
+                                <span className="font-medium">{service.responseTime}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        
                         <p className="text-sm font-medium text-gray-600 mb-4">
-                      {service.description}
-                    </p>
+                          {service.description}
+                        </p>
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-1">
-                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                          <span className="text-sm font-bold">{service.rating}</span>
-                        </div>
-                        <div className="flex items-center space-x-1 text-blue-600">
-                          <Clock className="h-4 w-4" />
-                          <span className="text-sm font-bold">{service.responseTime}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {service.pricing.trustBadges.map((badge, badgeIndex) => (
+                      {/* Trust Badges */}
+                      <div className="flex flex-wrap gap-2">
+                        {service.pricing.trustBadges.slice(0, 2).map((badge, badgeIndex) => (
                           <motion.span
                             key={badge}
-                            className="glass-base px-2 py-1 rounded-md text-xs font-medium border border-white/20"
+                            className="bg-white/60 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-gray-700 border border-white/30"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
-                            transition={{ delay: 2.5 + index * 0.1 + badgeIndex * 0.05 }}
+                            transition={{ delay: 2.2 + index * 0.1 + badgeIndex * 0.05 }}
                           >
                             ✅ {badge}
                           </motion.span>
                         ))}
                       </div>
 
+                      {/* Pricing */}
                       <motion.div 
-                        className="glass-base p-4 rounded-xl border border-white/20"
+                        className="bg-white/40 backdrop-blur-sm p-4 rounded-xl border border-white/30"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 2.8 + index * 0.1 }}
+                        transition={{ delay: 2.5 + index * 0.1 }}
                       >
                         <div className="flex justify-between items-center mb-3">
-                          <span className="font-semibold text-gray-700">Evaluación Técnica:</span>
-                          <span className="font-bold text-lg text-blue-600">
+                          <span className="font-semibold text-gray-700 text-sm">Evaluación:</span>
+                          <span className="font-bold text-lg text-gray-800">
                             {service.pricing.diagnostic}
                           </span>
                         </div>
                         
-                        <div className="glass-success p-3 rounded-lg mb-3 border border-green-200">
+                        <div className="bg-green-100/80 backdrop-blur-sm p-3 rounded-lg mb-3 border border-green-200/50">
                           <p className="text-xs text-green-800 font-medium">
-                            💡 {service.pricing.clarification}
+                            💡 GRATIS si contratas el servicio
                           </p>
-                        </div>
-                        
-                        <div className="text-sm text-gray-600 mb-3">
-                          <strong>Proceso:</strong> {service.pricing.process}
-                        </div>
-                        
-                        <div className="mb-3">
-                          <strong className="text-sm text-gray-700">Incluye:</strong>
-                          <ul className="text-xs text-gray-600 mt-2 space-y-1">
-                            {service.pricing.included.map((item, itemIndex) => (
-                              <motion.li 
-                                key={itemIndex} 
-                                className="flex items-center gap-2"
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 3 + index * 0.1 + itemIndex * 0.05 }}
-                              >
-                                <span className="text-green-500">✓</span>
-                                {item}
-                              </motion.li>
-                            ))}
-                          </ul>
-                        </div>
-                        
-                        <div className="text-xs text-blue-600 font-medium border-t pt-2 border-white/20">
-                          💡 {service.pricing.note}
                         </div>
                       </motion.div>
                       
+                      {/* CTA Button */}
                       <motion.div
-                        className="pt-4"
+                        className="pt-2"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 3.5 + index * 0.1 }}
+                        transition={{ delay: 2.8 + index * 0.1 }}
                       >
                         <motion.div
-                          className="modern-cta-button w-full py-4 rounded-xl text-center font-bold text-white relative overflow-hidden group"
+                          className="bg-gradient-to-r from-blue-600 via-blue-500 to-blue-600 w-full py-3 rounded-xl text-center font-bold text-white relative overflow-hidden group shadow-lg"
                           whileHover={{ scale: 1.02, y: -2 }}
                           whileTap={{ scale: 0.98 }}
                           animate={{ 
@@ -652,7 +734,7 @@ export default function BookingPage() {
                         >
                           <motion.div
                             className="flex items-center justify-center space-x-2"
-                            animate={{ x: (hoveredCard === service.id || touchedCard === service.id) ? 5 : 0 }}
+                            animate={{ x: (hoveredCard === service.id || touchedCard === service.id) ? 3 : 0 }}
                           >
                             <service.iconComponent className="h-5 w-5" />
                             <span>¡SOLICITAR AHORA!</span>
@@ -662,31 +744,24 @@ export default function BookingPage() {
                           <motion.div
                             className="absolute inset-0 bg-white opacity-0"
                             animate={{
-                              opacity: (touchedCard === service.id) ? [0, 0.3, 0] : 0
+                              opacity: (touchedCard === service.id) ? [0, 0.2, 0] : 0
                             }}
                             transition={{ duration: 0.3 }}
                           />
+                          
+                          {/* Shimmer effect */}
+                          <motion.div
+                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20"
+                            animate={{ x: [-100, 100] }}
+                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                          />
                         </motion.div>
                         
-                        <p className="text-xs text-center text-gray-500 mt-2">
-                          📞 Sin compromiso • 🛡️ Evaluación GRATIS si contratas
+                        <p className="text-xs text-center text-gray-600 mt-2 font-medium">
+                          📞 Sin compromiso • 🛡️ Garantía incluida
                         </p>
                       </motion.div>
                     </div>
-
-                    <AnimatePresence>
-                      {(hoveredCard === service.id || touchedCard === service.id) && (
-                        <motion.div
-                          className="absolute inset-0 rounded-2xl"
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                          style={{
-                            background: `radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%)`
-                          }}
-                        />
-                      )}
-                    </AnimatePresence>
                   </motion.div>
               ))}
             </div>

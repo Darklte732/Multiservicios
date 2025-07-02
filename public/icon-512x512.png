@@ -1,9 +1,9 @@
-# PNG Icon 512x512 Placeholder
-# This file should be replaced with an actual 512x512 PNG icon
-# Design specifications:
-# - 512x512 pixels
-# - PNG format with transparent background
-# - ⚡ lightning bolt icon in blue (#3b82f6)
-# - High resolution for desktop and large displays
-# - Include "MultiServicios" and "El Seibo" text if space allows
-# - Professional electrical service branding 
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="115" fill="#3b82f6"/>
+  <path d="M256 112L315 288H197L256 112Z" fill="white"/>
+  <path d="M197 288H315L285 400H227L197 288Z" fill="white"/>
+  <circle cx="256" cy="154" r="24" fill="#3b82f6"/>
+  <text x="256" y="460" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" fill="white">MultiServicios</text>
+  <text x="256" y="490" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="white">El Seibo</text>
+</svg> 
