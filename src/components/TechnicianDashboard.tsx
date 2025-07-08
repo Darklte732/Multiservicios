@@ -53,7 +53,7 @@ export function TechnicianDashboard() {
     title: string
     message: string
     type: 'info' | 'success' | 'warning' | 'error'
-    isRead: boolean
+    read: boolean
     timestamp: string
   }>>([
     {
@@ -61,7 +61,7 @@ export function TechnicianDashboard() {
       title: 'Nuevo Trabajo Asignado',
       message: 'Se te ha asignado una emergencia en Av. Libertad',
       type: 'info',
-      isRead: false,
+      read: false,
       timestamp: new Date().toISOString()
     },
     {
@@ -69,7 +69,7 @@ export function TechnicianDashboard() {
       title: 'Cliente Satisfecho',
       message: 'María González te calificó con 5 estrellas',
       type: 'success',
-      isRead: false,
+      read: false,
       timestamp: new Date(Date.now() - 3600000).toISOString()
     }
   ])
@@ -543,7 +543,7 @@ export function TechnicianDashboard() {
                       key={notification.id}
                       className={cn(
                         "border rounded-lg p-4",
-                        notification.isRead ? "border-gray-200 bg-white" : "border-blue-200 bg-blue-50"
+                        notification.read ? "border-gray-200 bg-white" : "border-blue-200 bg-blue-50"
                       )}
                     >
                       <div className="flex items-start justify-between">
@@ -554,7 +554,7 @@ export function TechnicianDashboard() {
                             {new Date(notification.timestamp).toLocaleString('es-DO')}
                           </p>
                         </div>
-                        {!notification.isRead && (
+                        {!notification.read && (
                           <div className="w-3 h-3 bg-blue-600 rounded-full flex-shrink-0 mt-1"></div>
                         )}
                       </div>

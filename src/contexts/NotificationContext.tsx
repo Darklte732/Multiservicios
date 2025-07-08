@@ -203,7 +203,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               title: newNotification.title,
               message: newNotification.message,
               type: newNotification.type as NotificationType,
-              read: newNotification.read || false,
+              read: newNotification.is_read || false,
               created_at: newNotification.created_at,
               read_at: newNotification.read_at || undefined,
               user_id: newNotification.user_id
@@ -220,7 +220,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
               title: updatedNotification.title,
               message: updatedNotification.message,
               type: updatedNotification.type as NotificationType,
-              read: updatedNotification.read || false,
+              read: updatedNotification.is_read || false,
               created_at: updatedNotification.created_at,
               read_at: updatedNotification.read_at || undefined,
               user_id: updatedNotification.user_id
