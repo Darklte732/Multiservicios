@@ -26,7 +26,7 @@ const serviceConfig = {
   },
   'reparacion': {
     name: 'Reparación Eléctrica',
-    icon: '⚡',
+    icon: 'Pre-servicio',
     color: 'bg-purple-50',
     description: 'Reparación de fallas'
   }
@@ -80,7 +80,7 @@ function PreServiceContent() {
               <span className="font-medium">← Volver a Confirmación</span>
             </Link>
             <div className="flex items-center gap-2">
-              <span className="text-2xl">⚡</span>
+              <span className="text-2xl">✓</span>
               <span className="text-xl font-bold text-blue-900">MultiServicios</span>
             </div>
           </div>
@@ -91,7 +91,7 @@ function PreServiceContent() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-            <span>Paso 4 de 5</span>
+            <span>Etapa 4 de 5</span>
             <span>80% completado</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">

@@ -222,10 +222,10 @@ export function TechnicianDashboard() {
               <div className="relative">
                 <button className="p-2 text-gray-600 hover:text-gray-900 relative">
                   <Bell className="h-6 w-6" />
-                  {notifications.some(n => !n.isRead) && (
+                  {notifications.some(n => !n.read) && (
                     <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full flex items-center justify-center">
                       <span className="text-white text-xs font-bold">
-                        {notifications.filter(n => !n.isRead).length}
+                        {notifications.filter(n => !n.read).length}
                       </span>
                     </span>
                   )}
@@ -349,7 +349,7 @@ export function TechnicianDashboard() {
               {[
                 { id: 'pending', name: 'Trabajos Pendientes', count: pendingJobs, icon: Clock },
                 { id: 'today', name: 'Agenda de Hoy', count: mockJobs.length, icon: Calendar },
-                { id: 'notifications', name: 'Notificaciones', count: notifications.filter(n => !n.isRead).length, icon: Bell },
+                { id: 'notifications', name: 'Notificaciones', count: notifications.filter(n => !n.read).length, icon: Bell },
                 { id: 'earnings', name: 'Ganancias', count: null, icon: DollarSign }
               ].map((tab) => (
                 <button

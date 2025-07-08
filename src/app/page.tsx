@@ -8,6 +8,7 @@ import Image from 'next/image'
 import { Zap, Wrench, Thermometer, Droplets, Hammer, Shield, LogIn, UserPlus, Settings, Bell, User, Menu, X, Star, Trophy, Gauge, Sparkles, Atom, Rocket, ArrowRight, CheckCircle, Heart, Eye } from 'lucide-react'
 import { AuthModal } from '@/components/AuthModal'
 import { SettingsModal } from '@/components/SettingsModal'
+import { ElevenLabsWidget } from '@/components/ElevenLabsWidget'
 import { useAuthStore } from '@/store/auth'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { SEO, generateLocalBusinessStructuredData, StructuredData } from '@/components/SEO'
@@ -158,69 +159,9 @@ const FloatingParticles = () => {
   )
 }
 
-// Achievement/Gamification Component
-const AchievementBadge = ({ achievement, isUnlocked }: { achievement: any, isUnlocked: boolean }) => {
-  return (
-    <motion.div
-      initial={{ scale: 0, rotate: -180 }}
-      animate={{ 
-        scale: isUnlocked ? 1 : 0.8, 
-        rotate: 0,
-        filter: isUnlocked ? "grayscale(0%)" : "grayscale(100%)"
-      }}
-      whileHover={{ scale: 1.1, y: -5 }}
-      className={`achievement-badge ${isUnlocked ? 'unlocked' : 'locked'}`}
-    >
-      <div className="glass-base p-3 rounded-xl">
-        <Trophy className={`h-6 w-6 ${isUnlocked ? 'text-yellow-500' : 'text-gray-400'}`} />
-        <span className="text-xs mt-1">{achievement.name}</span>
-      </div>
-    </motion.div>
-  )
-}
 
-// Modern Progress Indicator with Gamification
-const ModernProgress = ({ currentStep, totalSteps }: { currentStep: number, totalSteps: number }) => {
-  const progress = (currentStep / totalSteps) * 100
 
-  return (
-    <div className="modern-progress-container">
-      <motion.div 
-        className="progress-track"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <motion.div
-          className="progress-fill"
-          initial={{ width: 0 }}
-          animate={{ width: `${progress}%` }}
-          transition={{ duration: 1.5, ease: "easeOut" }}
-        />
-        <motion.div
-          className="progress-glow"
-          animate={{ 
-            x: `${progress}%`,
-            opacity: [0.5, 1, 0.5]
-          }}
-          transition={{ 
-            x: { duration: 1.5, ease: "easeOut" },
-            opacity: { duration: 2, repeat: Infinity }
-          }}
-        />
-      </motion.div>
-      <motion.div 
-        className="progress-text"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-      >
-        <Sparkles className="h-4 w-4 text-blue-500" />
-        <span className="text-sm font-medium">Paso {currentStep} de {totalSteps}</span>
-      </motion.div>
-    </div>
-  )
-}
+
 
 export default function HomePage() {
   const [selectedService, setSelectedService] = useState<string | null>(null)
@@ -233,12 +174,8 @@ export default function HomePage() {
   const [touchedCard, setTouchedCard] = useState<string | null>(null)
   const [loadingTime, setLoadingTime] = useState<number>(0)
   const [pageSpeed, setPageSpeed] = useState<'fast' | 'good' | 'slow'>('fast')
-  const [userExperience, setUserExperience] = useState({
-    level: 1,
-    points: 0,
-    achievements: ['first-visit'],
-    completedActions: [] as string[]
-  })
+  const [servicesCount, setServicesCount] = useState<number>(23) // Default to 23 for SSR
+
   
   const [authModal, setAuthModal] = useState<{
     isOpen: boolean
@@ -258,6 +195,9 @@ export default function HomePage() {
   // Mobile detection, performance monitoring, and responsive effects
   useEffect(() => {
     const startTime = performance.now()
+    
+    // Generate random services count only on client side
+    setServicesCount(Math.floor(Math.random() * 15) + 18)
     
     // Detect mobile device
     const checkMobile = () => {
@@ -322,14 +262,14 @@ export default function HomePage() {
       id: 'electrical',
       icon: Zap,
       title: 'Servicios Eléctricos',
-      subtitle: '⚡ ACTIVO AHORA - Técnicos Listos',
-      description: '🔌 Emergencias 24/7 | 1000+ Clientes Satisfechos | Técnicos Certificados | Garantía Total',
+      subtitle: 'ACTIVO AHORA - Técnicos Listos',
+      description: 'Emergencias 24/7 | 1000+ Clientes Satisfechos | Técnicos Certificados | Garantía Total',
       glassClass: 'glass-electric',
       iconColor: 'text-blue-600',
       available: true,
-      badge: '✨ DISPONIBLE',
+      badge: 'DISPONIBLE',
       badgeClass: 'glass-success',
-      experience: 50,
+
       popularity: 98,
       rating: 4.9,
       completionTime: '30-60 min',
@@ -338,7 +278,7 @@ export default function HomePage() {
       // HOLY TRINITY ENHANCEMENTS
       trustSignals: {
         certifications: ['Licencia CDEEE', 'Seguros ARS'],
-        recentBookings: '23 servicios hoy',
+        recentBookings: `${servicesCount} servicios hoy`,
         responseTime: '15 min promedio',
         satisfaction: '98% satisfacción'
       },
@@ -349,101 +289,100 @@ export default function HomePage() {
       id: 'plumbing',
       icon: Droplets,
       title: 'Servicios de Plomería',
-      subtitle: 'Instalaciones y reparaciones profesionales',
+      subtitle: 'NO DISPONIBLE - Próximamente Q1 2025',
       description: 'Reparación de fugas, instalación de tuberías, destapado de drenajes y servicios de fontanería.',
-      glassClass: 'glass-blue',
-      iconColor: 'text-cyan-500',
+      glassClass: 'glass-disabled',
+      iconColor: 'text-gray-400',
       available: false,
-      badge: 'Próximamente Q1 2025',
-      badgeClass: 'glass-purple',
-      experience: 45,
+      badge: 'NO DISPONIBLE',
+      badgeClass: 'glass-disabled',
+
       popularity: 85,
       rating: 4.7,
       completionTime: '45-90 min',
       features: ['Reparaciones', 'Instalaciones', 'Emergencias'],
-      gradient: 'from-cyan-400 via-cyan-500 to-blue-500'
+      gradient: 'from-gray-300 via-gray-400 to-gray-500',
+      comingSoon: 'Q1 2025'
     },
     {
       id: 'hvac',
       icon: Thermometer,
       title: 'Aire Acondicionado',
-      subtitle: 'Clima perfecto para tu hogar',
+      subtitle: 'NO DISPONIBLE - Próximamente Q2 2025',
       description: 'Instalación, reparación y mantenimiento de sistemas de aire acondicionado y climatización.',
-      glassClass: 'glass-blue',
-      iconColor: 'text-green-500',
+      glassClass: 'glass-disabled',
+      iconColor: 'text-gray-400',
       available: false,
-      badge: 'Próximamente Q2 2025',
-      badgeClass: 'glass-purple',
-      experience: 60,
+      badge: 'NO DISPONIBLE',
+      badgeClass: 'glass-disabled',
+
       popularity: 92,
       rating: 4.8,
       completionTime: '60-120 min',
       features: ['Instalación', 'Mantenimiento', 'Reparación'],
-      gradient: 'from-green-400 via-emerald-500 to-green-600'
+      gradient: 'from-gray-300 via-gray-400 to-gray-500',
+      comingSoon: 'Q2 2025'
     },
     {
       id: 'general',
       icon: Hammer,
       title: 'Servicios Generales',
-      subtitle: 'Mantenimiento integral del hogar',
+      subtitle: 'NO DISPONIBLE - Próximamente Q2 2025',
       description: 'Carpintería, pintura, reparaciones menores y servicios generales de mantenimiento.',
-      glassClass: 'glass-blue',
-      iconColor: 'text-orange-500',
+      glassClass: 'glass-disabled',
+      iconColor: 'text-gray-400',
       available: false,
-      badge: 'Próximamente Q2 2025',
-      badgeClass: 'glass-purple',
-      experience: 40,
+      badge: 'NO DISPONIBLE',
+      badgeClass: 'glass-disabled',
+
       popularity: 78,
       rating: 4.6,
       completionTime: '90-180 min',
       features: ['Carpintería', 'Pintura', 'Reparaciones'],
-      gradient: 'from-orange-400 via-orange-500 to-red-500'
+      gradient: 'from-gray-300 via-gray-400 to-gray-500',
+      comingSoon: 'Q2 2025'
     },
     {
-      id: 'security',
+      id: 'painting',
       icon: Shield,
-      title: 'Seguridad',
-      subtitle: 'Protección avanzada 24/7',
-      description: 'Instalación de cámaras de seguridad, alarmas y sistemas de monitoreo para hogar y empresa.',
-      glassClass: 'glass-blue',
-      iconColor: 'text-purple-500',
+      title: 'Pintura',
+      subtitle: 'NO DISPONIBLE - Próximamente Q3 2025',
+      description: 'Pintura interior y exterior, acabados profesionales y renovación de espacios.',
+      glassClass: 'glass-disabled',
+      iconColor: 'text-gray-400',
       available: false,
-      badge: 'Próximamente Q3 2025',
-      badgeClass: 'glass-purple',
-      experience: 70,
+      badge: 'NO DISPONIBLE',
+      badgeClass: 'glass-disabled',
+
       popularity: 88,
       rating: 4.8,
       completionTime: '120-240 min',
-      features: ['Cámaras', 'Alarmas', 'Monitoreo'],
-      gradient: 'from-purple-400 via-purple-500 to-indigo-600'
+      features: ['Pintura Interior', 'Pintura Exterior', 'Acabados'],
+      gradient: 'from-gray-300 via-gray-400 to-gray-500',
+      comingSoon: 'Q3 2025'
     },
     {
       id: 'appliances',
       icon: Wrench,
       title: 'Electrodomésticos',
-      subtitle: 'Reparación especializada',
+      subtitle: 'NO DISPONIBLE - Próximamente Q3 2025',
       description: 'Reparación y mantenimiento de lavadoras, refrigeradoras, estufas y otros electrodomésticos.',
-      glassClass: 'glass-blue',
-      iconColor: 'text-red-500',
+      glassClass: 'glass-disabled',
+      iconColor: 'text-gray-400',
       available: false,
-      badge: 'Próximamente Q3 2025',
-      badgeClass: 'glass-purple',
-      experience: 55,
+      badge: 'NO DISPONIBLE',
+      badgeClass: 'glass-disabled',
+
       popularity: 82,
       rating: 4.7,
       completionTime: '60-150 min',
       features: ['Diagnóstico', 'Reparación', 'Mantenimiento'],
-      gradient: 'from-red-400 via-red-500 to-pink-500'
+      gradient: 'from-gray-300 via-gray-400 to-gray-500',
+      comingSoon: 'Q3 2025'
     }
   ]
 
-  // Achievements system
-  const achievements = [
-    { id: 'first-visit', name: 'Explorador', description: 'Primera visita al sitio', icon: Star },
-    { id: 'service-selected', name: 'Decisivo', description: 'Seleccionó un servicio', icon: CheckCircle },
-    { id: 'booking-completed', name: 'Comprometido', description: 'Completó una reserva', icon: Heart },
-    { id: 'power-user', name: 'Usuario Experto', description: 'Múltiples servicios', icon: Trophy }
-  ]
+
 
   const handleServiceSelect = async (serviceId: string) => {
     console.log('🚀 Service clicked:', serviceId)
@@ -462,12 +401,7 @@ export default function HomePage() {
       setSelectedService(serviceId)
       setIsNavigating(true)
       
-      // Add achievement points
-      setUserExperience(prev => ({
-        ...prev,
-        points: prev.points + service.experience,
-        completedActions: [...prev.completedActions, 'service-selected']
-      }))
+
       
       // Navigate with smooth animation
       if (serviceId === 'electrical') {
@@ -506,7 +440,7 @@ export default function HomePage() {
       {/* Enhanced SEO for Professional Credibility */}
       <SEO 
         title="MultiServicios El Seibo - Electricistas Certificados | Servicios Eléctricos Profesionales 24/7"
-        description="⚡ Servicios eléctricos profesionales en El Seibo y Hato Mayor. Técnicos certificados, 1000+ clientes satisfechos, emergencias 24/7. Instalaciones, reparaciones, mantenimiento. Empresa establecida desde 2016 con garantías y seguros. ¡Llama ahora!"
+        description="Servicios eléctricos profesionales en El Seibo y Hato Mayor. Técnicos certificados, 1000+ clientes satisfechos, emergencias 24/7. Instalaciones, reparaciones, mantenimiento. Empresa establecida desde 2016 con garantías y seguros. ¡Llama ahora!"
         keywords={[
           'electricista El Seibo',
           'servicios eléctricos El Seibo',
@@ -598,33 +532,7 @@ export default function HomePage() {
               </div>
             </motion.div>
 
-            {/* Enhanced User Experience Indicators */}
-            <div className="hidden lg:flex items-center space-x-4">
-              <motion.div 
-                className="glass-base px-4 py-2 rounded-xl"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.6 }}
-              >
-                  <div className="flex items-center space-x-2">
-                  <Gauge className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm font-medium">Nivel {userExperience.level}</span>
-                  <Star className="h-4 w-4 text-yellow-500" />
-                  <span className="text-sm font-medium">{userExperience.points} pts</span>
-                </div>
-              </motion.div>
 
-              {/* Achievement Badges */}
-              <div className="flex space-x-2">
-                {achievements.slice(0, 3).map((achievement, index) => (
-                  <AchievementBadge 
-                    key={achievement.id}
-                    achievement={achievement}
-                    isUnlocked={userExperience.achievements.includes(achievement.id)}
-                  />
-                ))}
-                    </div>
-                  </div>
                   
             {/* Enhanced Auth Buttons */}
                   <div className="flex items-center space-x-3">
@@ -684,8 +592,7 @@ export default function HomePage() {
           </div>
       </motion.header>
 
-      {/* Modern Progress Indicator */}
-      <ModernProgress currentStep={currentStep} totalSteps={totalSteps} />
+
 
       {/* Enhanced Main Content - Mobile First */}
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -719,7 +626,7 @@ export default function HomePage() {
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.3, type: "spring" }}
               >
-                <div className="text-2xl font-black text-yellow-600">4.9★</div>
+                <div className="text-2xl font-black text-yellow-600">4.9</div>
                 <div className="text-xs font-medium text-gray-700">Calificación</div>
               </motion.div>
               <motion.div
@@ -762,8 +669,8 @@ export default function HomePage() {
                       pageSpeed === 'good' ? 'text-yellow-600' : 'text-red-600'
                     }`}>
                       {loadingTime}ms - {
-                        pageSpeed === 'fast' ? '⚡ SÚPER RÁPIDO' : 
-                        pageSpeed === 'good' ? '🚀 RÁPIDO' : '⏳ OPTIMIZANDO'
+                        pageSpeed === 'fast' ? 'SÚPER RÁPIDO' : 
+                        pageSpeed === 'good' ? 'RÁPIDO' : 'OPTIMIZANDO'
                       }
               </div>
                     <div className="text-xs text-gray-600">Tiempo de Carga</div>
@@ -839,11 +746,13 @@ export default function HomePage() {
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
                   <div className="w-72 h-48 rounded-2xl overflow-hidden relative glass-card border-2 border-white/20">
-                    <img 
+                    <Image 
                       src={image.src}
                       alt={image.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      loading="lazy"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      {...(index === 0 ? { priority: true } : { loading: "lazy" })}
                     />
                     {/* Overlay with gradient */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -893,11 +802,13 @@ export default function HomePage() {
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 >
                   <div className="w-72 h-48 rounded-2xl overflow-hidden relative glass-card border-2 border-white/20">
-                    <img 
+                    <Image 
                       src={image.src}
                       alt={image.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      loading="lazy"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-110"
+                      {...(index === 0 ? { priority: true } : { loading: "lazy" })}
                     />
                     {/* Overlay with gradient */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -933,17 +844,19 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2 }}
           >
-            <motion.button
-              className="modern-cta-button px-8 py-3 rounded-xl font-bold text-white"
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <span className="flex items-center space-x-2">
-                <Eye className="h-5 w-5" />
-                <span>Ver Más Trabajos</span>
-                <ArrowRight className="h-5 w-5" />
-              </span>
-            </motion.button>
+            <Link href="/gallery">
+              <motion.button
+                className="modern-cta-button px-8 py-3 rounded-xl font-bold text-white"
+                whileHover={{ scale: 1.05, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className="flex items-center space-x-2">
+                  <Eye className="h-5 w-5" />
+                  <span>Ver Más Trabajos</span>
+                  <ArrowRight className="h-5 w-5" />
+                </span>
+              </motion.button>
+            </Link>
             <p className="text-xs text-gray-500 mt-2">+500 proyectos completados exitosamente</p>
           </motion.div>
         </motion.div>
@@ -962,7 +875,7 @@ export default function HomePage() {
             transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.3 }}
           >
             <Zap className="h-5 w-5 text-blue-600" />
-            <span className="font-bold text-blue-800">¡23 Servicios Completados Hoy!</span>
+            <span className="font-bold text-blue-800">¡{servicesCount} Servicios Completados Hoy!</span>
             <motion.div
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -1002,11 +915,11 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.8 }}
           >
-            🏆 <strong>1000+ clientes satisfechos</strong> confían en nuestro trabajo profesional. 
+            <strong>1000+ clientes satisfechos</strong> confían en nuestro trabajo profesional. 
             <br />
-            ⚡ <strong>Técnicos certificados</strong> disponibles <strong>24/7</strong> para emergencias.
+            <strong>Técnicos certificados</strong> disponibles <strong>24/7</strong> para emergencias.
             <br />
-            🎯 <strong>Garantía total</strong> en todos nuestros servicios.
+            <strong>Garantía total</strong> en todos nuestros servicios.
           </motion.p>
 
           <motion.div
@@ -1015,7 +928,7 @@ export default function HomePage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
           >
-            {['⚡ Respuesta Inmediata', '🛡️ Totalmente Asegurado', '🏆 Satisfacción Garantizada'].map((feature, index) => (
+            {['Respuesta Inmediata', 'Totalmente Asegurado', 'Satisfacción Garantizada'].map((feature, index) => (
               <motion.div
                 key={feature}
                 className="glass-base px-4 py-2 rounded-full"
@@ -1145,13 +1058,13 @@ export default function HomePage() {
                             <span className="font-bold">{service.rating} • {service.trustSignals?.satisfaction}</span>
                         </div>
                           <div className="flex items-center space-x-1 text-green-600 font-bold">
-                            <span>🟢 {service.trustSignals?.recentBookings}</span>
+                            <span>{service.trustSignals?.recentBookings}</span>
                       </div>
                   </div>
                         
                         <div className="flex justify-between text-xs">
-                          <span className="text-blue-600 font-medium">⚡ {service.trustSignals?.responseTime}</span>
-                          <span className="text-purple-600 font-medium">💰 {service.priceRange}</span>
+                          <span className="text-blue-600 font-medium">{service.trustSignals?.responseTime}</span>
+                          <span className="text-purple-600 font-medium">{service.priceRange}</span>
               </div>
             </div>
 
@@ -1165,7 +1078,7 @@ export default function HomePage() {
                             animate={{ scale: 1 }}
                             transition={{ delay: 3 + index * 0.1 + certIndex * 0.05 }}
                           >
-                            ✅ {cert}
+                            {cert}
                           </motion.span>
                         ))}
                 </div>
@@ -1215,7 +1128,7 @@ export default function HomePage() {
                           />
                         </motion.div>
                         <p className="text-xs text-center text-gray-500 mt-1">
-                          ⏱️ {service.completionTime} • 📞 Sin compromiso
+                          {service.completionTime} • Sin compromiso
                         </p>
                 </div>
                     </motion.div>
@@ -1229,15 +1142,23 @@ export default function HomePage() {
                       animate={{ opacity: 1 }}
                       transition={{ delay: 2.5 + index * 0.1 }}
                     >
-                      <div className="text-center py-4">
+                      <div className="text-center py-6">
                         <motion.div
+                          className="mb-4"
                           animate={{ rotate: 360 }}
                           transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
                         >
-                          <Sparkles className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+                          <Sparkles className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                         </motion.div>
-                        <p className="text-purple-600 font-bold text-sm">Próximamente</p>
-                        <p className="text-xs text-gray-500 mt-1">+{service.experience} puntos de experiencia</p>
+                        <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4">
+                          <p className="text-gray-700 font-bold text-lg mb-2">SERVICIO NO DISPONIBLE</p>
+                          <p className="text-gray-600 text-sm mb-2">Este servicio estará disponible en {service.comingSoon}</p>
+                          <p className="text-gray-500 text-xs">Por el momento, solo ofrecemos servicios eléctricos</p>
+                        </div>
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <p className="text-blue-700 font-semibold text-sm">¿Necesitas servicios eléctricos?</p>
+                          <p className="text-blue-600 text-xs mt-1">Selecciona &quot;Servicios Eléctricos&quot; arriba</p>
+                        </div>
               </div>
                     </motion.div>
                   )}
@@ -1410,6 +1331,9 @@ export default function HomePage() {
         isOpen={settingsModal.isOpen}
         onClose={() => setSettingsModal({ isOpen: false })}
       />
+
+      {/* ElevenLabs Convai Widget - Disabled due to account limitations */}
+      {/* <ElevenLabsWidget agentId="agent_01jzjp0q3sekq8jddpvd0q8xrq" /> */}
     </div>
   )
 }

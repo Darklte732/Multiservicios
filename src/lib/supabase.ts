@@ -242,7 +242,7 @@ export const db = {
       .order('created_at', { ascending: false })
 
     if (unreadOnly) {
-      query = query.eq('read', false)
+      query = query.eq('is_read', false)
     }
 
     const { data, error } = await query

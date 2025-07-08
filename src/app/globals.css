@@ -288,14 +288,11 @@
 
 /* Liquid Glass (Glassmorphism) Base Styles */
 .glass-base {
-  backdrop-filter: blur(32px) saturate(150%);
-  -webkit-backdrop-filter: blur(32px) saturate(150%);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.7));
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 16px;
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(255, 255, 255, 0.15) inset;
+  @apply bg-white/20 backdrop-blur-sm border border-white/30;
+}
+
+.glass-disabled {
+  @apply bg-gray-100/50 backdrop-blur-sm border border-gray-300/50;
 }
 
 .glass-light {
@@ -354,21 +351,11 @@
 
 /* Glass Modal Overlay */
 .glass-modal-overlay {
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
-  background: linear-gradient(135deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.2));
+  @apply bg-black/20;
 }
 
 .glass-modal {
-  backdrop-filter: blur(60px) saturate(180%);
-  -webkit-backdrop-filter: blur(60px) saturate(180%);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 24px;
-  box-shadow: 
-    0 25px 50px rgba(0, 0, 0, 0.15),
-    0 0 0 1px rgba(255, 255, 255, 0.3) inset,
-    0 1px 0 rgba(255, 255, 255, 0.5) inset;
+  @apply bg-white/90 backdrop-blur-xl border border-white/30;
 }
 
 /* Glass Input Fields */
@@ -394,23 +381,7 @@
 
 /* Glass Buttons */
 .glass-button {
-  backdrop-filter: blur(32px) saturate(170%);
-  -webkit-backdrop-filter: blur(32px) saturate(170%);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 197, 253, 0.08));
-  border: 1px solid rgba(59, 130, 246, 0.25);
-  border-radius: 12px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.glass-button:hover {
-  backdrop-filter: blur(36px) saturate(180%);
-  -webkit-backdrop-filter: blur(36px) saturate(180%);
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 197, 253, 0.12));
-  border: 1px solid rgba(59, 130, 246, 0.35);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+  @apply bg-white/70 backdrop-blur-sm border border-white/30 hover:bg-white/80 transition-all duration-200;
 }
 
 .glass-button::before {
@@ -430,18 +401,7 @@
 
 /* Glass Cards */
 .glass-card {
-  backdrop-filter: blur(40px) saturate(160%);
-  -webkit-backdrop-filter: blur(40px) saturate(160%);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.75));
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 20px;
-  box-shadow: 
-    0 16px 32px rgba(0, 0, 0, 0.08),
-    0 4px 16px rgba(0, 0, 0, 0.04),
-    0 0 0 1px rgba(255, 255, 255, 0.3) inset;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  @apply bg-white/60 backdrop-blur-md border border-white/30;
 }
 
 .glass-card:hover {
@@ -613,21 +573,11 @@
 
 /* Enhanced Professional Styling */
 .glass-electric {
-  backdrop-filter: blur(30px) saturate(200%);
-  -webkit-backdrop-filter: blur(30px) saturate(200%);
-  background: linear-gradient(135deg, rgba(219, 234, 254, 0.8), rgba(191, 219, 254, 0.6));
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.12);
+  @apply bg-blue-50/50 backdrop-blur-sm border border-blue-200/50;
 }
 
 .glass-success {
-  backdrop-filter: blur(25px) saturate(200%);
-  -webkit-backdrop-filter: blur(25px) saturate(200%);
-  background: linear-gradient(135deg, rgba(220, 252, 231, 0.8), rgba(187, 247, 208, 0.6));
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.12);
+  @apply bg-green-50/80 backdrop-blur-sm border border-green-200/50;
 }
 
 .glass-professional {
@@ -904,4 +854,31 @@
   .service-card .backdrop-blur-sm {
     background-color: rgba(255, 255, 255, 0.25) !important;
   }
+}
+
+/* Add disabled state styles */
+.glass-disabled {
+  @apply bg-gray-200/30 backdrop-blur-sm border border-gray-400/30;
+}
+
+.coming-soon-overlay {
+  @apply absolute inset-0 bg-gray-500/20 backdrop-blur-sm rounded-2xl flex items-center justify-center;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+}
+
+/* New styles for coming soon */
+.service-card.coming-soon {
+  @apply opacity-60 cursor-not-allowed;
+}
+
+.service-card.coming-soon:hover {
+  @apply transform-none scale-100;
+}
+
+.service-card.available {
+  @apply cursor-pointer;
 } 

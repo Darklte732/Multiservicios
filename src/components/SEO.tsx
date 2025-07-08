@@ -191,7 +191,7 @@ export const SEO = memo(function SEO({
 export const generatePageSEO = (page: string, data?: any) => {
   const seoConfig: Record<string, Partial<SEOProps>> = {
     home: {
-      title: '⚡ MultiServicios El Seibo - Servicios Eléctricos Profesionales',
+      title: 'MultiServicios El Seibo - Servicios Eléctricos Profesionales',
       description: 'Servicios eléctricos profesionales en El Seibo, República Dominicana. Instalaciones, reparaciones, mantenimiento y emergencias 24/7. Reserva tu cita en línea.',
       canonical: '/',
     },

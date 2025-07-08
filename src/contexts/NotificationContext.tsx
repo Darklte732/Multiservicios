@@ -54,6 +54,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   // Fetch notifications from database
   const fetchNotifications = useCallback(async () => {
     if (!user?.id) {
+      setNotifications([])
       return
     }
 
@@ -65,27 +66,32 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         .order('created_at', { ascending: false })
 
       if (error) {
-        console.error('Error fetching notifications:', error)
-        addToast('Error loading notifications', 'error')
+        console.warn('Error fetching notifications:', error)
+        // Don't show error toast if it's just a missing table or RLS issue
+        // Instead, set empty notifications and continue
+        setNotifications([])
         return
       }
       
       // Transform data to match DashboardNotification type
-      const transformedNotifications: DashboardNotification[] = data.map(notification => ({
+      const transformedNotifications: DashboardNotification[] = (data || []).map(notification => ({
         id: notification.id,
         title: notification.title,
         message: notification.message,
         type: notification.type as NotificationType,
-        read: notification.read || false,
+        read: notification.is_read || false,
         created_at: notification.created_at,
         read_at: notification.read_at || undefined,
         user_id: notification.user_id
       }))
 
       setNotifications(transformedNotifications)
+      setConnectionStatus('connected')
     } catch (error) {
-      console.error('Unexpected error fetching notifications:', error)
-      addToast('Failed to load notifications', 'error')
+      console.warn('Unexpected error fetching notifications:', error)
+      // Set empty notifications instead of showing error
+      setNotifications([])
+      setConnectionStatus('disconnected')
     }
   }, [user?.id, addToast])
 
@@ -97,7 +103,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       const { error } = await supabase
         .from('notifications')
         .update({ 
-          read: true,
+          is_read: true,
           read_at: new Date().toISOString()
         })
         .eq('id', notificationId)
@@ -137,7 +143,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       const { error } = await supabase
         .from('notifications')
         .update({ 
-          read: true,
+          is_read: true,
           read_at: new Date().toISOString()
         })
         .in('id', unreadIds)

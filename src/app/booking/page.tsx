@@ -4,7 +4,10 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, Zap, Star, Shield, Clock, CheckCircle, Heart, Sparkles, Rocket, ArrowRight, Award, Eye, Users, Gauge, Trophy } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import CalendlyEmbed from '@/components/CalendlyEmbed'
+import { ImageLightbox } from '@/components/ui/ImageLightbox'
+import { ElevenLabsWidget } from '@/components/ElevenLabsWidget'
 
 // Custom Cursor Component (same as homepage)
 const CustomCursor = () => {
@@ -187,7 +190,7 @@ const ModernProgress = ({ currentStep, totalSteps }: { currentStep: number, tota
         transition={{ delay: 1 }}
       >
         <Rocket className="h-4 w-4 text-blue-500" />
-        <span className="text-sm font-medium">Paso {currentStep} de {totalSteps} • {Math.round(progress)}% Completado</span>
+        <span className="text-sm font-medium">Etapa {currentStep} de {totalSteps}</span>
         <Trophy className="h-4 w-4 text-yellow-500" />
       </motion.div>
     </motion.div>
@@ -198,8 +201,8 @@ const services = [
   {
     id: 'emergencia',
     name: 'Emergencia Eléctrica',
-    description: '🚨 Atención inmediata 24/7 para problemas críticos',
-    icon: '⚡',
+    description: 'Atención inmediata 24/7 para problemas críticos',
+    icon: 'Emergencia',
     iconComponent: Zap,
     color: 'glass-red',
     gradient: 'from-red-400 via-red-500 to-red-600',
@@ -215,23 +218,23 @@ const services = [
       diagnostic: 'RD$ 4,000 - 8,000',
       process: 'Evaluación de emergencia + reparación inmediata',
       included: [
-        '🚨 Visita técnica especializada de emergencia',
-        '🔍 Diagnóstico completo con equipo profesional',
-        '⚡ Evaluación detallada del problema eléctrico',
-        '💰 Cotización transparente del trabajo necesario',
-        '⏱️ Cotización inmediata del trabajo de emergencia',
-        '🛡️ Garantía de 15 días en el trabajo realizado'
+        'Visita técnica especializada de emergencia',
+        'Diagnóstico completo con equipo profesional',
+        'Evaluación detallada del problema eléctrico',
+        'Cotización transparente del trabajo necesario',
+        'Cotización inmediata del trabajo de emergencia',
+        'Garantía de 15 días en el trabajo realizado'
       ],
       note: 'Tarifa nocturna y fines de semana: +50% • Evaluación GRATIS si contratas el servicio',
-      clarification: '💡 Si decides contratar nuestro servicio, la evaluación es COMPLETAMENTE GRATIS. Solo pagas si no contratas.',
+      clarification: 'Si decides contratar nuestro servicio, la evaluación es COMPLETAMENTE GRATIS. Solo pagas si no contratas.',
       trustBadges: ['24/7 Disponible', 'Respuesta < 30min', '1000+ Emergencias Resueltas']
     }
   },
   {
     id: 'instalacion',
     name: 'Instalación Eléctrica',
-    description: '🔌 Instalaciones nuevas, conexiones y cableado profesional',
-    icon: '🔌',
+    description: 'Instalaciones nuevas, conexiones y cableado profesional',
+    icon: 'Instalación',
     iconComponent: Award,
     color: 'glass-blue',
     gradient: 'from-blue-400 via-blue-500 to-blue-600',
@@ -247,23 +250,23 @@ const services = [
       diagnostic: 'RD$ 3,000 - 6,000',
       process: 'Evaluación del proyecto + cotización detallada + instalación',
       included: [
-        '🏠 Visita técnica y evaluación del sitio',
-        '📊 Análisis técnico completo del proyecto',
-        '📏 Medición y planificación de la instalación',
-        '💰 Cotización detallada de materiales y mano de obra',
-        '💡 Asesoría sobre mejores opciones y alternativas',
-        '🛡️ Garantía de 90 días en el trabajo completado'
+        'Visita técnica y evaluación del sitio',
+        'Análisis técnico completo del proyecto',
+        'Medición y planificación de la instalación',
+        'Cotización detallada de materiales y mano de obra',
+        'Asesoría sobre mejores opciones y alternativas',
+        'Garantía de 90 días en el trabajo completado'
       ],
       note: 'Evaluación GRATIS si contratas la instalación • Materiales se cotizan según el proyecto',
-      clarification: '💡 Si decides contratar la instalación con nosotros, la evaluación es COMPLETAMENTE GRATIS. Solo pagas si no contratas.',
+      clarification: 'Si decides contratar la instalación con nosotros, la evaluación es COMPLETAMENTE GRATIS. Solo pagas si no contratas.',
       trustBadges: ['Técnicos Certificados', 'Garantía 90 días', 'Materiales Premium']
     }
   },
   {
     id: 'mantenimiento',
     name: 'Mantenimiento Eléctrico',
-    description: '🔧 Mantenimiento preventivo y revisiones periódicas',
-    icon: '🔧',
+    description: 'Mantenimiento preventivo y revisiones periódicas',
+    icon: 'Mantenimiento',
     iconComponent: Shield,
     color: 'glass-green',
     gradient: 'from-green-400 via-green-500 to-green-600',
@@ -279,24 +282,24 @@ const services = [
       diagnostic: 'RD$ 3,000 - 5,000',
       process: 'Inspección completa + mantenimiento preventivo',
       included: [
-        '🕐 Visita técnica programada a tu conveniencia',
-        '🔍 Inspección completa de todo el sistema eléctrico',
-        '🧹 Limpieza básica de breakers durante inspección',
-        '🧪 Pruebas de seguridad y funcionamiento',
-        '📋 Reporte detallado del estado de tu instalación',
-        '💡 Recomendaciones para prevenir problemas futuros',
-        '🛡️ Garantía de 60 días en servicios realizados'
+        'Visita técnica programada a tu conveniencia',
+        'Inspección completa de todo el sistema eléctrico',
+        'Limpieza básica de breakers durante inspección',
+        'Pruebas de seguridad y funcionamiento',
+        'Reporte detallado del estado de tu instalación',
+        'Recomendaciones para prevenir problemas futuros',
+        'Garantía de 60 días en servicios realizados'
       ],
       note: 'Evaluación GRATIS si contratas el mantenimiento • 20% descuento en mantenimientos programados',
-      clarification: '💡 Si decides contratar el mantenimiento con nosotros, la evaluación es COMPLETAMENTE GRATIS. Solo pagas si no contratas.',
+      clarification: 'Si decides contratar el mantenimiento con nosotros, la evaluación es COMPLETAMENTE GRATIS. Solo pagas si no contratas.',
       trustBadges: ['Inspección Completa', '20% Descuento', 'Prevención Total']
     }
   },
   {
     id: 'reparacion',
     name: 'Reparación Eléctrica',
-    description: '⚡ Reparación de fallas y problemas eléctricos',
-    icon: '⚡',
+    description: 'Reparación de fallas y problemas eléctricos',
+    icon: 'Reparación',
     iconComponent: Zap,
     color: 'glass-purple',
     gradient: 'from-purple-400 via-purple-500 to-purple-600',
@@ -312,16 +315,16 @@ const services = [
       diagnostic: 'RD$ 3,000 - 7,000',
       process: 'Diagnóstico especializado + reparación del problema',
       included: [
-        '🔧 Visita técnica con equipo de diagnóstico avanzado',
-        '🎯 Identificación precisa de la falla eléctrica',
-        '📊 Evaluación de daños y causas del problema',
-        '💰 Cotización clara de la reparación necesaria',
-        '📋 Cotización detallada de toda reparación necesaria',
-        '✅ Pruebas de funcionamiento y seguridad',
-        '🛡️ Garantía de 45 días en la reparación'
+        'Visita técnica con equipo de diagnóstico avanzado',
+        'Identificación precisa de la falla eléctrica',
+        'Evaluación de daños y causas del problema',
+        'Cotización clara de la reparación necesaria',
+        'Cotización detallada de toda reparación necesaria',
+        'Pruebas de funcionamiento y seguridad',
+        'Garantía de 45 días en la reparación'
       ],
       note: 'Evaluación GRATIS si contratas la reparación • Materiales especiales se cotizan por separado',
-      clarification: '💡 Si decides contratar la reparación con nosotros, la evaluación es COMPLETAMENTE GRATIS. Solo pagas si no contratas.',
+      clarification: 'Si decides contratar la reparación con nosotros, la evaluación es COMPLETAMENTE GRATIS. Solo pagas si no contratas.',
       trustBadges: ['Diagnóstico Avanzado', 'Garantía 45 días', 'Reparación Experta']
     }
   }
@@ -333,6 +336,21 @@ export default function BookingPage() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
   const [touchedCard, setTouchedCard] = useState<string | null>(null)
   const [imageIndexes, setImageIndexes] = useState<{[key: string]: number}>({})
+  
+  // Lightbox state
+  const [lightbox, setLightbox] = useState<{
+    isOpen: boolean
+    imageSrc: string
+    imageTitle: string
+    imageCategory: string
+    currentIndex: number
+  }>({
+    isOpen: false,
+    imageSrc: '',
+    imageTitle: '',
+    imageCategory: '',
+    currentIndex: 0
+  })
 
   useEffect(() => {
     const checkMobile = () => {
@@ -373,6 +391,49 @@ export default function BookingPage() {
 
   const handleServiceSelect = (serviceId: string) => {
     setSelectedService(serviceId)
+  }
+
+  // Portfolio images data
+  const portfolioImages = [
+    { src: '/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg', title: 'Instalación Moderna', category: 'Residencial' },
+    { src: '/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg', title: 'Panel Industrial', category: 'Comercial' },
+    { src: '/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg', title: 'Cableado Completo', category: 'Industrial' },
+    { src: '/2394664b-563a-48aa-900e-7ff62152b422.jpeg', title: 'Sistema Emergencia', category: 'Crítico' },
+    { src: '/43a0a5cf-6fea-49e8-b174-7382d6ebfa5d.jpeg', title: 'Iluminación LED', category: 'Eficiente' },
+    { src: '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg', title: 'Mantenimiento', category: 'Preventivo' },
+    { src: '/7108a911-e716-4416-a620-97be93f4c140.jpeg', title: 'Reparación Pro', category: 'Especializada' },
+    { src: '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg', title: 'Instalación Total', category: 'Completa' }
+  ]
+
+  // Lightbox functions
+  const openLightbox = (index: number) => {
+    const image = portfolioImages[index]
+    setLightbox({
+      isOpen: true,
+      imageSrc: image.src,
+      imageTitle: image.title,
+      imageCategory: image.category,
+      currentIndex: index
+    })
+  }
+
+  const closeLightbox = () => {
+    setLightbox(prev => ({ ...prev, isOpen: false }))
+  }
+
+  const navigateLightbox = (direction: 'prev' | 'next') => {
+    const newIndex = direction === 'prev' 
+      ? (lightbox.currentIndex - 1 + portfolioImages.length) % portfolioImages.length
+      : (lightbox.currentIndex + 1) % portfolioImages.length
+    
+    const image = portfolioImages[newIndex]
+    setLightbox(prev => ({
+      ...prev,
+      imageSrc: image.src,
+      imageTitle: image.title,
+      imageCategory: image.category,
+      currentIndex: newIndex
+    }))
   }
 
   return (
@@ -468,7 +529,7 @@ export default function BookingPage() {
                   transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.4 }}
                 >
                   <Clock className="h-5 w-5 text-green-600" />
-                  <span className="font-bold text-green-800">🔥 15 Técnicos Activos Ahora</span>
+                  <span className="font-bold text-green-800">15 Técnicos Activos Ahora</span>
                   <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }}>
                     <Users className="h-5 w-5 text-green-600" />
                   </motion.div>
@@ -505,9 +566,9 @@ export default function BookingPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.8 }}
                 >
-                  🎯 Selecciona el servicio que necesitas y conecta <strong>instantáneamente</strong> con nuestros técnicos certificados.
+                  Selecciona el servicio que necesitas y conecta <strong>instantáneamente</strong> con nuestros técnicos certificados.
                   <br />
-                  ⚡ <strong>Evaluación GRATIS</strong> si contratas el servicio • <strong>Garantía total</strong> incluida.
+                                      <strong>Evaluación GRATIS</strong> si contratas el servicio • <strong>Garantía total</strong> incluida.
                 </motion.p>
 
                 <motion.div
@@ -518,7 +579,7 @@ export default function BookingPage() {
                 >
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
                     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.1 }}>
-                      <div className="text-2xl font-black text-green-600">4.9★</div>
+                      <div className="text-2xl font-black text-green-600">4.9</div>
                       <div className="text-xs font-medium text-gray-700">Calificación Promedio</div>
                     </motion.div>
                     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.2 }}>
@@ -710,7 +771,7 @@ export default function BookingPage() {
                         
                         <div className="bg-green-100/80 backdrop-blur-sm p-3 rounded-lg mb-3 border border-green-200/50">
                           <p className="text-xs text-green-800 font-medium">
-                            💡 GRATIS si contratas el servicio
+                            GRATIS si contratas el servicio
                           </p>
                         </div>
                       </motion.div>
@@ -758,7 +819,7 @@ export default function BookingPage() {
                         </motion.div>
                         
                         <p className="text-xs text-center text-gray-600 mt-2 font-medium">
-                          📞 Sin compromiso • 🛡️ Garantía incluida
+                          Sin compromiso • Garantía incluida
                         </p>
                       </motion.div>
                     </div>
@@ -779,23 +840,23 @@ export default function BookingPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 2.7 }}
                 >
-                  🛡️ Nuestra Garantía de <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">Transparencia Total</span>
+                  Nuestra Garantía de <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">Transparencia Total</span>
                 </motion.h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center mb-8">
                   {[
                     {
-                      icon: '💰',
+                      icon: 'P',
                       title: 'Precios Transparentes',
                       description: 'Solo pagas lo que acordamos. Sin costos sorpresa al final del trabajo.'
                     },
                     {
-                      icon: '📋',
+                      icon: 'C',
                       title: 'Cotización Detallada',
                       description: 'Te explicamos cada material y hora de trabajo antes de comenzar.'
                     },
                     {
-                      icon: '🔧',
+                      icon: 'T',
                       title: 'Trabajo Garantizado',
                       description: 'Si algo falla por nuestro trabajo, lo reparamos sin costo adicional.'
                     }
@@ -857,21 +918,12 @@ export default function BookingPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 4.2 }}
                 >
-                  🔧 Trabajos <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Profesionales Realizados</span>
+                  Trabajos <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Profesionales Realizados</span>
                 </motion.h3>
                 
                 {/* Image Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
-                  {[
-                    { src: '/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg', title: 'Instalación Moderna', category: 'Residencial' },
-                    { src: '/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg', title: 'Panel Industrial', category: 'Comercial' },
-                    { src: '/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg', title: 'Cableado Completo', category: 'Industrial' },
-                    { src: '/2394664b-563a-48aa-900e-7ff62152b422.jpeg', title: 'Sistema Emergencia', category: 'Crítico' },
-                    { src: '/43a0a5cf-6fea-49e8-b174-7382d6ebfa5d.jpeg', title: 'Iluminación LED', category: 'Eficiente' },
-                    { src: '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg', title: 'Mantenimiento', category: 'Preventivo' },
-                    { src: '/7108a911-e716-4416-a620-97be93f4c140.jpeg', title: 'Reparación Pro', category: 'Especializada' },
-                    { src: '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg', title: 'Instalación Total', category: 'Completa' }
-                  ].map((work, index) => (
+                  {portfolioImages.map((work, index) => (
                     <motion.div
                       key={work.src}
                       className="relative group cursor-pointer overflow-hidden rounded-xl"
@@ -880,12 +932,15 @@ export default function BookingPage() {
                       transition={{ delay: 4.4 + index * 0.1, type: "spring" }}
                       whileHover={{ scale: 1.05, y: -5 }}
                       whileTap={{ scale: 0.95 }}
+                      onClick={() => openLightbox(index)}
                     >
                       <div className="aspect-square relative overflow-hidden rounded-xl glass-base border-2 border-white/20">
-                        <img 
+                        <Image 
                           src={work.src}
                           alt={work.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
                           loading="lazy"
                         />
                         
@@ -991,6 +1046,21 @@ export default function BookingPage() {
         )}
         </AnimatePresence>
       </main>
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        isOpen={lightbox.isOpen}
+        onClose={closeLightbox}
+        imageSrc={lightbox.imageSrc}
+        imageTitle={lightbox.imageTitle}
+        imageCategory={lightbox.imageCategory}
+        images={portfolioImages}
+        currentIndex={lightbox.currentIndex}
+        onNavigate={navigateLightbox}
+      />
+
+      {/* ElevenLabs Convai Widget - Disabled due to account limitations */}
+      {/* <ElevenLabsWidget agentId="agent_01jzjp0q3sekq8jddpvd0q8xrq" /> */}
     </div>
   )
 } 

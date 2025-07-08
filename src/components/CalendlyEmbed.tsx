@@ -64,9 +64,9 @@ export default function CalendlyEmbed({ selectedService }: CalendlyEmbedProps) {
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white text-sm font-bold">
-              {selectedService === 'emergencia' ? '🚨' :
-               selectedService === 'instalacion' ? '🔌' :
-               selectedService === 'mantenimiento' ? '🔧' : '⚡'}
+              {selectedService === 'emergencia' ? 'E' :
+               selectedService === 'instalacion' ? 'I' :
+               selectedService === 'mantenimiento' ? 'M' : 'R'}
             </span>
           </div>
           <div>

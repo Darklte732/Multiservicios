@@ -1,0 +1,642 @@
+{
+    "name": "AI Voice Agent - Complete Appointment System",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "voice-agent-appointments",
+          "options": {
+            "responseMode": "responseNode"
+          }
+        },
+        "id": "main-webhook",
+        "name": "Main Appointment Webhook",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [200, 400],
+        "webhookId": "voice-agent-appointments"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": false,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "check-availability",
+                "leftValue": "={{ $json.action_type }}",
+                "rightValue": "check_availability",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              },
+              {
+                "id": "book-appointment",
+                "leftValue": "={{ $json.action_type }}",
+                "rightValue": "book_appointment",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              },
+              {
+                "id": "cancel-appointment",
+                "leftValue": "={{ $json.action_type }}",
+                "rightValue": "cancel_appointment",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              },
+              {
+                "id": "reschedule-appointment",
+                "leftValue": "={{ $json.action_type }}",
+                "rightValue": "reschedule_appointment",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              },
+              {
+                "id": "get-appointments",
+                "leftValue": "={{ $json.action_type }}",
+                "rightValue": "get_appointments",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              },
+              {
+                "id": "calendly-webhook",
+                "leftValue": "={{ $json.event }}",
+                "rightValue": "invitee.created",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              },
+              {
+                "id": "calendly-cancel-webhook",
+                "leftValue": "={{ $json.event }}",
+                "rightValue": "invitee.canceled",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "request-router",
+        "name": "Request Router",
+        "type": "n8n-nodes-base.switch",
+        "typeVersion": 3,
+        "position": [400, 400]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Smart Service Type Selection for Electrician Services\nconst data = $input.first().json;\nconst customerRequest = (data.service_description || data.appointment_type || data.customer_message || data.problem_description || '').toLowerCase();\n\n// Define service mappings with keywords (Spanish and English)\nconst serviceTypes = {\n  'emergency': {\n    uri: 'https://api.calendly.com/event_types/77024874-a622-433c-b585-9a937fecd1a7',\n    name: 'Emergencia Eléctrica',\n    duration: 60,\n    keywords: ['emergency', 'emergencia', 'urgent', 'urgente', 'sin luz', 'no power', 'blackout', 'apagón', '24/7', 'now', 'ahora', 'immediate', 'inmediato', 'no hay luz', 'se fue la luz']\n  },\n  'installation': {\n    uri: 'https://api.calendly.com/event_types/ac3082dc-da1c-43da-9432-807caea6c7a2',\n    name: 'Instalación Eléctrica',\n    duration: 120,\n    keywords: ['install', 'instalación', 'instalar', 'new', 'nuevo', 'nueva', 'outlet', 'toma', 'tomacorriente', 'switch', 'interruptor', 'wiring', 'cableado', 'panel', 'breaker', 'system', 'sistema', 'eléctrico nuevo']\n  },\n  'repair': {\n    uri: 'https://api.calendly.com/event_types/0ee932bf-a5bf-4347-939f-359329b1dc0a',\n    name: 'Reparación Eléctrica',\n    duration: 90,\n    keywords: ['repair', 'reparación', 'reparar', 'fix', 'arreglar', 'broken', 'roto', 'dañado', 'not working', 'no funciona', 'short circuit', 'cortocircuito', 'sparks', 'chispas', 'damaged', 'problema eléctrico']\n  },\n  'maintenance': {\n    uri: 'https://api.calendly.com/event_types/05111848-ea39-4f78-a4ed-0ff5d3fa43ff',\n    name: 'Mantenimiento Eléctrico',\n    duration: 60,\n    keywords: ['maintenance', 'mantenimiento', 'check', 'revisar', 'inspection', 'inspección', 'routine', 'rutina', 'preventive', 'preventivo', 'service', 'servicio', 'revision']\n  }\n};\n\n// Default to maintenance if no specific keywords match\nlet selectedService = serviceTypes.maintenance;\nlet highestScore = 0;\n\n// Score each service type based on keyword matches\nfor (const [serviceKey, service] of Object.entries(serviceTypes)) {\n  let score = 0;\n  \n  for (const keyword of service.keywords) {\n    if (customerRequest.includes(keyword)) {\n      score += keyword.length; // Longer, more specific keywords get higher scores\n    }\n  }\n  \n  if (score > highestScore) {\n    highestScore = score;\n    selectedService = service;\n  }\n}\n\n// Emergency keywords get priority boost\nconst emergencyKeywords = ['emergency', 'emergencia', 'urgent', 'urgente', 'sin luz', 'no power', 'no hay luz', 'se fue la luz'];\nfor (const keyword of emergencyKeywords) {\n  if (customerRequest.includes(keyword)) {\n    selectedService = serviceTypes.emergency;\n    break;\n  }\n}\n\nreturn {\n  ...data,\n  selected_service: selectedService,\n  event_type_uri: selectedService.uri,\n  service_name: selectedService.name,\n  estimated_duration: selectedService.duration,\n  selection_reason: `Selected ${selectedService.name} based on keywords in: \"${customerRequest || 'No description provided'}\"`\n};"
+        },
+        "id": "smart-service-selector",
+        "name": "Smart Service Selector",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [600, 250]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Comprehensive input validation\nconst data = $input.first().json;\nconst errors = [];\n\n// Check required fields based on action type\nconst actionType = data.action_type;\n\nif (actionType === 'check_availability' || actionType === 'book_appointment') {\n  const requiredFields = ['customer_name', 'customer_phone', 'requested_date', 'requested_time'];\n  \n  for (const field of requiredFields) {\n    if (!data[field] || data[field].toString().trim() === '') {\n      errors.push(`Campo requerido faltante: ${field}`);\n    }\n  }\n  \n  // Validate phone number format\n  const phoneRegex = /^[\\+]?[1-9][\\d]{0,2}[\\s\\-\\.]?[\\(]?[\\d]{1,3}[\\)]?[\\s\\-\\.]?[\\d]{3,4}[\\s\\-\\.]?[\\d]{3,4}$/;\n  if (data.customer_phone && !phoneRegex.test(data.customer_phone)) {\n    errors.push('Formato de teléfono inválido');\n  }\n  \n  // Parse and validate date/time\n  let appointmentDateTime;\n  try {\n    appointmentDateTime = new Date(`${data.requested_date} ${data.requested_time}`);\n    if (appointmentDateTime <= new Date()) {\n      errors.push('La fecha de la cita debe ser en el futuro');\n    }\n  } catch (error) {\n    errors.push('Formato de fecha/hora inválido');\n  }\n  \n  return {\n    valid: errors.length === 0,\n    errors: errors,\n    parsed_data: {\n      ...data,\n      appointment_datetime: appointmentDateTime?.toISOString(),\n      processed_at: new Date().toISOString(),\n      validation_passed: errors.length === 0\n    }\n  };\n}\n\nif (actionType === 'cancel_appointment' || actionType === 'reschedule_appointment') {\n  if (!data.event_uuid && !data.appointment_id) {\n    errors.push('event_uuid o appointment_id es requerido para cancelar/reprogramar');\n  }\n}\n\n// For other action types, just pass through\nreturn {\n  valid: errors.length === 0,\n  errors: errors,\n  parsed_data: {\n    ...data,\n    processed_at: new Date().toISOString(),\n    validation_passed: errors.length === 0\n  }\n};"
+        },
+        "id": "validate-input",
+        "name": "Validate Input",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [800, 250]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "validation-passed",
+                "leftValue": "={{ $json.valid }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "validation-check",
+        "name": "Validation Check",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [1000, 250]
+      },
+      {
+        "parameters": {
+          "authentication": "headerAuth",
+          "url": "https://api.calendly.com/scheduled_events",
+          "method": "GET",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "user",
+                "value": "https://api.calendly.com/users/6f65622b-94a1-4831-bcca-ccfc669708b8"
+              },
+              {
+                "name": "min_start_time",
+                "value": "={{ $json.parsed_data.appointment_datetime }}"
+              },
+              {
+                "name": "max_start_time",
+                "value": "={{ new Date(new Date($json.parsed_data.appointment_datetime).getTime() + ($('Smart Service Selector').first().json.estimated_duration * 60 * 1000)).toISOString() }}"
+              }
+            ]
+          },
+          "options": {
+            "timeout": 30000
+          }
+        },
+        "id": "check-calendly-availability",
+        "name": "Check Calendly Availability",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [1200, 200]
+      },
+      {
+        "parameters": {
+          "jsCode": "const response = $input.first().json;\nconst serviceData = $('Smart Service Selector').first().json;\nconst requestedStart = new Date($('Validate Input').first().json.parsed_data.appointment_datetime);\nconst serviceDuration = serviceData.estimated_duration; // minutes\nconst requestedEnd = new Date(requestedStart.getTime() + (serviceDuration * 60 * 1000));\n\n// Business hours validation - Electrician schedule\nconst dayOfWeek = requestedStart.getDay();\nconst hour = requestedStart.getHours();\n\n// Emergency service is 24/7, others are business hours\nconst isEmergencyService = serviceData.service_name === 'Emergencia Eléctrica';\n\nif (!isEmergencyService) {\n  if (dayOfWeek === 0) {\n    return {\n      available: false,\n      reason: 'Estamos cerrados los domingos. El servicio de emergencia está disponible 24/7.',\n      suggested_times: getSuggestedTimes(requestedStart),\n      service_info: serviceData\n    };\n  }\n  \n  if (hour < 7 || hour >= 18) {\n    return {\n      available: false,\n      reason: 'Los servicios regulares están disponibles de 7:00 AM a 6:00 PM. Para emergencias, estamos disponibles 24/7.',\n      suggested_times: getSuggestedTimes(requestedStart),\n      service_info: serviceData\n    };\n  }\n}\n\n// Check for conflicts with existing Calendly events\nconst hasConflict = response.collection && response.collection.some(event => {\n  const eventStart = new Date(event.start_time);\n  const eventEnd = new Date(event.end_time);\n  return (requestedStart < eventEnd && requestedEnd > eventStart);\n});\n\nfunction getSuggestedTimes(baseDate) {\n  const suggestions = [];\n  const date = new Date(baseDate);\n  \n  for (let i = 1; i <= 5; i++) {\n    const suggestedDate = new Date(date.getTime() + (i * 24 * 60 * 60 * 1000));\n    if (suggestedDate.getDay() !== 0) { // Skip Sundays for regular services\n      const time = isEmergencyService ? '08:00' : '09:00';\n      suggestions.push({\n        date: suggestedDate.toISOString().split('T')[0],\n        time: time,\n        formatted: `${suggestedDate.toLocaleDateString('es-ES')} a las ${time === '08:00' ? '8:00 AM' : '9:00 AM'}`\n      });\n      if (suggestions.length >= 3) break;\n    }\n  }\n  \n  return suggestions;\n}\n\nreturn {\n  available: !hasConflict,\n  reason: hasConflict ? `Este horario ya está ocupado para un servicio de ${serviceDuration} minutos.` : `Horario disponible para ${serviceData.service_name}`,\n  suggested_times: hasConflict ? getSuggestedTimes(requestedStart) : [],\n  requested_time: requestedStart.toISOString(),\n  estimated_end_time: requestedEnd.toISOString(),\n  service_info: serviceData,\n  customer_data: $('Validate Input').first().json.parsed_data\n};"
+        },
+        "id": "availability-logic",
+        "name": "Availability Logic",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [1400, 200]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "slot-available",
+                "leftValue": "={{ $json.available }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true"
+                }
+              }
+            ]
+          },
+          "options": {}
+        },
+        "id": "availability-check",
+        "name": "Is Available?",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [1600, 200]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Generate Calendly booking link with smart service selection\nconst availabilityData = $input.first().json;\nconst serviceInfo = availabilityData.service_info;\nconst customerData = availabilityData.customer_data;\n\n// Create the appropriate Calendly scheduling URL based on selected service\nlet schedulingUrl;\nswitch(serviceInfo.service_name) {\n  case 'Emergencia Eléctrica':\n    schedulingUrl = 'https://calendly.com/multiservicios1228/emergencia-electrica';\n    break;\n  case 'Instalación Eléctrica':\n    schedulingUrl = 'https://calendly.com/multiservicios1228/instalacion-electrica';\n    break;\n  case 'Reparación Eléctrica':\n    schedulingUrl = 'https://calendly.com/multiservicios1228/reparacion-electrica';\n    break;\n  case 'Mantenimiento Eléctrico':\n    schedulingUrl = 'https://calendly.com/multiservicios1228/30min';\n    break;\n  default:\n    schedulingUrl = 'https://calendly.com/multiservicios1228/30min';\n}\n\n// Create a booking reference for tracking\nconst bookingRef = `ELEC-${Date.now()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}`;\n\nreturn {\n  booking_url: schedulingUrl,\n  service_selected: serviceInfo.service_name,\n  estimated_duration: serviceInfo.estimated_duration,\n  booking_reference: bookingRef,\n  customer_data: customerData,\n  service_description: getServiceDescription(serviceInfo.service_name),\n  appointment_datetime: customerData.appointment_datetime,\n  next_steps: 'Cliente completará la reserva via enlace de Calendly'\n};\n\nfunction getServiceDescription(serviceName) {\n  const descriptions = {\n    'Emergencia Eléctrica': 'Servicio de emergencia eléctrica 24/7 para problemas urgentes',\n    'Instalación Eléctrica': 'Instalación de nuevos sistemas eléctricos, tomas e interruptores', \n    'Reparación Eléctrica': 'Reparación de problemas eléctricos, cortocircuitos y equipos dañados',\n    'Mantenimiento Eléctrico': 'Mantenimiento eléctrico e inspecciones rutinarias'\n  };\n  return descriptions[serviceName] || 'Servicio eléctrico';\n}"
+        },
+        "id": "generate-booking-info",
+        "name": "Generate Booking Info",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [1800, 150]
+      },
+      {
+        "parameters": {
+          "authentication": "headerAuth",
+          "url": "https://api.elevenlabs.io/v1/text-to-speech/REPLACE_WITH_VOICE_ID",
+          "method": "POST",
+          "responseFormat": "json",
+          "jsonParameters": true,
+          "options": {
+            "timeout": 30000
+          },
+          "bodyParametersJson": "{\n  \"text\": \"¡Excelente noticia {{ $json.customer_data.customer_name }}! He encontrado un horario disponible para {{ new Date($json.customer_data.appointment_datetime).toLocaleDateString('es-ES') }} a las {{ new Date($json.customer_data.appointment_datetime).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'}) }} para {{ $json.service_selected }}. El servicio tomará aproximadamente {{ $json.estimated_duration }} minutos. Su cita ha sido programada exitosamente. Recibirá una confirmación por correo electrónico.\",\n  \"model_id\": \"eleven_multilingual_v2\",\n  \"voice_settings\": {\n    \"stability\": 0.5,\n    \"similarity_boost\": 0.75,\n    \"style\": 0.0,\n    \"use_speaker_boost\": true\n  }\n}"
+        },
+        "id": "success-voice-response",
+        "name": "Success Voice Response",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [2000, 150]
+      },
+      {
+        "parameters": {
+          "authentication": "headerAuth",
+          "url": "https://api.elevenlabs.io/v1/text-to-speech/REPLACE_WITH_VOICE_ID",
+          "method": "POST",
+          "responseFormat": "json",
+          "jsonParameters": true,
+          "options": {
+            "timeout": 30000
+          },
+          "bodyParametersJson": "{\n  \"text\": \"Lo siento, pero {{ $json.reason }} Aquí tiene algunos horarios alternativos disponibles: {{ $json.suggested_times.map(time => time.formatted).join(', ') }}. ¿Cuál de estos horarios le funciona mejor?\",\n  \"model_id\": \"eleven_multilingual_v2\",\n  \"voice_settings\": {\n    \"stability\": 0.5,\n    \"similarity_boost\": 0.75,\n    \"style\": 0.0,\n    \"use_speaker_boost\": true\n  }\n}"
+        },
+        "id": "unavailable-voice-response",
+        "name": "Unavailable Voice Response",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [1800, 250]
+      },
+      {
+        "parameters": {
+          "authentication": "headerAuth",
+          "url": "https://api.elevenlabs.io/v1/text-to-speech/REPLACE_WITH_VOICE_ID",
+          "method": "POST",
+          "responseFormat": "json",
+          "jsonParameters": true,
+          "options": {
+            "timeout": 30000
+          },
+          "bodyParametersJson": "{\n  \"text\": \"Lo siento, pero parece que hay un problema con su solicitud. {{ $json.errors.join('. ') }}. Por favor proporcione la información correcta e intente de nuevo.\",\n  \"model_id\": \"eleven_multilingual_v2\",\n  \"voice_settings\": {\n    \"stability\": 0.5,\n    \"similarity_boost\": 0.75,\n    \"style\": 0.0,\n    \"use_speaker_boost\": true\n  }\n}"
+        },
+        "id": "error-voice-response",
+        "name": "Error Voice Response",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [1200, 350]
+      },
+      {
+        "parameters": {
+          "authentication": "headerAuth",
+          "url": "https://api.calendly.com/scheduled_events/{{ $json.event_uuid }}/cancellation",
+          "method": "POST",
+          "responseFormat": "json",
+          "jsonParameters": true,
+          "options": {
+            "timeout": 30000
+          },
+          "bodyParametersJson": "{\n  \"reason\": \"{{ $json.cancellation_reason || 'Cancelado via agente de voz' }}\"\n}"
+        },
+        "id": "cancel-calendly-event",
+        "name": "Cancel Calendly Event",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [600, 500]
+      },
+      {
+        "parameters": {
+          "authentication": "headerAuth",
+          "url": "https://api.calendly.com/scheduled_events",
+          "method": "GET",
+          "sendQuery": true,
+          "queryParameters": {
+            "parameters": [
+              {
+                "name": "user",
+                "value": "https://api.calendly.com/users/6f65622b-94a1-4831-bcca-ccfc669708b8"
+              },
+              {
+                "name": "status",
+                "value": "active"
+              },
+              {
+                "name": "sort",
+                "value": "start_time:asc"
+              }
+            ]
+          },
+          "options": {
+            "timeout": 30000
+          }
+        },
+        "id": "get-appointments",
+        "name": "Get Appointments",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4,
+        "position": [600, 600]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Process Calendly webhook events\nconst data = $input.first().json;\nconst event = data.event;\nconst payload = data.payload;\n\nif (event === 'invitee.created') {\n  return {\n    event_type: 'appointment_confirmed',\n    invitee_name: payload.name,\n    invitee_email: payload.email,\n    event_start: payload.event.start_time,\n    event_end: payload.event.end_time,\n    event_uuid: payload.event.uuid,\n    cancel_url: payload.cancel_url,\n    reschedule_url: payload.reschedule_url,\n    message: `Cita confirmada para ${payload.name} el ${new Date(payload.event.start_time).toLocaleDateString('es-ES')}`\n  };\n} else if (event === 'invitee.canceled') {\n  return {\n    event_type: 'appointment_cancelled',\n    invitee_name: payload.name,\n    invitee_email: payload.email,\n    event_uuid: payload.event.uuid,\n    cancelled_at: new Date().toISOString(),\n    message: `Cita cancelada para ${payload.name}`\n  };\n}\n\nreturn { \n  event_type: 'unknown', \n  raw_data: data,\n  message: 'Evento de webhook no reconocido'\n};"
+        },
+        "id": "process-webhook",
+        "name": "Process Calendly Webhook",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [600, 700]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "{\n  \"status\": \"success\",\n  \"action\": \"appointment_available\",\n  \"message\": \"Horario disponible y cita programada\",\n  \"data\": {\n    \"booking_reference\": \"{{ $json.booking_reference }}\",\n    \"service\": \"{{ $json.service_selected }}\",\n    \"duration\": \"{{ $json.estimated_duration }} minutos\",\n    \"datetime\": \"{{ $json.appointment_datetime }}\",\n    \"booking_url\": \"{{ $json.booking_url }}\",\n    \"customer\": \"{{ $json.customer_data.customer_name }}\"\n  },\n  \"voice_response\": {{ JSON.stringify($('Success Voice Response').first().json) }},\n  \"next_action\": \"play_success_message\"\n}"
+        },
+        "id": "success-response",
+        "name": "Success Response",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [2200, 150]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "{\n  \"status\": \"unavailable\",\n  \"action\": \"suggest_alternatives\",\n  \"message\": \"{{ $json.reason }}\",\n  \"data\": {\n    \"requested_time\": \"{{ $json.requested_time }}\",\n    \"service\": \"{{ $json.service_info.service_name }}\",\n    \"suggested_times\": {{ JSON.stringify($json.suggested_times) }}\n  },\n  \"voice_response\": {{ JSON.stringify($('Unavailable Voice Response').first().json) }},\n  \"next_action\": \"play_alternatives_and_await_selection\"\n}"
+        },
+        "id": "unavailable-response",
+        "name": "Unavailable Response",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [2000, 250]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "{\n  \"status\": \"error\",\n  \"action\": \"validation_failed\",\n  \"message\": \"Error en la validación de datos\",\n  \"errors\": {{ JSON.stringify($json.errors) }},\n  \"voice_response\": {{ JSON.stringify($('Error Voice Response').first().json) }},\n  \"next_action\": \"play_error_and_retry\"\n}"
+        },
+        "id": "error-response",
+        "name": "Error Response",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [1400, 350]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "{\n  \"status\": \"success\",\n  \"action\": \"appointment_cancelled\",\n  \"message\": \"Cita cancelada exitosamente\",\n  \"data\": {\n    \"event_uuid\": \"{{ $json.event_uuid }}\",\n    \"cancelled_at\": \"{{ new Date().toISOString() }}\"\n  }\n}"
+        },
+        "id": "cancel-response",
+        "name": "Cancel Response",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [800, 500]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "{\n  \"status\": \"success\",\n  \"action\": \"appointments_retrieved\",\n  \"message\": \"Citas obtenidas exitosamente\",\n  \"data\": {\n    \"appointments\": {{ JSON.stringify($json.collection || []) }},\n    \"count\": {{ ($json.collection || []).length }}\n  }\n}"
+        },
+        "id": "appointments-response",
+        "name": "Appointments Response",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [800, 600]
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "{\n  \"status\": \"success\",\n  \"action\": \"webhook_processed\",\n  \"message\": \"{{ $json.message }}\",\n  \"data\": {\n    \"event_type\": \"{{ $json.event_type }}\",\n    \"processed_at\": \"{{ new Date().toISOString() }}\"\n  }\n}"
+        },
+        "id": "webhook-response",
+        "name": "Webhook Response",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [800, 700]
+      }
+    ],
+    "connections": {
+      "Main Appointment Webhook": {
+        "main": [
+          [
+            {
+              "node": "Request Router",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Request Router": {
+        "main": [
+          [
+            {
+              "node": "Smart Service Selector",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Smart Service Selector",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Cancel Calendly Event",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Smart Service Selector",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Get Appointments",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Process Calendly Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Process Calendly Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Smart Service Selector": {
+        "main": [
+          [
+            {
+              "node": "Validate Input",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate Input": {
+        "main": [
+          [
+            {
+              "node": "Validation Check",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validation Check": {
+        "main": [
+          [
+            {
+              "node": "Check Calendly Availability",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Error Voice Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Calendly Availability": {
+        "main": [
+          [
+            {
+              "node": "Availability Logic",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Availability Logic": {
+        "main": [
+          [
+            {
+              "node": "Is Available?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Is Available?": {
+        "main": [
+          [
+            {
+              "node": "Generate Booking Info",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Unavailable Voice Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Generate Booking Info": {
+        "main": [
+          [
+            {
+              "node": "Success Voice Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Success Voice Response": {
+        "main": [
+          [
+            {
+              "node": "Success Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Unavailable Voice Response": {
+        "main": [
+          [
+            {
+              "node": "Unavailable Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Error Voice Response": {
+        "main": [
+          [
+            {
+              "node": "Error Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Cancel Calendly Event": {
+        "main": [
+          [
+            {
+              "node": "Cancel Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Appointments": {
+        "main": [
+          [
+            {
+              "node": "Appointments Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Process Calendly Webhook": {
+        "main": [
+          [
+            {
+              "node": "Webhook Response",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "pinData": {},
+    "settings": {
+      "executionOrder": "v1"
+    },
+    "staticData": {},
+    "tags": [],
+    "triggerCount": 1,
+    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "versionId": "1"
+  }

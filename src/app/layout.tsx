@@ -63,11 +63,6 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon-512x512.png', sizes: '512x512', type: 'image/png' },
-    ],
-    apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
     other: [
       {
@@ -100,10 +95,7 @@ export default function RootLayout({
     <html lang="es-DO">
       <head>
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/icon-192x192.png" />
-        <link rel="icon" type="image/png" sizes="512x512" href="/icon-512x512.png" />
         
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="mask-icon" href="/favicon.ico" color="#3b82f6" />
         
         <link rel="manifest" href="/manifest.json" />
@@ -115,7 +107,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         
         <meta name="msapplication-TileColor" content="#3b82f6" />
-        <meta name="msapplication-TileImage" content="/icon-192x192.png" />
+        <meta name="msapplication-TileImage" content="/favicon.ico" />
         <meta name="msapplication-tap-highlight" content="no" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
         
@@ -123,10 +115,13 @@ export default function RootLayout({
         <meta name="format-detection" content="telephone=no" />
         
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         
         <link rel="dns-prefetch" href="//calendly.com" />
         <link rel="dns-prefetch" href="//api.whatsapp.com" />
+        
+        {/* ElevenLabs Convai Widget */}
+        <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
       </head>
       <body className="font-sans antialiased min-h-screen">
         <NotificationProvider>

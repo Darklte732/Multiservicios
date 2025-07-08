@@ -29,7 +29,7 @@ const serviceConfig = {
   },
   'reparacion': {
     name: 'Reparación Eléctrica',
-    icon: '⚡',
+    icon: 'Completado',
     color: 'bg-purple-50',
     baseFee: 400,
     description: 'Reparación de fallas'
@@ -154,7 +154,7 @@ function ServiceCompleteContent() {
               <span className="font-medium">Estado Anterior</span>
             </Link>
             <div className="flex items-center gap-2">
-              <span className="text-2xl">⚡</span>
+              <span className="text-2xl">✓</span>
               <span className="text-xl font-bold text-green-900">MultiServicios</span>
             </div>
           </div>
@@ -165,7 +165,7 @@ function ServiceCompleteContent() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-            <span>Paso 5 de 5</span>
+            <span>Etapa 5 de 5</span>
             <span>100% completado</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
