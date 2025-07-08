@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
@@ -24,6 +24,14 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
   currentIndex,
   onNavigate
 }) => {
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null)
+  const imageContainerRef = useRef<HTMLDivElement>(null)
+
+  // Minimum distance for a swipe
+  const minSwipeDistance = 50
+
   // Close on Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -63,6 +71,46 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
       document.removeEventListener('keydown', handleArrowKeys)
     }
   }, [isOpen, onNavigate, images])
+
+  // Touch event handlers for swipe detection
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null) // Reset touch end
+    setTouchStart(e.targetTouches[0].clientX)
+    setSwipeDirection(null)
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStart) return
+    
+    const currentTouch = e.targetTouches[0].clientX
+    const diff = touchStart - currentTouch
+    
+    // Determine swipe direction for visual feedback
+    if (Math.abs(diff) > 20) { // Small threshold for direction detection
+      setSwipeDirection(diff > 0 ? 'left' : 'right')
+    }
+    
+    setTouchEnd(currentTouch)
+  }
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd || !onNavigate || !images || images.length <= 1) return
+    
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > minSwipeDistance
+    const isRightSwipe = distance < -minSwipeDistance
+
+    if (isLeftSwipe) {
+      onNavigate('next')
+    } else if (isRightSwipe) {
+      onNavigate('prev')
+    }
+
+    // Reset touch states
+    setTouchStart(null)
+    setTouchEnd(null)
+    setSwipeDirection(null)
+  }
 
   if (!isOpen) return null
 
@@ -129,13 +177,22 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
           </>
         )}
 
-        {/* Image Container */}
+        {/* Image Container with Touch Support */}
         <motion.div
+          ref={imageContainerRef}
           className="relative z-50 max-w-7xl max-h-[90vh] mx-4"
           initial={{ opacity: 0, scale: 0.8, y: 50 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
+          animate={{ 
+            opacity: 1, 
+            scale: 1, 
+            y: 0,
+            x: swipeDirection === 'left' ? -10 : swipeDirection === 'right' ? 10 : 0
+          }}
           exit={{ opacity: 0, scale: 0.8, y: 50 }}
           transition={{ duration: 0.4, type: "spring", damping: 25 }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           {/* Image */}
           <div className="relative rounded-xl overflow-hidden shadow-2xl bg-white/5 backdrop-blur-sm border border-white/10">
@@ -172,13 +229,38 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
 
         {/* Mobile Touch Hint */}
         <motion.div
-          className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white/60 text-sm md:hidden"
+          className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white/60 text-sm md:hidden text-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
         >
-          Toca para cerrar
+          {images && images.length > 1 ? (
+            <div>
+              <div>Desliza para navegar</div>
+              <div className="text-xs mt-1 opacity-40">Toca para cerrar</div>
+            </div>
+          ) : (
+            'Toca para cerrar'
+          )}
         </motion.div>
+
+        {/* Swipe Direction Indicator */}
+        {swipeDirection && images && images.length > 1 && (
+          <motion.div
+            className={`absolute top-1/2 transform -translate-y-1/2 z-60 p-4 rounded-full bg-white/20 backdrop-blur-md text-white ${
+              swipeDirection === 'left' ? 'right-8' : 'left-8'
+            }`}
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+          >
+            {swipeDirection === 'left' ? (
+              <ChevronRight className="h-8 w-8" />
+            ) : (
+              <ChevronLeft className="h-8 w-8" />
+            )}
+          </motion.div>
+        )}
       </motion.div>
     </AnimatePresence>
   )
