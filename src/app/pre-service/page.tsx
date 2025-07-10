@@ -11,24 +11,28 @@ const serviceConfig = {
     name: 'Emergencia Eléctrica',
     icon: '🚨',
     color: 'bg-red-50',
+    fee: '4,000 - 8,000',
     description: 'Atención inmediata 24/7'
   },
   'instalacion': {
     name: 'Instalación Eléctrica', 
     icon: '🔌',
     color: 'bg-blue-50',
+    fee: '3,000 - 6,000',
     description: 'Instalaciones nuevas y conexiones'
   },
   'mantenimiento': {
     name: 'Mantenimiento Eléctrico',
     icon: '🔧',
     color: 'bg-green-50',
+    fee: '3,000 - 5,000',
     description: 'Mantenimiento preventivo'
   },
   'reparacion': {
     name: 'Reparación Eléctrica',
-    icon: 'Pre-servicio',
+    icon: '⚡',
     color: 'bg-purple-50',
+    fee: '3,000 - 7,000',
     description: 'Reparación de fallas'
   }
 }

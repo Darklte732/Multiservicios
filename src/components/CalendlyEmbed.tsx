@@ -14,10 +14,10 @@ const serviceUrls = {
 };
 
 const serviceFees = {
-  'emergencia': '500',
-  'instalacion': '400', 
-  'mantenimiento': '350',
-  'reparacion': '400'
+  'emergencia': '4,000 - 8,000',
+  'instalacion': '3,000 - 6,000', 
+  'mantenimiento': '3,000 - 5,000',
+  'reparacion': '3,000 - 7,000'
 };
 
 export default function CalendlyEmbed({ selectedService }: CalendlyEmbedProps) {

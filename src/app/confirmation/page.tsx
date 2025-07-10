@@ -11,28 +11,28 @@ const serviceConfig = {
     name: 'Emergencia Eléctrica',
     icon: '🚨',
     color: 'bg-red-50',
-    fee: 500,
+    fee: '4,000 - 8,000',
     description: 'Atención inmediata 24/7'
   },
   'instalacion': {
     name: 'Instalación Eléctrica', 
     icon: '🔌',
     color: 'bg-blue-50',
-    fee: 400,
+    fee: '3,000 - 6,000',
     description: 'Instalaciones nuevas y conexiones'
   },
   'mantenimiento': {
     name: 'Mantenimiento Eléctrico',
     icon: '🔧',
     color: 'bg-green-50',
-    fee: 350,
+    fee: '3,000 - 5,000',
     description: 'Mantenimiento preventivo'
   },
   'reparacion': {
     name: 'Reparación Eléctrica',
-    icon: 'Confirmación',
+    icon: '⚡',
     color: 'bg-purple-50',
-    fee: 400,
+    fee: '3,000 - 7,000',
     description: 'Reparación de fallas'
   }
 }
@@ -45,7 +45,7 @@ function ConfirmationContent() {
     evaluationFee: 'RD$ 400',
     icon: '🔌',
     color: 'bg-blue-50',
-    technician: 'Juan Pérez',
+    technician: 'Neno Baez',
     date: 'Martes, 28 de Enero 2025',
     time: '2:00 PM - 4:00 PM',
     customerName: 'Cliente',
@@ -105,7 +105,7 @@ function ConfirmationContent() {
       evaluationFee: `RD$ ${serviceInfo.fee}`,
       icon: serviceInfo.icon,
       color: serviceInfo.color,
-      technician: 'Juan Pérez', // Default technician
+              technician: 'Neno Baez', // Default technician
       date: formattedDate,
       time: formattedTime,
       customerName: inviteeName,
@@ -189,67 +189,159 @@ function ConfirmationContent() {
         </div>
 
         {/* Booking Details Card */}
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
-            Detalles de tu Cita
-          </h2>
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 mb-8">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-3 bg-blue-50 px-6 py-3 rounded-full border border-blue-200">
+              <span className="text-2xl">📋</span>
+              <h2 className="text-xl font-bold text-blue-900">
+                Detalles de tu Cita
+              </h2>
+            </div>
+          </div>
           
           <div className="space-y-6">
             {/* Service */}
-            <div className={`flex items-center gap-4 p-4 ${bookingDetails.color} rounded-lg`}>
-              <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
-                <span className="text-2xl">{bookingDetails.icon}</span>
+            <div className={`flex items-center gap-4 p-6 ${bookingDetails.color} rounded-xl border border-blue-200 shadow-sm`}>
+              <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-md">
+                <span className="text-3xl">{bookingDetails.icon}</span>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">{bookingDetails.service}</h3>
-                <p className="text-sm text-gray-600">Evaluación técnica: {bookingDetails.evaluationFee} • Confirmado vía WhatsApp</p>
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900 text-xl">{bookingDetails.service}</h3>
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-blue-700">Evaluación técnica:</span>
+                    <span className="text-sm font-bold text-blue-600">{bookingDetails.evaluationFee}</span>
+                  </div>
+                  <div className="bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200 px-3 py-2 rounded-lg">
+                    <p className="text-sm font-bold text-green-800 flex items-center gap-2">
+                      <span className="text-lg">🎉</span>
+                      ¡GRATIS si contratas el servicio completo!
+                    </p>
+                    <p className="text-xs text-green-600 mt-1">El costo de evaluación se descuenta del total final</p>
+                  </div>
+                  <p className="text-xs text-gray-500 flex items-center gap-1">
+                    <span className="text-green-500">✅</span>
+                    Confirmado vía WhatsApp
+                  </p>
+                </div>
               </div>
             </div>
 
             {/* Date & Time */}
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <Calendar className="w-6 h-6 text-blue-600" />
-              <div>
-                <h3 className="font-semibold text-gray-900">Fecha y Hora Confirmada</h3>
-                <p className="text-sm text-gray-600">{bookingDetails.date}</p>
-                <p className="text-sm text-gray-600">{bookingDetails.time}</p>
+            <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
+              <div className="p-3 bg-green-100 rounded-full">
+                <Calendar className="w-8 h-8 text-green-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900 text-lg">Fecha y Hora Confirmada</h3>
+                <p className="text-base font-medium text-green-700 mt-1">{bookingDetails.date}</p>
+                <p className="text-sm text-green-600 font-medium">{bookingDetails.time}</p>
+                <p className="text-xs text-gray-500 mt-1">📍 En tu ubicación • Llegada puntual garantizada</p>
               </div>
             </div>
 
             {/* Technician */}
-            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                <span className="text-white text-xs font-bold">{bookingDetails.technician.split(' ').map(n => n[0]).join('')}</span>
+            <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full overflow-hidden shadow-lg bg-gradient-to-r from-blue-600 to-indigo-600">
+                  <img 
+                    src="/neno-baez-electrician.jpeg" 
+                    alt="Neno Baez - Electricista Profesional trabajando"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // Fallback to emoji if image not found
+                      const target = e.currentTarget;
+                      target.style.display = 'none';
+                      const parent = target.parentElement!;
+                      parent.innerHTML = '<span className="text-white text-xl font-bold flex items-center justify-center w-full h-full">👷‍♂️</span>';
+                    }}
+                  />
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                  <span className="text-white text-xs">✓</span>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900">{bookingDetails.technician} - Técnico Especialista</h3>
-                <p className="text-sm text-gray-600">5 años de experiencia • WhatsApp: +1 (809) 555-0123</p>
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900 text-lg">{bookingDetails.technician}</h3>
+                <p className="text-sm font-medium text-blue-700">Técnico Especialista Certificado</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">15+ años experiencia</span>
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Licenciado</span>
+                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">Seguro RD$500K</span>
+                </div>
+                <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
+                  <span className="text-green-600">📱</span>
+                  <span>WhatsApp: +1 (809) 555-0123</span>
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Next Steps */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-8">
-          <h3 className="font-bold text-lg text-yellow-900 mb-4">
-            📋 Próximos Pasos
+        {/* Trust & Credentials Section */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 mb-8 text-white">
+          <h3 className="text-xl font-bold text-center mb-6">
+            🏆 Tu Confianza es Nuestra Prioridad
           </h3>
-          <div className="space-y-3 text-sm text-yellow-800">
-            <div className="flex items-start gap-3">
-              <span className="text-yellow-600 font-bold">1.</span>
-              <span>Recibirás confirmación por <strong>WhatsApp y email</strong> con el tipo de servicio, fecha y hora exacta</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">🛡️</span>
+              </div>
+              <h4 className="font-semibold mb-2">Seguro Total</h4>
+              <p className="text-sm text-blue-100">Cobertura hasta RD$500,000</p>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-yellow-600 font-bold">2.</span>
-              <span>El técnico te contactará por <strong>WhatsApp</strong> 24 horas antes de la cita</span>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">📜</span>
+              </div>
+              <h4 className="font-semibold mb-2">Licenciado</h4>
+              <p className="text-sm text-blue-100">Técnico certificado #ES-2024-001</p>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-yellow-600 font-bold">3.</span>
-              <span>Ten preparado el área donde se realizará la evaluación</span>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">⭐</span>
+              </div>
+              <h4 className="font-semibold mb-2">15+ Años</h4>
+              <p className="text-sm text-blue-100">Experiencia comprobada</p>
             </div>
-            <div className="flex items-start gap-3">
-              <span className="text-yellow-600 font-bold">4.</span>
-              <span>Después del diagnóstico, recibirás una cotización detallada por WhatsApp sin compromiso</span>
+          </div>
+        </div>
+
+        {/* Next Steps */}
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-8 mb-8">
+          <h3 className="font-bold text-xl text-amber-900 mb-6 text-center flex items-center justify-center gap-3">
+            <span className="text-2xl">📋</span>
+            Próximos Pasos
+          </h3>
+          <div className="space-y-4">
+            <div className="flex items-start gap-4 p-4 bg-white bg-opacity-60 rounded-xl">
+              <div className="w-8 h-8 bg-amber-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-amber-900">Confirmación Automática</h4>
+                <p className="text-sm text-amber-800 mt-1">Recibirás confirmación por <strong>WhatsApp y email</strong> con todos los detalles</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-4 bg-white bg-opacity-60 rounded-xl">
+              <div className="w-8 h-8 bg-amber-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-amber-900">Contacto Previo</h4>
+                <p className="text-sm text-amber-800 mt-1">El técnico <strong>Neno Baez</strong> te contactará por WhatsApp 24 horas antes</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-4 bg-white bg-opacity-60 rounded-xl">
+              <div className="w-8 h-8 bg-amber-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-amber-900">Preparación</h4>
+                <p className="text-sm text-amber-800 mt-1">Ten preparado el área donde se realizará la evaluación</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-4 p-4 bg-white bg-opacity-60 rounded-xl">
+              <div className="w-8 h-8 bg-amber-600 text-white rounded-full flex items-center justify-center font-bold">4</div>
+              <div className="flex-1">
+                <h4 className="font-semibold text-amber-900">Cotización Sin Compromiso</h4>
+                <p className="text-sm text-amber-800 mt-1">Después del diagnóstico, recibirás cotización detallada por WhatsApp</p>
+              </div>
             </div>
           </div>
         </div>
@@ -297,16 +389,16 @@ function ConfirmationContent() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/booking"
-            className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium transition-colors text-center"
+            className="px-8 py-4 bg-white border-2 border-gray-300 hover:border-gray-400 text-gray-700 rounded-xl font-semibold transition-all duration-200 text-center shadow-md hover:shadow-lg"
           >
-            Modificar Reserva
+            📝 Modificar Reserva
           </Link>
           <Link
             href={`/pre-service?service=${bookingDetails.serviceKey}&fee=${bookingDetails.evaluationFee.replace('RD$ ', '')}&technician=${encodeURIComponent(bookingDetails.technician)}&date=${encodeURIComponent(bookingDetails.date)}&time=${encodeURIComponent(bookingDetails.time)}`}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-center flex items-center justify-center gap-2"
+            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-semibold transition-all duration-200 text-center flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105"
           >
-            Técnico en Camino
-            <ArrowRight className="w-4 h-4" />
+            🚛 Técnico en Camino
+            <ArrowRight className="w-5 h-5" />
           </Link>
         </div>
       </div>
