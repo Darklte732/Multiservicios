@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { CheckCircle, Star, MessageCircle, Shield, ArrowLeft, ArrowRight, Phone, UserPlus } from 'lucide-react'
 import Link from 'next/link'
+import { Footer } from '@/components/Footer'
 
 const serviceConfig = {
   'emergencia': {
@@ -431,6 +432,9 @@ function ServiceCompleteContent() {
           </Link>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuthStore } from '@/store/auth'
 import { NotificationDemo } from '@/components/notifications/NotificationDemo'
+import { Footer } from '@/components/Footer'
 
 export default function NotificationsTestPage() {
   const { login, user, status, isLoading, error, logout } = useAuthStore()
@@ -167,6 +168,9 @@ export default function NotificationsTestPage() {
           </ol>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   )
 } 

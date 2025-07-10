@@ -2,9 +2,15 @@
 
 import { Suspense } from 'react'
 import { CustomerDashboard } from '@/components/CustomerDashboard'
+import { Footer } from '@/components/Footer'
 
 function CustomerDashboardContent() {
-  return <CustomerDashboard />
+  return (
+    <div>
+      <CustomerDashboard />
+      <Footer />
+    </div>
+  )
 }
 
 function CustomerDashboardLoading() {

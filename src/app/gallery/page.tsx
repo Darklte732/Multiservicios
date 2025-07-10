@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Filter, Grid, List, Search, ChevronDown, Zap, Home, Building, Wrench, AlertTriangle, Lightbulb, Settings, ZoomIn } from 'lucide-react';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
+import { Footer } from '@/components/Footer';
 
 // Gallery data organized by categories
 const galleryData = {
@@ -383,6 +384,9 @@ export default function GalleryPage() {
         currentIndex={currentImageIndex}
         onNavigate={navigateImage}
       />
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 } 

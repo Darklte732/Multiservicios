@@ -12,6 +12,7 @@ import { ElevenLabsWidget } from '@/components/ElevenLabsWidget'
 import { useAuthStore } from '@/store/auth'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { SEO, generateLocalBusinessStructuredData, StructuredData } from '@/components/SEO'
+import { Footer } from '@/components/Footer'
 
 // Custom Cursor Component with Modern Effects
 const CustomCursor = () => {
@@ -1334,6 +1335,9 @@ export default function HomePage() {
 
       {/* ElevenLabs Convai Widget - Disabled due to account limitations */}
       {/* <ElevenLabsWidget agentId="agent_01jzjp0q3sekq8jddpvd0q8xrq" /> */}
+
+      {/* Footer */}
+      <Footer />
     </div>
   )
 }

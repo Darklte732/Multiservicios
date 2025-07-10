@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { CheckCircle, Calendar, Phone, ArrowRight, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
+import { Footer } from '@/components/Footer'
 
 const serviceConfig = {
   'emergencia': {
@@ -46,28 +47,69 @@ function ConfirmationContent() {
     color: 'bg-blue-50',
     technician: 'Juan Pérez',
     date: 'Martes, 28 de Enero 2025',
-    time: '2:00 PM - 4:00 PM'
+    time: '2:00 PM - 4:00 PM',
+    customerName: 'Cliente',
+    customerEmail: ''
   })
 
   useEffect(() => {
-    // Get service details from URL parameters
-    const serviceParam = searchParams.get('service') || 'instalacion'
-    const feeParam = searchParams.get('fee') || '400'
-    const dateParam = searchParams.get('date') || 'Martes, 28 de Enero 2025'
-    const timeParam = searchParams.get('time') || '2:00 PM - 4:00 PM'
-    const technicianParam = searchParams.get('technician') || 'Juan Pérez'
+    // Get Calendly event details from URL parameters
+    const eventTypeName = searchParams.get('event_type_name') || searchParams.get('event') || 'Instalación Eléctrica'
+    const inviteeName = searchParams.get('invitee') || 'Cliente'
+    const inviteeEmail = searchParams.get('invitee_email') || ''
+    const eventStartTime = searchParams.get('event_start_time') || searchParams.get('start_time')
+    const eventEndTime = searchParams.get('event_end_time') || searchParams.get('end_time')
     
-    const serviceInfo = serviceConfig[serviceParam as keyof typeof serviceConfig] || serviceConfig.instalacion
+    // Determine service type from event name
+    let serviceKey = 'instalacion'
+    if (eventTypeName.toLowerCase().includes('emergencia')) serviceKey = 'emergencia'
+    else if (eventTypeName.toLowerCase().includes('reparacion')) serviceKey = 'reparacion'
+    else if (eventTypeName.toLowerCase().includes('mantenimiento')) serviceKey = 'mantenimiento'
+    else if (eventTypeName.toLowerCase().includes('instalacion')) serviceKey = 'instalacion'
+    
+    const serviceInfo = serviceConfig[serviceKey as keyof typeof serviceConfig] || serviceConfig.instalacion
+    
+    // Format date and time from Calendly ISO strings
+    let formattedDate = 'Fecha por confirmar'
+    let formattedTime = 'Hora por confirmar'
+    
+    if (eventStartTime) {
+      try {
+        const startDate = new Date(eventStartTime)
+        const endDate = eventEndTime ? new Date(eventEndTime) : new Date(startDate.getTime() + 2 * 60 * 60 * 1000) // Default 2 hours
+        
+        formattedDate = startDate.toLocaleDateString('es-ES', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long', 
+          day: 'numeric'
+        })
+        
+        formattedTime = `${startDate.toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        })} - ${endDate.toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        })}`
+      } catch (error) {
+        console.error('Error parsing Calendly date:', error)
+      }
+    }
     
     setBookingDetails({
       service: serviceInfo.name,
-      serviceKey: serviceParam,
-      evaluationFee: `RD$ ${feeParam}`,
+      serviceKey: serviceKey,
+      evaluationFee: `RD$ ${serviceInfo.fee}`,
       icon: serviceInfo.icon,
       color: serviceInfo.color,
-      technician: technicianParam,
-      date: dateParam,
-      time: timeParam
+      technician: 'Juan Pérez', // Default technician
+      date: formattedDate,
+      time: formattedTime,
+      customerName: inviteeName,
+      customerEmail: inviteeEmail
     })
   }, [searchParams])
 
@@ -114,7 +156,7 @@ function ConfirmationContent() {
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            ¡Reserva Confirmada!
+            ¡Reserva Confirmada{bookingDetails.customerName !== 'Cliente' ? `, ${bookingDetails.customerName}` : ''}!
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Tu cita de <strong>{bookingDetails.service}</strong> ha sido programada exitosamente. 
@@ -268,6 +310,9 @@ function ConfirmationContent() {
           </Link>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   )
 }

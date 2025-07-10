@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Clock, Phone, MessageCircle, MapPin, CheckCircle, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { Footer } from '@/components/Footer'
 
 const serviceConfig = {
   'emergencia': {
@@ -275,6 +276,9 @@ function PreServiceContent() {
           </Link>
         </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   )
 }

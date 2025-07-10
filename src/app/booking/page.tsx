@@ -8,6 +8,7 @@ import Image from 'next/image'
 import CalendlyEmbed from '@/components/CalendlyEmbed'
 import { ImageLightbox } from '@/components/ui/ImageLightbox'
 import { ElevenLabsWidget } from '@/components/ElevenLabsWidget'
+import { Footer } from '@/components/Footer'
 
 // Custom Cursor Component (same as homepage)
 const CustomCursor = () => {
@@ -1061,6 +1062,9 @@ export default function BookingPage() {
 
       {/* ElevenLabs Convai Widget - Disabled due to account limitations */}
       {/* <ElevenLabsWidget agentId="agent_01jzjp0q3sekq8jddpvd0q8xrq" /> */}
+
+      {/* Footer */}
+      <Footer />
     </div>
   )
 } 

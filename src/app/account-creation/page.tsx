@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { AccountCreation } from '@/components/AccountCreation'
 import { useRouter } from 'next/navigation'
+import { Footer } from '@/components/Footer'
 
 function AccountCreationContent() {
   const searchParams = useSearchParams()
@@ -32,11 +33,14 @@ function AccountCreationContent() {
   }
 
   return (
-    <AccountCreation
-      sessionData={sessionData}
-      onAccountCreated={handleAccountCreated}
-      onSkip={handleSkip}
-    />
+    <div>
+      <AccountCreation
+        sessionData={sessionData}
+        onAccountCreated={handleAccountCreated}
+        onSkip={handleSkip}
+      />
+      <Footer />
+    </div>
   )
 }
 
