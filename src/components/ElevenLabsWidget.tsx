@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 
 interface ElevenLabsWidgetProps {
-  agentId: string;
+  agentId?: string;
 }
 
 // Global flag to track if script is loaded
@@ -11,7 +11,7 @@ let isScriptLoaded = false;
 let isScriptLoading = false;
 const scriptCallbacks: (() => void)[] = [];
 
-export const ElevenLabsWidget: React.FC<ElevenLabsWidgetProps> = ({ agentId }) => {
+export const ElevenLabsWidget: React.FC<ElevenLabsWidgetProps> = ({ agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID || '' }) => {
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);

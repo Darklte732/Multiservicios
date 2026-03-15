@@ -1,0 +1,562 @@
+{
+  "name": "Facebook Retail AI Auto Dialer with Multi-Channel Follow-up",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "facebook-lead",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-facebook-lead",
+      "name": "Facebook Lead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "facebook-lead-trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract and validate lead data from Facebook\nconst leadData = $input.first().json;\n\n// Extract lead information\nconst lead = {\n  id: leadData.leadgen_id || leadData.id,\n  name: '',\n  phone: '',\n  email: '',\n  form_id: leadData.form_id,\n  ad_id: leadData.ad_id,\n  campaign_id: leadData.campaign_id,\n  created_time: leadData.created_time || new Date().toISOString(),\n  source: 'facebook_lead_ad'\n};\n\n// Parse field_data array to extract name, phone, email\nif (leadData.field_data && Array.isArray(leadData.field_data)) {\n  leadData.field_data.forEach(field => {\n    const name = field.name?.toLowerCase();\n    const value = field.values?.[0] || '';\n    \n    if (name?.includes('full_name') || name?.includes('name')) {\n      lead.name = value;\n    } else if (name?.includes('phone') || name?.includes('number')) {\n      lead.phone = value.replace(/[^0-9+]/g, ''); // Clean phone number\n    } else if (name?.includes('email')) {\n      lead.email = value;\n    }\n  });\n}\n\n// Validate required fields\nif (!lead.phone) {\n  throw new Error('Phone number is required for auto-dialing');\n}\n\n// Set initial call attempt data\nlead.call_attempts = 0;\nlead.last_call_time = null;\nlead.status = 'new';\nlead.next_action_time = new Date().toISOString();\n\nreturn { lead };"
+      },
+      "id": "process-lead-data",
+      "name": "Process Lead Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "business_hours_check",
+              "leftValue": "={{ \n  const now = new Date();\n  const hour = now.getHours();\n  const day = now.getDay(); // 0 = Sunday, 6 = Saturday\n  \n  // Business hours: Mon-Fri 9 AM - 8 PM, Sat 10 AM - 6 PM, no Sunday calls\n  if (day === 0) return false; // No Sunday calls\n  if (day === 6) return hour >= 10 && hour < 18; // Saturday 10-6\n  return hour >= 9 && hour < 20; // Weekdays 9-8\n}}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "id": "business-hours-check",
+      "name": "Business Hours Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.retellai.com/create-call",
+        "authentication": "genericCredential",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $credentials.retell_api_key }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "agent_id",
+              "value": "{{ $node['Webhook'].json['agent_id'] || 'your-retail-agent-id' }}"
+            },
+            {
+              "name": "to_number",
+              "value": "{{ $node['Process Lead Data'].json['lead']['phone'] }}"
+            },
+            {
+              "name": "from_number",
+              "value": "{{ $credentials.twilio_phone_number }}"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ {\n  lead_id: $node['Process Lead Data'].json['lead']['id'],\n  name: $node['Process Lead Data'].json['lead']['name'],\n  source: 'facebook_lead_ad',\n  attempt: 1,\n  campaign_id: $node['Process Lead Data'].json['lead']['campaign_id']\n} }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "initiate-ai-call",
+      "name": "Initiate AI Call (Retell)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "minutes"
+      },
+      "id": "wait-for-call-completion",
+      "name": "Wait for Call Completion",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://api.retellai.com/get-call/{{ $node['Initiate AI Call (Retell)'].json['call_id'] }}",
+        "authentication": "genericCredential",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $credentials.retell_api_key }}"
+            }
+          ]
+        }
+      },
+      "id": "check-call-status",
+      "name": "Check Call Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "call_successful",
+              "leftValue": "={{ $node['Check Call Status'].json['call_status'] }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "rightValue": "completed"
+              }
+            },
+            {
+              "id": "call_answered",
+              "leftValue": "={{ $node['Check Call Status'].json['call_analysis']['answered'] }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "id": "call-success-check",
+      "name": "Call Success Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1560, 200]
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "hours"
+      },
+      "id": "wait-1-hour-retry",
+      "name": "Wait 1 Hour for Retry",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1340, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Increment call attempt counter\nconst leadData = $node['Process Lead Data'].json.lead;\nconst callStatus = $node['Check Call Status'].json;\n\n// Update lead data with call attempt info\nconst updatedLead = {\n  ...leadData,\n  call_attempts: (leadData.call_attempts || 0) + 1,\n  last_call_time: new Date().toISOString(),\n  last_call_status: callStatus.call_status,\n  last_call_duration: callStatus.call_analysis?.duration || 0\n};\n\n// Determine next action based on attempt count\nif (updatedLead.call_attempts >= 3) {\n  updatedLead.status = 'max_attempts_reached';\n  updatedLead.next_action = 'sms_email_sequence';\n} else {\n  updatedLead.status = 'retry_pending';\n  updatedLead.next_action = 'retry_call';\n  \n  // Set next retry time (1 hour for attempt 2, 3 hours for attempt 3)\n  const hoursToWait = updatedLead.call_attempts === 1 ? 1 : 3;\n  const nextRetryTime = new Date();\n  nextRetryTime.setHours(nextRetryTime.getHours() + hoursToWait);\n  updatedLead.next_action_time = nextRetryTime.toISOString();\n}\n\nreturn { updatedLead };"
+      },
+      "id": "update-retry-logic",
+      "name": "Update Retry Logic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "max_attempts_check",
+              "leftValue": "={{ $node['Update Retry Logic'].json['updatedLead']['call_attempts'] }}",
+              "operator": {
+                "type": "number",
+                "operation": "lt",
+                "rightValue": 3
+              }
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "id": "retry-attempts-check",
+      "name": "Retry Attempts Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1780, 400]
+    },
+    {
+      "parameters": {
+        "url": "https://api.retellai.com/create-call",
+        "authentication": "genericCredential",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer {{ $credentials.retell_api_key }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "agent_id",
+              "value": "{{ $node['Webhook'].json['agent_id'] || 'your-retail-agent-id' }}"
+            },
+            {
+              "name": "to_number",
+              "value": "={{ $node['Update Retry Logic'].json['updatedLead']['phone'] }}"
+            },
+            {
+              "name": "from_number",
+              "value": "{{ $credentials.twilio_phone_number }}"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ {\n  lead_id: $node['Update Retry Logic'].json['updatedLead']['id'],\n  name: $node['Update Retry Logic'].json['updatedLead']['name'],\n  source: 'facebook_lead_ad',\n  attempt: $node['Update Retry Logic'].json['updatedLead']['call_attempts'] + 1,\n  retry: true\n} }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "retry-ai-call",
+      "name": "Retry AI Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [2000, 300]
+    },
+    {
+      "parameters": {
+        "accountSid": "={{ $credentials.twilio_account_sid }}",
+        "authToken": "={{ $credentials.twilio_auth_token }}",
+        "fromPhoneNumber": "={{ $credentials.twilio_phone_number }}",
+        "toPhoneNumber": "={{ $node['Update Retry Logic'].json['updatedLead']['phone'] }}",
+        "message": "Hi {{ $node['Update Retry Logic'].json['updatedLead']['name'] || 'there' }}! We tried calling you about your recent inquiry. We have some exciting offers that might interest you. Please call us back at {{ $credentials.business_phone }} or reply STOP to opt out."
+      },
+      "id": "send-followup-sms",
+      "name": "Send Follow-up SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 2,
+      "position": [1780, 600]
+    },
+    {
+      "parameters": {
+        "fromEmail": "{{ $credentials.business_email }}",
+        "toEmail": "={{ $node['Update Retry Logic'].json['updatedLead']['email'] }}",
+        "subject": "Following up on your recent inquiry",
+        "emailType": "html",
+        "message": "<!DOCTYPE html>\n<html>\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Follow-up Email</title>\n</head>\n<body style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;\">\n    <div style=\"background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;\">\n        <h1 style=\"color: white; margin: 0; font-size: 28px;\">We Tried to Reach You!</h1>\n    </div>\n    \n    <div style=\"background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);\">\n        <p style=\"font-size: 18px; margin-bottom: 20px;\">Hi {{ $node['Update Retry Logic'].json['updatedLead']['name'] || 'there' }},</p>\n        \n        <p style=\"font-size: 16px; margin-bottom: 20px;\">We noticed you showed interest in our products/services recently, and our AI assistant tried to give you a quick call to share some exciting opportunities.</p>\n        \n        <p style=\"font-size: 16px; margin-bottom: 25px;\">Since we couldn't connect, here's what we wanted to share:</p>\n        \n        <div style=\"background: white; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #667eea;\">\n            <h3 style=\"color: #667eea; margin-top: 0;\">🎯 Exclusive Offers Available</h3>\n            <ul style=\"margin: 0; padding-left: 20px;\">\n                <li>Special pricing for new customers</li>\n                <li>Free consultation and assessment</li>\n                <li>Limited-time promotional packages</li>\n            </ul>\n        </div>\n        \n        <div style=\"text-align: center; margin: 30px 0;\">\n            <a href=\"tel:{{ $credentials.business_phone }}\" style=\"background: #667eea; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block; margin-right: 10px;\">📞 Call Us Now</a>\n            <a href=\"mailto:{{ $credentials.business_email }}\" style=\"background: #28a745; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;\">✉️ Email Us</a>\n        </div>\n        \n        <p style=\"font-size: 14px; color: #666; text-align: center; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;\">\n            If you're no longer interested, please <a href=\"#\" style=\"color: #667eea;\">click here to unsubscribe</a>.\n        </p>\n    </div>\n</body>\n</html>",
+        "options": {}
+      },
+      "id": "send-followup-email",
+      "name": "Send Follow-up Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [2000, 600]
+    },
+    {
+      "parameters": {
+        "amount": 24,
+        "unit": "hours"
+      },
+      "id": "wait-24-hours",
+      "name": "Wait 24 Hours",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [2220, 600]
+    },
+    {
+      "parameters": {
+        "accountSid": "={{ $credentials.twilio_account_sid }}",
+        "authToken": "={{ $credentials.twilio_auth_token }}",
+        "fromPhoneNumber": "={{ $credentials.twilio_phone_number }}",
+        "toPhoneNumber": "={{ $node['Update Retry Logic'].json['updatedLead']['phone'] }}",
+        "message": "Last chance! {{ $node['Update Retry Logic'].json['updatedLead']['name'] || 'Valued customer' }}, we have a time-sensitive offer that expires soon. Call {{ $credentials.business_phone }} today or visit our website. Reply STOP to unsubscribe."
+      },
+      "id": "send-final-sms",
+      "name": "Send Final SMS Reminder",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 2,
+      "position": [2440, 600]
+    },
+    {
+      "parameters": {
+        "amount": 15,
+        "unit": "minutes"
+      },
+      "id": "wait-after-hours",
+      "name": "Wait Until Business Hours",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [680, 500]
+    },
+    {
+      "parameters": {
+        "resource": "sheet",
+        "operation": "appendRow",
+        "documentId": "{{ $credentials.google_sheets_lead_tracking_id }}",
+        "sheetName": "Lead Tracking",
+        "columnNames": "Lead ID,Name,Phone,Email,Source,Campaign ID,Created Time,Call Attempts,Last Call Status,Status,Next Action",
+        "options": {}
+      },
+      "id": "log-to-google-sheets",
+      "name": "Log to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1780, 200]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "webhook-response",
+        "responseMode": "lastNode",
+        "options": {
+          "responseData": "allEntries"
+        }
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.webhookResponse",
+      "typeVersion": 1,
+      "position": [460, 500]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Facebook Lead Webhook": {
+      "main": [[
+        {
+          "node": "Process Lead Data",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Process Lead Data": {
+      "main": [[
+        {
+          "node": "Business Hours Check",
+          "type": "main",
+          "index": 0
+        },
+        {
+          "node": "Webhook Response",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Business Hours Check": {
+      "main": [
+        [
+          {
+            "node": "Initiate AI Call (Retell)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait Until Business Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initiate AI Call (Retell)": {
+      "main": [[
+        {
+          "node": "Wait for Call Completion",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Wait for Call Completion": {
+      "main": [[
+        {
+          "node": "Check Call Status",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Check Call Status": {
+      "main": [[
+        {
+          "node": "Call Success Check",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Call Success Check": {
+      "main": [
+        [
+          {
+            "node": "Log to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Update Retry Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Retry Logic": {
+      "main": [[
+        {
+          "node": "Retry Attempts Check",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Retry Attempts Check": {
+      "main": [
+        [
+          {
+            "node": "Wait 1 Hour for Retry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Follow-up SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 1 Hour for Retry": {
+      "main": [[
+        {
+          "node": "Retry AI Call",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Retry AI Call": {
+      "main": [[
+        {
+          "node": "Wait for Call Completion",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Send Follow-up SMS": {
+      "main": [[
+        {
+          "node": "Send Follow-up Email",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Send Follow-up Email": {
+      "main": [[
+        {
+          "node": "Wait 24 Hours",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Wait 24 Hours": {
+      "main": [[
+        {
+          "node": "Send Final SMS Reminder",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    },
+    "Wait Until Business Hours": {
+      "main": [[
+        {
+          "node": "Initiate AI Call (Retell)",
+          "type": "main",
+          "index": 0
+        }
+      ]]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "retail-ai-auto-dialer"
+  },
+  "id": "retail-ai-auto-dialer",
+  "tags": [
+    {
+      "createdAt": "2025-01-27T00:00:00.000Z",
+      "updatedAt": "2025-01-27T00:00:00.000Z",
+      "id": "ai-voice",
+      "name": "AI Voice"
+    },
+    {
+      "createdAt": "2025-01-27T00:00:00.000Z",
+      "updatedAt": "2025-01-27T00:00:00.000Z",
+      "id": "lead-generation",
+      "name": "Lead Generation"
+    },
+    {
+      "createdAt": "2025-01-27T00:00:00.000Z",
+      "updatedAt": "2025-01-27T00:00:00.000Z",
+      "id": "retail-automation",
+      "name": "Retail Automation"
+    }
+  ]
+}

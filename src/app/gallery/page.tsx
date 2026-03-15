@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Filter, Grid, List, Search, ChevronDown, Zap, Home, Building, Wrench, AlertTriangle, Lightbulb, Settings, ZoomIn } from 'lucide-react';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { Footer } from '@/components/Footer';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 
-// Gallery data organized by categories
 const galleryData = {
   'Instalaciones Residenciales': {
     icon: Home,
@@ -54,7 +54,7 @@ const galleryData = {
   },
   'Proyectos Especiales': {
     icon: Lightbulb,
-    color: 'from-yellow-500 to-yellow-600',
+    color: 'from-electric to-electric-bright',
     images: [
       { src: '/e2f858db-6d50-48ad-b286-36a67483dfe5.jpeg', title: 'Proyecto Integral', description: 'Instalación eléctrica completa y moderna' }
     ]
@@ -66,19 +66,15 @@ export default function GalleryPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'masonry'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  
-  // Lightbox state
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const categories = ['Todos', ...Object.keys(galleryData)];
-  
-  // Get all images with category info
+
   const allImages = Object.entries(galleryData).flatMap(([category, data]) =>
     data.images.map(image => ({ ...image, category, ...data }))
   );
 
-  // Filter images based on selected category and search term
   const filteredImages = allImages.filter(image => {
     const matchesCategory = selectedCategory === 'Todos' || image.category === selectedCategory;
     const matchesSearch = image.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,44 +82,31 @@ export default function GalleryPage() {
     return matchesCategory && matchesSearch;
   });
 
-  // Lightbox functions
-  const openLightbox = (index: number) => {
-    setCurrentImageIndex(index);
-    setIsLightboxOpen(true);
-  };
-
-  const closeLightbox = () => {
-    setIsLightboxOpen(false);
-  };
-
+  const openLightbox = (index: number) => { setCurrentImageIndex(index); setIsLightboxOpen(true); };
+  const closeLightbox = () => setIsLightboxOpen(false);
   const navigateImage = (direction: 'prev' | 'next') => {
     if (direction === 'prev') {
-      setCurrentImageIndex((prev) => 
-        prev === 0 ? filteredImages.length - 1 : prev - 1
-      );
+      setCurrentImageIndex(prev => prev === 0 ? filteredImages.length - 1 : prev - 1);
     } else {
-      setCurrentImageIndex((prev) => 
-        prev === filteredImages.length - 1 ? 0 : prev + 1
-      );
+      setCurrentImageIndex(prev => prev === filteredImages.length - 1 ? 0 : prev + 1);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-navy-950 text-white">
       {/* Header */}
-      <motion.header 
-        className="sticky top-0 z-50 backdrop-blur-md bg-white/80 border-b border-white/20 shadow-lg"
+      <motion.header
+        className="sticky top-0 z-50 dark-nav"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Back button and title */}
             <div className="flex items-center space-x-4">
               <Link href="/">
                 <motion.button
-                  className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
+                  className="flex items-center space-x-2 text-gray-400 hover:text-electric transition-colors"
                   whileHover={{ x: -5 }}
                   whileTap={{ scale: 0.95 }}
                 >
@@ -131,60 +114,77 @@ export default function GalleryPage() {
                   <span className="font-medium">Volver</span>
                 </motion.button>
               </Link>
-              <div className="h-8 w-px bg-gray-300" />
+              <div className="h-8 w-px bg-white/10" />
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <h1
+                  className="text-2xl font-black gradient-text-electric leading-none"
+                  style={{ fontFamily: 'var(--font-display)' }}
+                >
                   Galería de Trabajos
                 </h1>
                 <p className="text-sm text-gray-500">MultiServicios El Seibo</p>
               </div>
             </div>
 
-            {/* View mode toggle */}
-            <div className="flex items-center space-x-3">
-              <motion.button
-                onClick={() => setViewMode(viewMode === 'grid' ? 'masonry' : 'grid')}
-                className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {viewMode === 'grid' ? <List className="h-5 w-5" /> : <Grid className="h-5 w-5" />}
-              </motion.button>
-            </div>
+            <motion.button
+              onClick={() => setViewMode(viewMode === 'grid' ? 'masonry' : 'grid')}
+              className="p-2 rounded-lg bg-navy-700 text-electric hover:bg-navy-600 transition-colors border border-electric/20"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {viewMode === 'grid' ? <List className="h-5 w-5" /> : <Grid className="h-5 w-5" />}
+            </motion.button>
           </div>
         </div>
       </motion.header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search and Filter Section */}
-        <motion.div 
+        {/* Search & Filter */}
+        <motion.div
           className="mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            {/* Search Bar */}
+            {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-5 w-5" />
               <input
                 type="text"
                 placeholder="Buscar proyectos..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="input-dark pl-10"
               />
             </div>
 
-            {/* Filter Dropdown */}
-            <div className="relative">
+            {/* Category tabs (desktop) */}
+            <div className="hidden md:flex flex-wrap gap-2">
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`text-sm font-medium px-3 py-1.5 rounded-lg transition-all ${
+                    selectedCategory === cat
+                      ? 'electric-badge'
+                      : 'text-gray-400 hover:text-white bg-navy-700 hover:bg-navy-600 border border-white/5'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Filter dropdown (mobile) */}
+            <div className="relative md:hidden">
               <motion.button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="flex items-center space-x-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl hover:bg-white transition-all"
+                className="flex items-center space-x-2 px-4 py-2 bg-navy-700 border border-white/10 rounded-xl hover:bg-navy-600 transition-all text-gray-300"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
               >
-                <Filter className="h-4 w-4" />
+                <Filter className="h-4 w-4 text-electric" />
                 <span>{selectedCategory}</span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
               </motion.button>
@@ -195,21 +195,17 @@ export default function GalleryPage() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-64 bg-white/95 backdrop-blur-md border border-gray-200 rounded-xl shadow-xl z-10"
+                    className="absolute right-0 mt-2 w-64 bg-navy-800 border border-white/10 rounded-xl shadow-card z-20"
                   >
                     {categories.map((category) => {
                       const categoryData = galleryData[category as keyof typeof galleryData];
                       const Icon = category === 'Todos' ? Zap : categoryData?.icon;
-                      
                       return (
                         <motion.button
                           key={category}
-                          onClick={() => {
-                            setSelectedCategory(category);
-                            setIsFilterOpen(false);
-                          }}
-                          className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-blue-50 transition-colors first:rounded-t-xl last:rounded-b-xl ${
-                            selectedCategory === category ? 'bg-blue-100 text-blue-600' : 'text-gray-700'
+                          onClick={() => { setSelectedCategory(category); setIsFilterOpen(false); }}
+                          className={`w-full flex items-center space-x-3 px-4 py-3 text-left transition-colors first:rounded-t-xl last:rounded-b-xl ${
+                            selectedCategory === category ? 'bg-electric/10 text-electric' : 'text-gray-300 hover:bg-navy-700'
                           }`}
                           whileHover={{ x: 5 }}
                         >
@@ -227,7 +223,6 @@ export default function GalleryPage() {
             </div>
           </div>
 
-          {/* Active filters */}
           <div className="flex items-center space-x-2 mt-4">
             <span className="text-sm text-gray-500">
               Mostrando {filteredImages.length} de {allImages.length} proyectos
@@ -235,7 +230,7 @@ export default function GalleryPage() {
             {selectedCategory !== 'Todos' && (
               <motion.button
                 onClick={() => setSelectedCategory('Todos')}
-                className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+                className="electric-badge text-xs cursor-pointer"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -246,10 +241,10 @@ export default function GalleryPage() {
         </motion.div>
 
         {/* Gallery Grid */}
-        <motion.div 
-          className={`grid gap-6 ${
-            viewMode === 'grid' 
-              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+        <motion.div
+          className={`grid gap-4 ${
+            viewMode === 'grid'
+              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
               : 'columns-1 md:columns-2 lg:columns-3 xl:columns-4'
           }`}
           layout
@@ -258,24 +253,24 @@ export default function GalleryPage() {
             {filteredImages.map((image, index) => (
               <motion.div
                 key={`${image.src}-${image.category}`}
-                className={`group relative overflow-hidden rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-500 ${
-                  viewMode === 'masonry' ? 'break-inside-avoid mb-6' : 'aspect-[4/3]'
+                className={`group relative overflow-hidden rounded-2xl bg-navy-700 border border-white/5 hover:border-electric/30 shadow-card hover:shadow-card-hover transition-all duration-500 ${
+                  viewMode === 'masonry' ? 'break-inside-avoid mb-4' : 'aspect-[4/3]'
                 }`}
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ delay: index * 0.1 }}
-                whileHover={{ y: -10 }}
+                transition={{ delay: index * 0.05 }}
+                whileHover={{ y: -6 }}
                 layout
               >
-                {/* Category Badge */}
-                <div className={`absolute top-4 left-4 z-10 px-3 py-1 rounded-full text-xs font-medium text-white bg-gradient-to-r ${image.color} backdrop-blur-sm`}>
+                {/* Category badge */}
+                <div className={`absolute top-3 left-3 z-10 px-2 py-1 rounded-full text-xs font-medium text-white bg-gradient-to-r ${image.color}`}>
                   <image.icon className="inline h-3 w-3 mr-1" />
                   {image.category}
                 </div>
 
                 {/* Image */}
-                <div 
+                <div
                   className="relative h-full overflow-hidden cursor-pointer"
                   onClick={() => openLightbox(index)}
                 >
@@ -286,36 +281,27 @@ export default function GalleryPage() {
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                   />
-                  
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  
-                  {/* Zoom Icon Indicator */}
-                  <div className="absolute top-4 right-4 p-2 rounded-full bg-white/20 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-75 group-hover:scale-100">
-                    <ZoomIn className="h-4 w-4 text-white" />
+
+                  {/* Gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                  {/* Zoom icon */}
+                  <div className="absolute top-3 right-3 p-2 rounded-full bg-electric/20 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300 transform scale-75 group-hover:scale-100">
+                    <ZoomIn className="h-4 w-4 text-electric" />
                   </div>
-                  
-                  {/* Content Overlay */}
-                  <motion.div 
-                    className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"
-                    initial={{ y: "100%" }}
-                    whileHover={{ y: 0 }}
+
+                  {/* Content overlay */}
+                  <motion.div
+                    className="absolute bottom-0 left-0 right-0 p-4 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"
                   >
-                    <h3 className="font-bold text-lg mb-2">{image.title}</h3>
-                    <p className="text-sm opacity-90 leading-relaxed">{image.description}</p>
-                    
-                    {/* View Details Button */}
-                    <motion.button
-                      className="mt-4 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg text-sm font-medium hover:bg-white/30 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent triggering the image click
-                        openLightbox(index);
-                      }}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                    <h3 className="font-bold text-base mb-1">{image.title}</h3>
+                    <p className="text-sm text-gray-300 opacity-90">{image.description}</p>
+                    <button
+                      className="mt-3 btn-electric text-xs !py-1.5 !px-3 !rounded-lg"
+                      onClick={(e) => { e.stopPropagation(); openLightbox(index); }}
                     >
                       Ver Detalles
-                    </motion.button>
+                    </button>
                   </motion.div>
                 </div>
               </motion.div>
@@ -323,22 +309,15 @@ export default function GalleryPage() {
           </AnimatePresence>
         </motion.div>
 
-        {/* Empty State */}
+        {/* Empty state */}
         {filteredImages.length === 0 && (
-          <motion.div 
-            className="text-center py-16"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <Search className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-500 mb-2">No se encontraron proyectos</h3>
-            <p className="text-gray-400 mb-6">Intenta cambiar los filtros o el término de búsqueda</p>
+          <motion.div className="text-center py-16" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Search className="h-16 w-16 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-400 mb-2">No se encontraron proyectos</h3>
+            <p className="text-gray-600 mb-6">Intenta cambiar los filtros o el término de búsqueda</p>
             <motion.button
-              onClick={() => {
-                setSelectedCategory('Todos');
-                setSearchTerm('');
-              }}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={() => { setSelectedCategory('Todos'); setSearchTerm(''); }}
+              className="btn-electric"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -348,32 +327,42 @@ export default function GalleryPage() {
         )}
 
         {/* Footer CTA */}
-        <motion.div 
+        <motion.div
           className="mt-16 text-center"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
-            <h2 className="text-2xl font-bold mb-4">¿Tienes un proyecto en mente?</h2>
-            <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
-              Nuestro equipo de expertos está listo para convertir tu visión en realidad. 
-              Contáctanos para una consulta gratuita.
-            </p>
-            <Link href="/booking">
-              <motion.button
-                className="px-8 py-3 bg-white text-blue-600 rounded-xl font-bold hover:bg-blue-50 transition-colors"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
+          <div className="bg-navy-800 border border-electric/20 rounded-2xl p-8 relative overflow-hidden">
+            {/* Glow */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-64 h-32 bg-electric/10 blur-3xl rounded-full" />
+            </div>
+            <div className="relative z-10">
+              <h2
+                className="text-5xl font-black mb-3 leading-none"
+                style={{ fontFamily: 'var(--font-display)' }}
               >
-                Solicitar Presupuesto
-              </motion.button>
-            </Link>
+                ¿Tienes un proyecto en mente?
+              </h2>
+              <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
+                Contáctanos para una consulta gratuita. Evaluación sin compromiso en El Seibo y alrededores.
+              </p>
+              <Link href="/booking">
+                <motion.button
+                  className="btn-electric text-base !py-3 !px-8"
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Solicitar Presupuesto Gratis
+                </motion.button>
+              </Link>
+            </div>
           </div>
         </motion.div>
       </div>
 
-      {/* Image Lightbox */}
+      {/* Lightbox */}
       <ImageLightbox
         isOpen={isLightboxOpen}
         onClose={closeLightbox}
@@ -385,8 +374,8 @@ export default function GalleryPage() {
         onNavigate={navigateImage}
       />
 
-      {/* Footer */}
       <Footer />
+      <WhatsAppButton />
     </div>
   );
-} 
+}

@@ -1,11 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion'
-import { useSpring as useReactSpring, animated } from '@react-spring/web'
+import { motion, AnimatePresence, useInView } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Zap, Wrench, Thermometer, Droplets, Hammer, Shield, LogIn, UserPlus, Settings, Bell, User, Menu, X, Star, Trophy, Gauge, Sparkles, Atom, Rocket, ArrowRight, CheckCircle, Heart, Eye } from 'lucide-react'
+import {
+  Zap, Shield, LogIn, UserPlus, Settings, Menu, X, Star,
+  ArrowRight, CheckCircle, Phone, MapPin, Calendar,
+  ShieldCheck, MessageCircle, Award, Clock, ChevronDown
+} from 'lucide-react'
 import { AuthModal } from '@/components/AuthModal'
 import { SettingsModal } from '@/components/SettingsModal'
 import { ElevenLabsWidget } from '@/components/ElevenLabsWidget'
@@ -13,1331 +16,926 @@ import { useAuthStore } from '@/store/auth'
 import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { SEO, generateLocalBusinessStructuredData, StructuredData } from '@/components/SEO'
 import { Footer } from '@/components/Footer'
+import { WhatsAppButton } from '@/components/WhatsAppButton'
+import { EmergencyBanner } from '@/components/EmergencyBanner'
+import { FAQAccordion } from '@/components/FAQAccordion'
+import { TestimonialsSection } from '@/components/TestimonialsSection'
+import { ServiceAreaMap } from '@/components/ServiceAreaMap'
+import { services, type Service } from '@/data/services'
 
-// Custom Cursor Component with Modern Effects
-const CustomCursor = () => {
-  const cursorRef = useRef<HTMLDivElement>(null)
-  const cursorDotRef = useRef<HTMLDivElement>(null)
-  const [isHovering, setIsHovering] = useState(false)
-  const [cursorVariant, setCursorVariant] = useState('default')
+// ──────────────────────────────────────────
+// ANIMATED COUNTER
+// ──────────────────────────────────────────
+function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const inView = useInView(ref, { once: true, amount: 0, margin: '0px 0px -80px 0px' })
+  const [count, setCount] = useState(0)
 
   useEffect(() => {
-    const cursor = cursorRef.current
-    const cursorDot = cursorDotRef.current
-    if (!cursor || !cursorDot) return
+    if (!inView) return
+    let start = 0
+    const duration = 1800
+    const step = 16
+    const increment = target / (duration / step)
+    const timer = setInterval(() => {
+      start += increment
+      if (start >= target) { setCount(target); clearInterval(timer) }
+      else setCount(Math.floor(start))
+    }, step)
+    return () => clearInterval(timer)
+  }, [inView, target])
 
-    const moveCursor = (e: MouseEvent) => {
-      cursor.style.left = e.clientX + 'px'
-      cursor.style.top = e.clientY + 'px'
-      cursorDot.style.left = e.clientX + 'px'
-      cursorDot.style.top = e.clientY + 'px'
-    }
-
-    const handleMouseEnter = () => setIsHovering(true)
-    const handleMouseLeave = () => setIsHovering(false)
-
-    // Add event listeners to interactive elements
-    const interactiveElements = document.querySelectorAll('button, a, .glass-card, .service-card')
-    interactiveElements.forEach(el => {
-      el.addEventListener('mouseenter', handleMouseEnter)
-      el.addEventListener('mouseleave', handleMouseLeave)
-    })
-
-    document.addEventListener('mousemove', moveCursor)
-
-    return () => {
-      document.removeEventListener('mousemove', moveCursor)
-      interactiveElements.forEach(el => {
-        el.removeEventListener('mouseenter', handleMouseEnter)
-        el.removeEventListener('mouseleave', handleMouseLeave)
-      })
-    }
-  }, [])
-
-  return (
-    <>
-      <motion.div
-        ref={cursorRef}
-        className="custom-cursor"
-        animate={{
-          scale: isHovering ? 1.5 : 1,
-          opacity: isHovering ? 0.8 : 0.3,
-        }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      />
-      <motion.div
-        ref={cursorDotRef}
-        className="custom-cursor-dot"
-        animate={{
-          scale: isHovering ? 0.5 : 1,
-        }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      />
-    </>
-  )
+  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>
 }
 
-// Floating Particles Background
-const FloatingParticles = () => {
-  const [dimensions, setDimensions] = useState({ width: 1200, height: 800 })
-  const [isClient, setIsClient] = useState(false)
-  const [particles, setParticles] = useState<Array<{
-    id: number;
-    initialX: number;
-    initialY: number;
-    targetX: number;
-    targetY: number;
-    duration: number;
-  }>>([])
+// ──────────────────────────────────────────
+// WORK PHOTOS STRIP DATA
+// ──────────────────────────────────────────
+const workPhotos = [
+  { src: '/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg', title: 'Instalación Residencial', category: 'Residencial' },
+  { src: '/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg', title: 'Panel Eléctrico Comercial', category: 'Comercial' },
+  { src: '/cf629f37-1d13-4d7b-8774-7a5ce95bf946.jpeg', title: 'Tablero Principal', category: 'Paneles' },
+  { src: '/cf856cdc-a1e1-40ef-b079-eeab55418c17.jpeg', title: 'Conexiones Seguras', category: 'Instalación' },
+  { src: '/db2d6452-ebcc-4f8a-8588-9df01d849b74.jpeg', title: 'Acabados Profesionales', category: 'Acabados' },
+  { src: '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg', title: 'Mantenimiento', category: 'Mantenimiento' },
+]
 
-  useEffect(() => {
-    // Mark as client-side and set initial dimensions
-    setIsClient(true)
-    
-    if (typeof window !== 'undefined') {
-      const updateDimensions = () => {
-        setDimensions({
-          width: window.innerWidth,
-          height: window.innerHeight
-        })
-      }
-
-      updateDimensions()
-
-      const handleResize = () => {
-        updateDimensions()
-      }
-
-      window.addEventListener('resize', handleResize)
-      return () => window.removeEventListener('resize', handleResize)
-    }
-  }, [])
-
-  useEffect(() => {
-    // Generate particle data only on client side after dimensions are set
-    if (isClient && dimensions.width > 0) {
-      const particleData = Array.from({ length: 20 }, (_, i) => ({
-        id: i,
-        initialX: Math.random() * dimensions.width,
-        initialY: Math.random() * dimensions.height,
-        targetX: Math.random() * dimensions.width,
-        targetY: Math.random() * dimensions.height,
-        duration: Math.random() * 20 + 10
-      }))
-      setParticles(particleData)
-    }
-  }, [isClient, dimensions])
-
-  // Don't render particles on server side
-  if (!isClient || particles.length === 0) {
-    return <div className="floating-particles" />
-  }
-
-  return (
-    <div className="floating-particles">
-      {particles.map((particle) => (
-        <motion.div
-          key={particle.id}
-          className="particle"
-          initial={{
-            x: particle.initialX,
-            y: particle.initialY,
-            opacity: 0
-          }}
-          animate={{
-            x: particle.targetX,
-            y: particle.targetY,
-            opacity: [0, 0.6, 0],
-          }}
-          transition={{
-            duration: particle.duration,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-        />
-      ))}
-    </div>
-  )
+const servicePhotos: Record<string, string[]> = {
+  emergencia:    ['/2394664b-563a-48aa-900e-7ff62152b422.jpeg', '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg'],
+  instalacion:   ['/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg', '/43a0a5cf-6fea-49e8-b174-7382d6ebfa5d.jpeg'],
+  mantenimiento: ['/7108a911-e716-4416-a620-97be93f4c140.jpeg', '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg'],
+  reparacion:    ['/cf856cdc-a1e1-40ef-b079-eeab55418c17.jpeg', '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg'],
 }
 
+// ──────────────────────────────────────────
+// SERVICE CARD
+// ──────────────────────────────────────────
+const ServiceCard = ({ service, onSelect }: { service: Service; onSelect: (id: string) => void }) => {
+  const [photoIdx, setPhotoIdx] = useState(0)
+  const [email, setEmail] = useState('')
+  const photos = service.status === 'active' ? (servicePhotos[service.id] || []) : []
 
-
-
-
-export default function HomePage() {
-  const [selectedService, setSelectedService] = useState<string | null>(null)
-  const [isNavigating, setIsNavigating] = useState(false)
-  const [showMobileMenu, setShowMobileMenu] = useState(false)
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [hoveredCard, setHoveredCard] = useState<string | null>(null)
-  const [isMobile, setIsMobile] = useState(false)
-  const [touchedCard, setTouchedCard] = useState<string | null>(null)
-  const [loadingTime, setLoadingTime] = useState<number>(0)
-  const [pageSpeed, setPageSpeed] = useState<'fast' | 'good' | 'slow'>('fast')
-  const [servicesCount, setServicesCount] = useState<number>(23) // Default to 23 for SSR
-
-  
-  const [authModal, setAuthModal] = useState<{
-    isOpen: boolean
-    defaultTab?: 'login' | 'register'
-    defaultUserType?: 'customer' | 'technician'
-  }>({
-    isOpen: false
-  })
-  const [settingsModal, setSettingsModal] = useState({
-    isOpen: false
-  })
-  
-  const { user, logout } = useAuthStore()
-  const currentStep = 1
-  const totalSteps = 5
-
-  // Mobile detection, performance monitoring, and responsive effects
   useEffect(() => {
-    const startTime = performance.now()
-    
-    // Generate random services count only on client side
-    setServicesCount(Math.floor(Math.random() * 15) + 18)
-    
-    // Detect mobile device
-    const checkMobile = () => {
-      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768
-      setIsMobile(isMobileDevice)
-      return isMobileDevice
-    }
+    if (!photos.length) return
+    const t = setInterval(() => setPhotoIdx(p => (p + 1) % photos.length), 2800)
+    return () => clearInterval(t)
+  }, [photos.length])
 
-    const handleMouseMove = (e: MouseEvent) => {
-      // Only track mouse on desktop
-      if (!checkMobile()) {
-        setMousePosition({ x: e.clientX, y: e.clientY })
-      }
-    }
-
-    const handleResize = () => {
-      checkMobile()
-    }
-    
-    // HOLY TRINITY: Speed Monitoring
-    const measureSpeed = () => {
-      const endTime = performance.now()
-      const loadTime = endTime - startTime
-      setLoadingTime(Math.round(loadTime))
-      
-      if (loadTime < 1000) {
-        setPageSpeed('fast')
-      } else if (loadTime < 2000) {
-        setPageSpeed('good')
-      } else {
-        setPageSpeed('slow')
-      }
-    }
-    
-    // Initial checks
-    checkMobile()
-    setIsLoaded(true)
-    
-    // Add event listeners only for desktop
-    if (!checkMobile()) {
-      window.addEventListener('mousemove', handleMouseMove)
-    }
-    window.addEventListener('resize', handleResize)
-    
-    // Measure speed after all resources load
-    if (document.readyState === 'complete') {
-      measureSpeed()
-    } else {
-      window.addEventListener('load', measureSpeed)
-    }
-    
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      window.removeEventListener('resize', handleResize)
-      window.removeEventListener('load', measureSpeed)
-    }
-  }, [])
-
-  // Enhanced service categories with holy trinity improvements
-  const serviceCategories = [
-    {
-      id: 'electrical',
-      icon: Zap,
-      title: 'Servicios Eléctricos',
-      subtitle: 'ACTIVO AHORA - Técnicos Listos',
-      description: 'Emergencias 24/7 | 1000+ Clientes Satisfechos | Técnicos Certificados | Garantía Total',
-      glassClass: 'glass-electric',
-      iconColor: 'text-blue-600',
-      available: true,
-      badge: 'DISPONIBLE',
-      badgeClass: 'glass-success',
-
-      popularity: 98,
-      rating: 4.9,
-      completionTime: '30-60 min',
-      features: ['Emergencias 24/7', 'Técnicos Certificados', 'Garantía Incluida'],
-      gradient: 'from-blue-400 via-blue-500 to-blue-600',
-      // HOLY TRINITY ENHANCEMENTS
-      trustSignals: {
-        certifications: ['Licencia CDEEE', 'Seguros ARS'],
-        recentBookings: `${servicesCount} servicios hoy`,
-        responseTime: '15 min promedio',
-        satisfaction: '98% satisfacción'
-      },
-      instantBooking: true,
-      priceRange: 'RD$ 800-2,500'
-    },
-    {
-      id: 'plumbing',
-      icon: Droplets,
-      title: 'Servicios de Plomería',
-      subtitle: 'NO DISPONIBLE - Próximamente Q1 2025',
-      description: 'Reparación de fugas, instalación de tuberías, destapado de drenajes y servicios de fontanería.',
-      glassClass: 'glass-disabled',
-      iconColor: 'text-gray-400',
-      available: false,
-      badge: 'NO DISPONIBLE',
-      badgeClass: 'glass-disabled',
-
-      popularity: 85,
-      rating: 4.7,
-      completionTime: '45-90 min',
-      features: ['Reparaciones', 'Instalaciones', 'Emergencias'],
-      gradient: 'from-gray-300 via-gray-400 to-gray-500',
-      comingSoon: 'Q1 2025'
-    },
-    {
-      id: 'hvac',
-      icon: Thermometer,
-      title: 'Aire Acondicionado',
-      subtitle: 'NO DISPONIBLE - Próximamente Q2 2025',
-      description: 'Instalación, reparación y mantenimiento de sistemas de aire acondicionado y climatización.',
-      glassClass: 'glass-disabled',
-      iconColor: 'text-gray-400',
-      available: false,
-      badge: 'NO DISPONIBLE',
-      badgeClass: 'glass-disabled',
-
-      popularity: 92,
-      rating: 4.8,
-      completionTime: '60-120 min',
-      features: ['Instalación', 'Mantenimiento', 'Reparación'],
-      gradient: 'from-gray-300 via-gray-400 to-gray-500',
-      comingSoon: 'Q2 2025'
-    },
-    {
-      id: 'general',
-      icon: Hammer,
-      title: 'Servicios Generales',
-      subtitle: 'NO DISPONIBLE - Próximamente Q2 2025',
-      description: 'Carpintería, pintura, reparaciones menores y servicios generales de mantenimiento.',
-      glassClass: 'glass-disabled',
-      iconColor: 'text-gray-400',
-      available: false,
-      badge: 'NO DISPONIBLE',
-      badgeClass: 'glass-disabled',
-
-      popularity: 78,
-      rating: 4.6,
-      completionTime: '90-180 min',
-      features: ['Carpintería', 'Pintura', 'Reparaciones'],
-      gradient: 'from-gray-300 via-gray-400 to-gray-500',
-      comingSoon: 'Q2 2025'
-    },
-    {
-      id: 'painting',
-      icon: Shield,
-      title: 'Pintura',
-      subtitle: 'NO DISPONIBLE - Próximamente Q3 2025',
-      description: 'Pintura interior y exterior, acabados profesionales y renovación de espacios.',
-      glassClass: 'glass-disabled',
-      iconColor: 'text-gray-400',
-      available: false,
-      badge: 'NO DISPONIBLE',
-      badgeClass: 'glass-disabled',
-
-      popularity: 88,
-      rating: 4.8,
-      completionTime: '120-240 min',
-      features: ['Pintura Interior', 'Pintura Exterior', 'Acabados'],
-      gradient: 'from-gray-300 via-gray-400 to-gray-500',
-      comingSoon: 'Q3 2025'
-    },
-    {
-      id: 'appliances',
-      icon: Wrench,
-      title: 'Electrodomésticos',
-      subtitle: 'NO DISPONIBLE - Próximamente Q3 2025',
-      description: 'Reparación y mantenimiento de lavadoras, refrigeradoras, estufas y otros electrodomésticos.',
-      glassClass: 'glass-disabled',
-      iconColor: 'text-gray-400',
-      available: false,
-      badge: 'NO DISPONIBLE',
-      badgeClass: 'glass-disabled',
-
-      popularity: 82,
-      rating: 4.7,
-      completionTime: '60-150 min',
-      features: ['Diagnóstico', 'Reparación', 'Mantenimiento'],
-      gradient: 'from-gray-300 via-gray-400 to-gray-500',
-      comingSoon: 'Q3 2025'
-    }
-  ]
-
-
-
-  const handleServiceSelect = async (serviceId: string) => {
-    console.log('🚀 Service clicked:', serviceId)
-    
-    try {
-      const service = serviceCategories.find(s => s.id === serviceId)
-      console.log('📋 Service found:', service)
-      
-      if (!service?.available) {
-        console.log('❌ Service not available:', serviceId)
-        // Add micro-interaction for unavailable service
-        return
-      }
-      
-      console.log('✅ Service available, proceeding...')
-      setSelectedService(serviceId)
-      setIsNavigating(true)
-      
-
-      
-      // Navigate with smooth animation
-      if (serviceId === 'electrical') {
-        console.log('⚡ Navigating to booking page')
-        await new Promise(resolve => setTimeout(resolve, 800)) // Animation delay
-        window.location.href = '/booking'
-      }
-    } catch (error) {
-      console.error('💥 Error in handleServiceSelect:', error)
-    }
-  }
-
-  const openAuthModal = (tab: 'login' | 'register', userType?: 'customer' | 'technician') => {
-    console.log('🔐 Auth button clicked:', tab, userType)
-    
-    try {
-      console.log('📊 Current authModal state:', authModal)
-      setAuthModal({
-        isOpen: true,
-        defaultTab: tab,
-        defaultUserType: userType || 'customer'
-      })
-      console.log('✅ Auth modal should open now')
-    } catch (error) {
-      console.error('💥 Error in openAuthModal:', error)
-    }
-  }
-
-  const closeAuthModal = () => {
-    console.log('❌ Closing auth modal')
-    setAuthModal({ isOpen: false })
+  if (service.status === 'coming_soon') {
+    return (
+      <div className="service-card-dark coming-soon relative overflow-hidden">
+        <div className="coming-soon-overlay-dark">
+          <span className="electric-badge text-xs">🔜 Próximamente</span>
+          <p className="text-white font-semibold text-sm mt-1">{service.name}</p>
+          <p className="text-gray-400 text-xs text-center px-4 leading-snug">{service.shortDesc}</p>
+          <div className="flex gap-2 mt-2 px-2 w-full max-w-xs">
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="tu@email.com"
+              className="input-dark text-xs py-1.5 px-3 flex-1 min-w-0"
+            />
+            <button className="btn-electric text-xs !py-1.5 !px-3">Avísame</button>
+          </div>
+        </div>
+        <div className="opacity-25 pointer-events-none select-none">
+          <div className="text-4xl mb-3">{service.icon}</div>
+          <h3 className="text-lg font-bold text-white">{service.name}</h3>
+          <p className="text-gray-400 text-sm mt-1">{service.shortDesc}</p>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      {/* Enhanced SEO for Professional Credibility */}
-      <SEO 
-        title="MultiServicios El Seibo - Electricistas Certificados | Servicios Eléctricos Profesionales 24/7"
-        description="Servicios eléctricos profesionales en El Seibo y Hato Mayor. Técnicos certificados, 1000+ clientes satisfechos, emergencias 24/7. Instalaciones, reparaciones, mantenimiento. Empresa establecida desde 2016 con garantías y seguros. ¡Llama ahora!"
-        keywords={[
-          'electricista El Seibo',
-          'servicios eléctricos El Seibo',
-          'electricista Hato Mayor',
-          'reparaciones eléctricas',
-          'instalaciones eléctricas',
-          'emergencias eléctricas 24/7',
-          'técnicos certificados',
-          'empresa eléctrica República Dominicana',
-          'MultiServicios El Seibo',
-          'electricista certificado RD',
-          'servicios eléctricos profesionales',
-          'garantía servicios eléctricos'
-        ]}
-        ogImage="/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg"
-        structuredData={generateLocalBusinessStructuredData()}
-      />
-
-      {/* Structured Data for Enhanced SEO */}
-      <StructuredData data={generateLocalBusinessStructuredData()} />
-
-      {/* Desktop-only effects */}
-      {!isMobile && (
-        <>
-          {/* Custom Cursor */}
-          <CustomCursor />
-          {/* Floating Particles Background */}
-          <FloatingParticles />
-        </>
+    <motion.div
+      className={`service-card-dark ${service.emergencyCard ? 'featured-emergency' : ''}`}
+      whileHover={{ y: -6 }}
+      whileTap={{ scale: 0.97 }}
+      onClick={() => onSelect(service.id)}
+    >
+      {/* Photo carousel */}
+      {photos.length > 0 && (
+        <div className="aspect-video rounded-xl overflow-hidden mb-4 relative bg-navy-600">
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={photoIdx}
+              src={photos[photoIdx]}
+              alt={service.name}
+              className="absolute inset-0 w-full h-full object-cover"
+              initial={{ opacity: 0, scale: 1.04 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            />
+          </AnimatePresence>
+          {/* badge */}
+          <div className="absolute top-2.5 left-2.5 z-10">
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+              service.emergencyCard
+                ? 'bg-red-500 text-white'
+                : 'bg-electric text-navy-950'
+            }`} style={{ fontFamily: 'var(--font-sub)', letterSpacing:'0.05em', textTransform:'uppercase' }}>
+              {service.emergencyCard ? '🚨 Emergencia' : '⭐ Calidad'}
+            </span>
+          </div>
+          {/* dots */}
+          <div className="absolute bottom-2 right-2.5 flex gap-1 z-10">
+            {photos.map((_, i) => (
+              <div key={i} className={`carousel-dot ${i === photoIdx ? 'active' : ''}`} />
+            ))}
+          </div>
+        </div>
       )}
 
-      {/* Enhanced Animated Glass Background */}
-      <motion.div 
-        className="modern-glass-background"
-        animate={{
-          background: [
-            'radial-gradient(circle at 20% 50%, rgba(120, 119, 198, 0.1) 0%, transparent 50%)',
-            'radial-gradient(circle at 80% 20%, rgba(120, 119, 198, 0.1) 0%, transparent 50%)',
-            'radial-gradient(circle at 40% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%)',
-          ]
-        }}
-        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-      />
-
-      {/* Enhanced Navigation with Micro-interactions */}
-      <motion.header 
-        className="glass-nav-modern sticky top-0 z-40"
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 100, damping: 20 }}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4 lg:py-6">
-            {/* Enhanced Logo Section */}
-            <motion.div 
-              className="flex items-center space-x-3"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <motion.div 
-                className="p-3 glass-electric rounded-2xl relative overflow-hidden"
-                whileHover={{ rotate: [0, -10, 10, 0] }}
-                transition={{ duration: 0.6 }}
-              >
-                <Zap className="h-8 w-8 text-blue-600 relative z-10" />
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 opacity-20"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                />
-              </motion.div>
-              <div>
-                <motion.h1 
-                  className="text-2xl lg:text-3xl font-bold gradient-text"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  MultiServicios
-                </motion.h1>
-                <motion.p 
-                  className="text-sm text-gray-600 font-medium"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  El Seibo & Hato Mayor
-                </motion.p>
-              </div>
-            </motion.div>
-
-
-                  
-            {/* Enhanced Auth Buttons */}
-                  <div className="flex items-center space-x-3">
-              {user ? (
-                <motion.div 
-                  className="flex items-center space-x-3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                >
-                  <NotificationBell />
-                  <motion.button
-                    onClick={() => setSettingsModal({ isOpen: true })}
-                    className="glass-button p-3 rounded-xl"
-                    whileHover={{ scale: 1.05, rotate: 90 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Settings className="h-5 w-5 text-gray-700" />
-                  </motion.button>
-                  <motion.button
-                      onClick={logout}
-                    className="glass-button px-4 py-2 rounded-xl text-red-600 font-medium"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Salir
-                  </motion.button>
-                </motion.div>
-              ) : (
-                <motion.div 
-                  className="flex items-center space-x-3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                >
-                  <motion.button
-                    onClick={() => openAuthModal('login')}
-                    className="glass-button px-4 py-2 rounded-xl font-medium flex items-center space-x-2"
-                    whileHover={{ scale: 1.05, x: 5 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <LogIn className="h-4 w-4" />
-                    <span>Iniciar Sesión</span>
-                  </motion.button>
-                  <motion.button
-                    onClick={() => openAuthModal('register')}
-                    className="modern-cta-button px-6 py-3 rounded-xl font-bold text-white flex items-center space-x-2"
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <UserPlus className="h-4 w-4" />
-                    <span>Registrarse</span>
-                    <Sparkles className="h-4 w-4" />
-                  </motion.button>
-                </motion.div>
-              )}
-            </div>
-            </div>
-          </div>
-      </motion.header>
-
-
-
-      {/* Enhanced Main Content - Mobile First */}
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        {/* HOLY TRINITY: Instant Trust Header - Mobile First */}
-        <motion.div 
-          className="mb-8 sm:mb-12"
-          initial={{ opacity: 0, y: -30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="glass-success p-4 rounded-2xl">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.1, type: "spring" }}
-              >
-                <div className="text-2xl font-black text-green-600">1000+</div>
-                <div className="text-xs font-medium text-gray-700">Clientes Felices</div>
-              </motion.div>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.2, type: "spring" }}
-              >
-                <div className="text-2xl font-black text-blue-600">15min</div>
-                <div className="text-xs font-medium text-gray-700">Respuesta Avg</div>
-              </motion.div>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.3, type: "spring" }}
-              >
-                <div className="text-2xl font-black text-yellow-600">4.9</div>
-                <div className="text-xs font-medium text-gray-700">Calificación</div>
-              </motion.div>
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.4, type: "spring" }}
-              >
-                <div className="text-2xl font-black text-purple-600">30+ años</div>
-                <div className="text-xs font-medium text-gray-700">Experiencia</div>
-              </motion.div>
-            </div>
-            
-            {/* HOLY TRINITY: Speed Indicator */}
-            {loadingTime > 0 && (
-              <motion.div 
-                className="mt-4 pt-4 border-t border-white/20"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                <div className="flex items-center justify-center space-x-3">
-                  <motion.div
-                    animate={{ 
-                      rotate: 360,
-                      scale: pageSpeed === 'fast' ? [1, 1.1, 1] : 1
-                    }}
-                    transition={{ 
-                      rotate: { duration: 2, repeat: Infinity, ease: "linear" },
-                      scale: { duration: 0.5, repeat: Infinity }
-                    }}
-                  >
-                    <Gauge className={`h-5 w-5 ${
-                      pageSpeed === 'fast' ? 'text-green-500' : 
-                      pageSpeed === 'good' ? 'text-yellow-500' : 'text-red-500'
-                    }`} />
-                  </motion.div>
-                  <div className="text-center">
-                    <div className={`text-sm font-bold ${
-                      pageSpeed === 'fast' ? 'text-green-600' : 
-                      pageSpeed === 'good' ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
-                      {loadingTime}ms - {
-                        pageSpeed === 'fast' ? 'SÚPER RÁPIDO' : 
-                        pageSpeed === 'good' ? 'RÁPIDO' : 'OPTIMIZANDO'
-                      }
-              </div>
-                    <div className="text-xs text-gray-600">Tiempo de Carga</div>
-            </div>
-                </div>
-              </motion.div>
+      {/* Body */}
+      <div className="flex items-start gap-3 mb-3">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${
+          service.emergencyCard ? 'bg-red-900/40' : 'bg-electric/10'
+        }`}>
+          {service.icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-white text-lg leading-tight">{service.name}</h3>
+          {service.emergencyCard && (
+            <p className="text-red-400 text-xs font-bold uppercase tracking-wide" style={{fontFamily:'var(--font-sub)'}}>Disponible 24/7</p>
           )}
         </div>
-        </motion.div>
+      </div>
 
-        {/* Infinite Carousel of Electrical Work Photos */}
-        <motion.div 
-          className="mb-12 sm:mb-16 overflow-hidden"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-        >
-          <motion.div 
-            className="text-center mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
-          >
-            <h3 className="text-2xl sm:text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Nuestros Trabajos Realizados
-            </h3>
-            <p className="text-gray-600 text-sm sm:text-base">
-              Instalaciones y reparaciones eléctricas profesionales en El Seibo
-            </p>
-          </motion.div>
+      <p className="text-gray-400 text-sm leading-relaxed mb-3">{service.description}</p>
 
-          {/* Infinite Sliding Gallery */}
-          <div className="relative">
-            {/* Left Gradient Fade */}
-            <div className="absolute left-0 top-0 h-full w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-            
-            {/* Right Gradient Fade */}
-            <div className="absolute right-0 top-0 h-full w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
-            
-            {/* Infinite Scrolling Container */}
-            <motion.div
-              className="flex space-x-6"
-              animate={{
-                x: [0, -1920] // Move the entire container
-              }}
-              transition={{
-                duration: 30, // 30 seconds for full cycle
-                repeat: Infinity,
-                ease: "linear"
-              }}
-              style={{ width: "fit-content" }}
-            >
-              {/* First Set of Images */}
-              {[
-                { src: '/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg', title: 'Instalación Residencial Moderna' },
-                { src: '/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg', title: 'Panel Eléctrico Comercial' },
-                { src: '/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg', title: 'Cableado Industrial' },
-                { src: '/2394664b-563a-48aa-900e-7ff62152b422.jpeg', title: 'Sistema de Emergencia' },
-                { src: '/43a0a5cf-6fea-49e8-b174-7382d6ebfa5d.jpeg', title: 'Instalación LED' },
-                { src: '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg', title: 'Mantenimiento Preventivo' },
-                { src: '/7108a911-e716-4416-a620-97be93f4c140.jpeg', title: 'Reparación Especializada' },
-                { src: '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg', title: 'Instalación Completa' },
-                { src: '/b420cfaa-cec4-47a5-a363-d8bebabcef4d.jpeg', title: 'Sistema Domótico' },
-                { src: '/cf629f37-1d13-4d7b-8774-7a5ce95bf946.jpeg', title: 'Tablero Principal' },
-                { src: '/cf856cdc-a1e1-40ef-b079-eeab55418c17.jpeg', title: 'Conexiones Seguras' },
-                { src: '/db2d6452-ebcc-4f8a-8588-9df01d849b74.jpeg', title: 'Trabajo Profesional' },
-                { src: '/e2f858db-6d50-48ad-b286-36a67483dfe5.jpeg', title: 'Instalación Completa' }
-              ].map((image, index) => (
-                <motion.div
-                  key={`first-${index}`}
-                  className="relative flex-shrink-0 group"
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      {/* Urgency / availability indicator */}
+      <div className={`flex items-center gap-1.5 text-xs mb-4 ${service.emergencyCard ? 'text-red-400' : 'text-green-400'}`}>
+        <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${service.emergencyCard ? 'bg-red-400' : 'bg-green-400'}`} />
+        <span className="font-semibold" style={{ fontFamily: 'var(--font-sub)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          {service.emergencyCard ? 'Disponible ahora — respuesta < 30 min' : 'Próxima cita: disponible hoy'}
+        </span>
+      </div>
+
+      <div className="flex items-center justify-end pt-3 border-t border-white/5 mt-auto">
+        <button className={`${service.emergencyCard ? 'btn-emergency' : 'btn-electric'} text-xs !py-2 !px-4`}>
+          {service.emergencyCard ? <><Phone className="h-3.5 w-3.5" /> Llamar Ahora</> : <>Ver Servicio <ArrowRight className="h-3.5 w-3.5" /></>}
+        </button>
+      </div>
+    </motion.div>
+  )
+}
+
+// ──────────────────────────────────────────
+// HOME PAGE
+// ──────────────────────────────────────────
+export default function HomePage() {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [showAuth, setShowAuth] = useState(false)
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
+  const [showSettings, setShowSettings] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  const { status, logout } = useAuthStore()
+  const isAuthenticated = status === 'authenticated'
+
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 30)
+    window.addEventListener('scroll', fn, { passive: true })
+    return () => window.removeEventListener('scroll', fn)
+  }, [])
+
+  const handleServiceSelect = (id: string) => {
+    window.location.href = `/booking?service=${id}`
+  }
+
+  const structuredData = generateLocalBusinessStructuredData()
+
+  return (
+    <div className="min-h-screen bg-navy-950 text-white overflow-x-hidden">
+      <SEO
+        title="MultiServicios El Seibo – Electricistas de Confianza"
+        description="Servicios eléctricos profesionales en El Seibo, Rep. Dom. Reserva en línea, respuesta en 15 min, 24/7."
+      />
+      <StructuredData data={structuredData} />
+
+      {/* ═══════════════════════════════════════
+          EMERGENCY BANNER
+      ═══════════════════════════════════════ */}
+      <EmergencyBanner />
+
+      {/* ═══════════════════════════════════════
+          NAVIGATION
+      ═══════════════════════════════════════ */}
+      <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'dark-nav' : 'bg-transparent'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 lg:h-18">
+
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="relative">
+                <div className="w-9 h-9 bg-electric rounded-xl flex items-center justify-center shadow-glow-sm group-hover:shadow-glow-md transition-all">
+                  <Zap className="h-5 w-5 text-navy-950" strokeWidth={2.5} />
+                </div>
+              </div>
+              <div className="hidden sm:block">
+                <span
+                  className="text-xl font-black tracking-tight text-white"
+                  style={{ fontFamily: 'var(--font-sub)', textTransform: 'uppercase', letterSpacing: '0.04em' }}
                 >
-                  <div className="w-72 h-48 rounded-2xl overflow-hidden relative glass-card border-2 border-white/20">
-                    <Image 
-                      src={image.src}
-                      alt={image.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
-                      {...(index === 0 ? { priority: true } : { loading: "lazy" })}
-                    />
-                    {/* Overlay with gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    
-                    {/* Title overlay */}
-                    <motion.div 
-                      className="absolute bottom-0 left-0 right-0 p-4 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                    >
-                      <h4 className="font-bold text-sm">{image.title}</h4>
-                      <p className="text-xs opacity-80">MultiServicios El Seibo</p>
-                    </motion.div>
-
-                    {/* Quality badge */}
-                    <motion.div 
-                      className="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      initial={{ scale: 0 }}
-                      whileHover={{ scale: 1 }}
-                    >
-                      <span className="text-xs font-bold">✓ Garantizado</span>
-                    </motion.div>
-                  </div>
-                </motion.div>
-              ))}
-              
-              {/* Duplicate Set for Seamless Loop */}
-              {[
-                { src: '/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg', title: 'Instalación Residencial Moderna' },
-                { src: '/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg', title: 'Panel Eléctrico Comercial' },
-                { src: '/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg', title: 'Cableado Industrial' },
-                { src: '/2394664b-563a-48aa-900e-7ff62152b422.jpeg', title: 'Sistema de Emergencia' },
-                { src: '/43a0a5cf-6fea-49e8-b174-7382d6ebfa5d.jpeg', title: 'Instalación LED' },
-                { src: '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg', title: 'Mantenimiento Preventivo' },
-                { src: '/7108a911-e716-4416-a620-97be93f4c140.jpeg', title: 'Reparación Especializada' },
-                { src: '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg', title: 'Instalación Completa' },
-                { src: '/b420cfaa-cec4-47a5-a363-d8bebabcef4d.jpeg', title: 'Sistema Domótico' },
-                { src: '/cf629f37-1d13-4d7b-8774-7a5ce95bf946.jpeg', title: 'Tablero Principal' },
-                { src: '/cf856cdc-a1e1-40ef-b079-eeab55418c17.jpeg', title: 'Conexiones Seguras' },
-                { src: '/db2d6452-ebcc-4f8a-8588-9df01d849b74.jpeg', title: 'Trabajo Profesional' },
-                { src: '/e2f858db-6d50-48ad-b286-36a67483dfe5.jpeg', title: 'Instalación Completa' }
-              ].map((image, index) => (
-                <motion.div
-                  key={`second-${index}`}
-                  className="relative flex-shrink-0 group"
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                >
-                  <div className="w-72 h-48 rounded-2xl overflow-hidden relative glass-card border-2 border-white/20">
-                    <Image 
-                      src={image.src}
-                      alt={image.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
-                      {...(index === 0 ? { priority: true } : { loading: "lazy" })}
-                    />
-                    {/* Overlay with gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    
-                    {/* Title overlay */}
-                    <motion.div 
-                      className="absolute bottom-0 left-0 right-0 p-4 text-white transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                    >
-                      <h4 className="font-bold text-sm">{image.title}</h4>
-                      <p className="text-xs opacity-80">MultiServicios El Seibo</p>
-                    </motion.div>
-
-                    {/* Quality badge */}
-                    <motion.div 
-                      className="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      initial={{ scale: 0 }}
-                      whileHover={{ scale: 1 }}
-                    >
-                      <span className="text-xs font-bold">✓ Garantizado</span>
-                    </motion.div>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* Bottom call-to-action */}
-          <motion.div 
-            className="text-center mt-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.2 }}
-          >
-            <Link href="/gallery">
-              <motion.button
-                className="modern-cta-button px-8 py-3 rounded-xl font-bold text-white"
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <span className="flex items-center space-x-2">
-                  <Eye className="h-5 w-5" />
-                  <span>Ver Más Trabajos</span>
-                  <ArrowRight className="h-5 w-5" />
+                  Multi<span className="text-electric">Servicios</span>
                 </span>
-              </motion.button>
+                <p className="text-xs text-gray-500 -mt-0.5 font-medium">El Seibo, Rep. Dom.</p>
+              </div>
             </Link>
-            <p className="text-xs text-gray-500 mt-2">+500 proyectos completados exitosamente</p>
-          </motion.div>
-        </motion.div>
 
-        {/* Hero Section with Advanced Animations - Mobile Optimized */}
-        <motion.div 
-          className="text-center mb-12 sm:mb-16"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          <motion.div
-            className="inline-flex items-center space-x-2 glass-electric px-6 py-3 rounded-full mb-8"
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.3 }}
-          >
-            <Zap className="h-5 w-5 text-blue-600" />
-            <span className="font-bold text-blue-800">¡{servicesCount} Servicios Completados Hoy!</span>
+            {/* Desktop nav */}
+            <nav className="hidden lg:flex items-center gap-8">
+              {[
+                { href: '#servicios', label: 'Servicios' },
+                { href: '/gallery', label: 'Trabajos' },
+                { href: '#nosotros', label: 'Nosotros' },
+                { href: '#contacto', label: 'Contacto' },
+              ].map(l => (
+                <a key={l.href} href={l.href} className="nav-link">{l.label}</a>
+              ))}
+            </nav>
+
+            {/* CTA cluster */}
+            <div className="hidden lg:flex items-center gap-2">
+              {isAuthenticated ? (
+                <>
+                  <NotificationBell />
+                  <button onClick={() => setShowSettings(true)} className="p-2 text-gray-400 hover:text-electric transition-colors">
+                    <Settings className="h-5 w-5" />
+                  </button>
+                  <button onClick={logout} className="btn-outline-electric text-sm !py-2">Salir</button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => { setAuthMode('login'); setShowAuth(true) }} className="btn-outline-electric text-sm !py-2">
+                    <LogIn className="h-4 w-4" /> Entrar
+                  </button>
+                </>
+              )}
+              <Link href="/booking" className="btn-electric">
+                Reservar Ahora <ArrowRight className="h-4 w-4" />
+              </Link>
+              <a href="tel:+18095550123" className="hero-phone-cta">
+                <Phone className="h-4 w-4 text-electric" />
+                <div>
+                  <p className="text-xs text-gray-500 leading-none">Emergencias</p>
+                  <p className="text-white font-bold text-sm leading-tight" style={{ fontFamily: 'var(--font-sub)' }}>
+                    (809) 555-0123
+                  </p>
+                </div>
+              </a>
+            </div>
+
+            {/* Mobile */}
+            <button onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden p-2 text-gray-400 hover:text-electric transition-colors">
+              {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {menuOpen && (
             <motion.div
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="lg:hidden overflow-hidden border-t border-white/10 bg-navy-900"
             >
-              <CheckCircle className="h-5 w-5 text-blue-600" />
+              <div className="px-4 py-5 space-y-2">
+                {[
+                  { href: '#servicios', label: 'Servicios' },
+                  { href: '/gallery', label: 'Trabajos' },
+                  { href: '#nosotros', label: 'Nosotros' },
+                  { href: '#contacto', label: 'Contacto' },
+                ].map(l => (
+                  <a
+                    key={l.href}
+                    href={l.href}
+                    className="block py-2.5 text-gray-300 hover:text-electric font-semibold uppercase text-sm tracking-wider transition-colors"
+                    style={{ fontFamily: 'var(--font-sub)' }}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {l.label}
+                  </a>
+                ))}
+                <div className="pt-3 border-t border-white/10 flex flex-col gap-2">
+                  <Link href="/booking" className="btn-electric w-full justify-center" onClick={() => setMenuOpen(false)}>
+                    Reservar Ahora <ArrowRight className="h-4 w-4" />
+                  </Link>
+                  <a
+                    href="https://wa.me/18095550123?text=Hola,%20necesito%20un%20servicio%20eléctrico"
+                    className="btn-whatsapp w-full justify-center"
+                    target="_blank" rel="noopener noreferrer"
+                  >
+                    <MessageCircle className="h-4 w-4" /> WhatsApp
+                  </a>
+                  <a href="tel:+18095550123" className="btn-emergency w-full justify-center">
+                    <Phone className="h-4 w-4" /> Emergencias 24/7
+                  </a>
+                </div>
+              </div>
             </motion.div>
-          </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
 
-          <motion.h1 
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black mb-4 sm:mb-6 px-4 sm:px-0"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.8 }}
-          >
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
-              Servicios Profesionales
-            </span>
-            <br />
-            <motion.span 
-              className="text-gray-800"
-              animate={{ 
-                textShadow: [
-                  "0 0 20px rgba(59, 130, 246, 0.5)",
-                  "0 0 30px rgba(59, 130, 246, 0.8)",
-                  "0 0 20px rgba(59, 130, 246, 0.5)"
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
+      {/* ═══════════════════════════════════════
+          HERO
+      ═══════════════════════════════════════ */}
+      <section className="relative min-h-[95vh] flex items-center section-primary overflow-hidden">
+        {/* circuit grid */}
+        <div className="circuit-overlay" />
+        {/* radial yellow glow */}
+        <div
+          className="absolute top-1/2 left-1/3 -translate-y-1/2 -translate-x-1/2 pointer-events-none"
+          style={{
+            width: '900px', height: '700px',
+            background: 'radial-gradient(ellipse, rgba(234,179,8,0.08) 0%, transparent 65%)',
+          }}
+        />
+        {/* bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-navy-950 to-transparent pointer-events-none z-10" />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32 w-full">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+
+            {/* LEFT: Copy */}
+            <div>
+              {/* overline badge */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 }}
+                className="mb-5"
+              >
+                <span className="electric-badge">
+                  <CheckCircle className="h-3 w-3" /> 1,000+ Trabajos Completados
+                </span>
+              </motion.div>
+
+              {/* H1 — Bebas Neue */}
+              <motion.div
+                initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12 }}
+              >
+                <h1 className="hero-headline text-white mb-1">
+                  Electricistas
+                </h1>
+                <h1 className="hero-headline gradient-text-electric mb-2">
+                  de Confianza
+                </h1>
+                <p
+                  className="text-slate-400 text-xl font-semibold mb-8 tracking-wide"
+                  style={{ fontFamily: 'var(--font-sub)', textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                >
+                  El Seibo · Rep. Dom.
+                </p>
+              </motion.div>
+
+              {/* Response time callout */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.18 }}
+                className="flex items-center gap-2 mb-4"
+              >
+                <span className="inline-flex items-center gap-1.5 bg-electric/10 border border-electric/30 text-electric text-sm font-bold px-3 py-1.5 rounded-full" style={{ fontFamily: 'var(--font-sub)' }}>
+                  <Zap className="h-3.5 w-3.5" />
+                  RESPUESTA EN 15 MINUTOS
+                </span>
+              </motion.div>
+
+              {/* Body copy */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="text-gray-400 text-lg leading-relaxed mb-8 max-w-lg"
+              >
+                Instalaciones, reparaciones y emergencias eléctricas con
+                garantía escrita. <span className="text-white font-semibold">Evaluación 100% gratis</span> si contratas.
+              </motion.p>
+
+              {/* CTAs */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.28 }}
+                className="flex flex-wrap gap-3 mb-8"
+              >
+                <Link href="/booking" className="btn-electric text-base !py-4 !px-8">
+                  Ver Nuestros Servicios <ArrowRight className="h-5 w-5" />
+                </Link>
+                <a
+                  href="https://wa.me/18095550123?text=Hola,%20necesito%20un%20servicio%20eléctrico"
+                  className="btn-whatsapp text-base !py-4 !px-8"
+                  target="_blank" rel="noopener noreferrer"
+                >
+                  <MessageCircle className="h-5 w-5" /> WhatsApp
+                </a>
+              </motion.div>
+
+              {/* Mobile-only direct call button */}
+              <motion.a
+                href="tel:+18095550123"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                className="lg:hidden flex items-center justify-center gap-3 w-full bg-red-600 hover:bg-red-500 text-white font-bold py-4 px-6 rounded-xl transition-colors border border-red-400/30"
+                style={{ fontFamily: 'var(--font-display)', fontSize: '1.25rem', letterSpacing: '0.05em' }}
+              >
+                <Phone className="h-5 w-5" />
+                LLAMAR AHORA — EMERGENCIAS 24/7
+              </motion.a>
+
+              {/* Trust chips */}
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                transition={{ delay: 0.38 }}
+                className="flex flex-wrap gap-2"
+              >
+                {[
+                  { icon: <Shield className="h-3.5 w-3.5" />, label: 'Asegurado RD$500k' },
+                  { icon: <Zap className="h-3.5 w-3.5" />, label: '15+ Años' },
+                  { icon: <CheckCircle className="h-3.5 w-3.5" />, label: 'Licencia CDEEE' },
+                  { icon: <Clock className="h-3.5 w-3.5" />, label: '24/7 Emergencias' },
+                ].map(b => (
+                  <span key={b.label} className="electric-badge-outline">
+                    {b.icon} {b.label}
+                  </span>
+                ))}
+              </motion.div>
+            </div>
+
+            {/* RIGHT: Photo collage panel */}
+            <motion.div
+              initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, type: 'spring', stiffness: 80 }}
+              className="hidden lg:block"
             >
-              que Transforman Hogares
-            </motion.span>
-          </motion.h1>
-
-          <motion.p 
-            className="text-lg sm:text-xl lg:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed font-medium px-4 sm:px-6 lg:px-0"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.8 }}
-          >
-            <strong>1000+ clientes satisfechos</strong> confían en nuestro trabajo profesional. 
-            <br />
-            <strong>Técnicos certificados</strong> disponibles <strong>24/7</strong> para emergencias.
-            <br />
-            <strong>Garantía total</strong> en todos nuestros servicios.
-          </motion.p>
-
-          <motion.div
-            className="mt-8 flex flex-wrap justify-center gap-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-          >
-            {['Respuesta Inmediata', 'Totalmente Asegurado', 'Satisfacción Garantizada'].map((feature, index) => (
-              <motion.div
-                key={feature}
-                className="glass-base px-4 py-2 rounded-full"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 1.2 + index * 0.1 }}
-              >
-                <span className="font-medium text-gray-700">{feature}</span>
-              </motion.div>
-            ))}
-          </motion.div>
-        </motion.div>
-
-        {/* Enhanced Service Selection with Mobile-First Bento Box Design */}
-        <motion.div 
-          className="mb-12 sm:mb-16"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-        >
-          <motion.div 
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.4 }}
-          >
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-              Elige tu Servicio
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Selecciona el servicio que necesitas y conecta instantáneamente con nuestros técnicos expertos
-            </p>
-          </motion.div>
-
-          {/* Modern Bento Grid Layout */}
-          <div className="bento-grid gap-6">
-            {serviceCategories.map((service, index) => (
-              <motion.div
-                  key={service.id}
-                className={`service-card ${service.id === 'electrical' ? 'featured-card' : ''} ${service.available ? 'available' : 'coming-soon'}`}
-                initial={{ opacity: 0, y: 50, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ 
-                  delay: 1.6 + index * 0.1,
-                  type: "spring",
-                  stiffness: 100,
-                  damping: 15
-                }}
-                whileHover={!isMobile ? { 
-                  scale: 1.02,
-                  y: -8,
-                  transition: { type: "spring", stiffness: 300, damping: 20 }
-                } : {}}
-                whileTap={{ scale: 0.95 }}
-                onHoverStart={() => !isMobile && setHoveredCard(service.id)}
-                onHoverEnd={() => !isMobile && setHoveredCard(null)}
-                onTouchStart={() => isMobile && setTouchedCard(service.id)}
-                onTouchEnd={() => isMobile && setTimeout(() => setTouchedCard(null), 150)}
-                onClick={() => handleServiceSelect(service.id)}
-              >
-                {/* Card Background with Gradient */}
-                <motion.div
-                  className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${service.gradient} opacity-10`}
-                  animate={{
-                    opacity: (hoveredCard === service.id || touchedCard === service.id) ? 0.2 : 0.1
-                  }}
-                />
-
-                {/* Availability Badge */}
-                <motion.div
-                  className={`absolute top-4 right-4 ${service.badgeClass} px-3 py-1 rounded-full z-10`}
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: 2 + index * 0.1 }}
-                >
-                  <span className="text-xs font-bold">{service.badge}</span>
-                </motion.div>
-
-                {/* Service Icon with Enhanced Animation */}
-                <motion.div
-                  className="relative mb-6"
-                  animate={{
-                    rotate: (hoveredCard === service.id || touchedCard === service.id) ? [0, -10, 10, 0] : 0,
-                    scale: (hoveredCard === service.id || touchedCard === service.id) ? 1.1 : 1
-                  }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <div className={`p-4 ${service.glassClass} rounded-2xl inline-block relative overflow-hidden`}>
-                    <service.icon className={`h-8 w-8 ${service.iconColor} relative z-10`} />
-                    {service.available && (
-                      <motion.div
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30"
-                        animate={{ x: [-100, 100] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      />
-                    )}
-                    </div>
-                </motion.div>
-
-                {/* Service Content */}
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
-                      {service.title}
-                    </h3>
-                    <p className="text-sm font-semibold text-blue-600 mb-3">
-                      {service.subtitle}
-                    </p>
-                    <p className="text-gray-600 text-sm leading-relaxed">
-                      {service.description}
-                              </p>
-                            </div>
-
-                  {/* HOLY TRINITY: Trust Signals + Instant Booking */}
-                  {service.available && (
-                    <motion.div 
-                      className="space-y-3"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 2.5 + index * 0.1 }}
-                    >
-                      {/* Trust Signals Bar */}
-                      <div className="glass-success p-3 rounded-xl space-y-2">
-                        <div className="flex items-center justify-between text-xs">
-                          <div className="flex items-center space-x-1">
-                            <Star className="h-3 w-3 text-yellow-500" />
-                            <span className="font-bold">{service.rating} • {service.trustSignals?.satisfaction}</span>
-                        </div>
-                          <div className="flex items-center space-x-1 text-green-600 font-bold">
-                            <span>{service.trustSignals?.recentBookings}</span>
-                      </div>
+              <div className="relative">
+                {/* 2x2 photo mosaic */}
+                <div className="grid grid-cols-2 gap-3 rounded-2xl overflow-hidden">
+                  <div className="rounded-xl overflow-hidden aspect-[4/3] border border-electric/10">
+                    <Image src="/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg" alt="Instalación residencial" width={280} height={210} className="object-cover w-full h-full hover:scale-105 transition-transform duration-500" priority />
                   </div>
-                        
-                        <div className="flex justify-between text-xs">
-                          <span className="text-blue-600 font-medium">{service.trustSignals?.responseTime}</span>
-                          <span className="text-purple-600 font-medium">{service.priceRange}</span>
-              </div>
-            </div>
-
-                      {/* Trust Certifications */}
-                      <div className="flex flex-wrap gap-1">
-                        {service.trustSignals?.certifications.map((cert, certIndex) => (
-                          <motion.span
-                            key={cert}
-                            className="glass-base px-2 py-1 rounded-md text-xs font-bold text-green-700 border border-green-200"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 3 + index * 0.1 + certIndex * 0.05 }}
-                          >
-                            {cert}
-                          </motion.span>
-                        ))}
+                  <div className="rounded-xl overflow-hidden aspect-[4/3] border border-electric/10 mt-6">
+                    <Image src="/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg" alt="Panel eléctrico" width={280} height={210} className="object-cover w-full h-full hover:scale-105 transition-transform duration-500" priority />
+                  </div>
+                  <div className="rounded-xl overflow-hidden aspect-[4/3] border border-electric/10 -mt-6">
+                    <Image src="/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg" alt="Cableado profesional" width={280} height={210} className="object-cover w-full h-full hover:scale-105 transition-transform duration-500" />
+                  </div>
+                  <div className="rounded-xl overflow-hidden aspect-[4/3] border border-electric/10">
+                    <Image src="/cf629f37-1d13-4d7b-8774-7a5ce95bf946.jpeg" alt="Tablero principal" width={280} height={210} className="object-cover w-full h-full hover:scale-105 transition-transform duration-500" />
+                  </div>
                 </div>
-
-                      {/* Features */}
-                      <div className="flex flex-wrap gap-1">
-                        {service.features.map((feature, featureIndex) => (
-                          <motion.span
-                            key={feature}
-                            className="glass-base px-2 py-1 rounded-md text-xs font-medium"
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: 3 + index * 0.1 + featureIndex * 0.05 }}
-                          >
-                            {feature}
-                          </motion.span>
-                        ))}
+                {/* Floating card: years */}
+                <div
+                  className="absolute -bottom-6 -left-6 bg-electric text-navy-950 rounded-2xl p-4 shadow-glow-md z-10"
+                  style={{ fontFamily: 'var(--font-display)' }}
+                >
+                  <p className="text-5xl font-black leading-none">15+</p>
+                  <p className="text-sm font-bold uppercase tracking-widest leading-tight">Años de<br />Experiencia</p>
+                </div>
+                {/* Floating card: rating */}
+                <div className="absolute -top-4 -right-4 dark-card !rounded-xl p-3 shadow-card z-10">
+                  <div className="flex items-center gap-1 mb-0.5">
+                    {[...Array(5)].map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-electric text-electric" />)}
+                  </div>
+                  <p className="text-white font-black text-lg leading-none" style={{ fontFamily: 'var(--font-display)' }}>4.9 / 5</p>
+                  <p className="text-gray-400 text-xs">200+ Reseñas</p>
+                </div>
+              </div>
+            </motion.div>
           </div>
-          
-                      {/* Instant Booking CTA */}
-                      <div className="pt-2">
-                        <motion.div
-                          className="modern-cta-button w-full py-3 rounded-xl text-center font-bold text-white relative overflow-hidden"
-                          whileHover={{ scale: 1.02, y: -2 }}
-                          whileTap={{ scale: 0.98 }}
-                          animate={{ 
-                            boxShadow: (hoveredCard === service.id || touchedCard === service.id) ? 
-                              "0 8px 25px rgba(59, 130, 246, 0.4)" : 
-                              "0 4px 15px rgba(59, 130, 246, 0.2)"
-                          }}
-                        >
-                          <motion.div
-                            className="flex items-center justify-center space-x-2"
-                            animate={{ x: (hoveredCard === service.id || touchedCard === service.id) ? 5 : 0 }}
-                          >
-                            <Zap className="h-5 w-5" />
-                            <span>¡RESERVAR AHORA!</span>
-                            <ArrowRight className="h-5 w-5" />
-                          </motion.div>
-                          {/* Instant feedback animation */}
-                          <motion.div
-                            className="absolute inset-0 bg-white opacity-0"
-                            animate={{
-                              opacity: (touchedCard === service.id) ? [0, 0.3, 0] : 0
-                            }}
-                            transition={{ duration: 0.3 }}
-                          />
-                        </motion.div>
-                        <p className="text-xs text-center text-gray-500 mt-1">
-                          {service.completionTime} • Sin compromiso
-                        </p>
-                </div>
-                    </motion.div>
-                  )}
+        </div>
 
-                  {/* Coming Soon Content */}
-                  {!service.available && (
-                    <motion.div 
-                      className="space-y-3"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 2.5 + index * 0.1 }}
-                    >
-                      <div className="text-center py-6">
-                        <motion.div
-                          className="mb-4"
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                        >
-                          <Sparkles className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                        </motion.div>
-                        <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4">
-                          <p className="text-gray-700 font-bold text-lg mb-2">SERVICIO NO DISPONIBLE</p>
-                          <p className="text-gray-600 text-sm mb-2">Este servicio estará disponible en {service.comingSoon}</p>
-                          <p className="text-gray-500 text-xs">Por el momento, solo ofrecemos servicios eléctricos</p>
-                        </div>
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                          <p className="text-blue-700 font-semibold text-sm">¿Necesitas servicios eléctricos?</p>
-                          <p className="text-blue-600 text-xs mt-1">Selecciona &quot;Servicios Eléctricos&quot; arriba</p>
-                        </div>
-              </div>
-                    </motion.div>
-                  )}
-            </div>
+        {/* Scroll cue */}
+        <motion.div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          <p className="text-gray-500 text-xs uppercase tracking-widest" style={{ fontFamily: 'var(--font-sub)' }}>Explorar</p>
+          <ChevronDown className="h-5 w-5 text-electric" />
+        </motion.div>
+      </section>
 
-                {/* Desktop-only Hover Effects with Mouse Position */}
-                {!isMobile && (
-                  <AnimatePresence>
-                    {hoveredCard === service.id && service.available && (
-                      <motion.div
-                        className="absolute inset-0 rounded-2xl"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        style={{
-                          background: `radial-gradient(circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(59, 130, 246, 0.1) 0%, transparent 50%)`
-                        }}
-                      />
-                    )}
-                  </AnimatePresence>
-                )}
-                
-                {/* Mobile Touch Effects */}
-                {isMobile && (
-                  <AnimatePresence>
-                    {touchedCard === service.id && service.available && (
-                      <motion.div
-                        className="absolute inset-0 rounded-2xl"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        style={{
-                          background: `radial-gradient(circle at center, rgba(59, 130, 246, 0.2) 0%, transparent 70%)`
-                        }}
-                      />
-                    )}
-                  </AnimatePresence>
-                )}
+      {/* ═══════════════════════════════════════
+          STATS BAR
+      ═══════════════════════════════════════ */}
+      <section className="section-secondary py-10 border-y border-white/5 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-0 divide-x divide-white/5">
+            {[
+              { value: 1000, suffix: '+', label: 'Clientes Atendidos', icon: '👥' },
+              { value: 15,   suffix: ' min', label: 'Respuesta Promedio', icon: '⚡' },
+              { value: 49,   suffix: '/5 ★', label: 'Calificación', icon: '⭐', isDecimal: true },
+              { value: 15,   suffix: '+ años', label: 'Experiencia', icon: '🏆' },
+            ].map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="stat-card !rounded-none !border-0 !border-b-0 py-6"
+              >
+                <p className="text-2xl mb-2">{stat.icon}</p>
+                <p className="stat-number">
+                  {stat.isDecimal
+                    ? <span>4.9</span>
+                    : <AnimatedCounter target={stat.value} suffix={stat.suffix} />
+                  }
+                </p>
+                <p className="text-gray-500 text-sm mt-1 font-medium">{stat.label}</p>
               </motion.div>
             ))}
-              </div>
-        </motion.div>
+          </div>
+        </div>
+      </section>
 
-        {/* Trust Indicators with Advanced Animations */}
-        <motion.div 
-          className="trust-section"
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 2.8 }}
-        >
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-              Confianza que Respalda Nuestro Trabajo
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Más de 30 años brindando servicios profesionales con la mejor tecnología y personal capacitado
+      {/* ═══════════════════════════════════════
+          WORK PHOTOS STRIP
+      ═══════════════════════════════════════ */}
+      <section className="section-primary py-16 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <span className="electric-badge mb-3 inline-flex">📸 Portafolio</span>
+              <h2 className="section-headline text-white">Nuestros Trabajos</h2>
+            </div>
+            <Link href="/gallery" className="btn-outline-electric whitespace-nowrap">
+              Ver Galería <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+
+        <div className="relative">
+          <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-navy-950 to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-navy-950 to-transparent z-10 pointer-events-none" />
+
+          <div className="flex gap-4 overflow-x-auto pb-3 px-4 lg:px-8" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            {workPhotos.map((photo, i) => (
+              <Link
+                key={i}
+                href="/gallery"
+                className="flex-shrink-0 group relative rounded-2xl overflow-hidden border border-white/5 hover:border-electric/40 transition-all"
+                style={{ width: '260px', height: '185px' }}
+              >
+                <Image
+                  src={photo.src}
+                  alt={photo.title}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-106"
+                  sizes="260px"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-navy-950/85 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                  <p className="text-white text-xs font-bold uppercase tracking-wide" style={{ fontFamily: 'var(--font-sub)' }}>
+                    {photo.title}
+                  </p>
+                  <span className="electric-badge text-xs mt-1">{photo.category}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          SERVICES SECTION
+      ═══════════════════════════════════════ */}
+      <section id="servicios" className="section-secondary py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <span className="electric-badge mb-4 inline-flex"><Zap className="h-3 w-3" /> Servicios</span>
+            <h2 className="section-headline text-white mb-4">¿Qué necesitas hoy?</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+              Selecciona tu servicio y agenda en <span className="text-electric font-semibold">menos de 2 minutos</span>.
+              Evaluación GRATIS si contratas.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Active services */}
+          <div className="bento-grid mb-10">
+            {services.filter(s => s.status === 'active').map((service, i) => (
+              <motion.div
+                key={service.id}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+              >
+                <ServiceCard service={service} onSelect={handleServiceSelect} />
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Coming soon */}
+          <div>
+            <div className="flex items-center gap-4 mb-5">
+              <div className="flex-1 h-px bg-white/5" />
+              <span className="text-gray-500 text-sm font-bold uppercase tracking-widest" style={{ fontFamily: 'var(--font-sub)' }}>
+                Próximamente
+              </span>
+              <div className="flex-1 h-px bg-white/5" />
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {services.filter(s => s.status === 'coming_soon').map((service, i) => (
+                <motion.div
+                  key={service.id}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.07 }}
+                >
+                  <ServiceCard service={service} onSelect={handleServiceSelect} />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          TRUST STRIP
+      ═══════════════════════════════════════ */}
+      <section className="section-primary py-8 border-y border-white/5 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex flex-wrap justify-center gap-3">
+            {[
+              { icon: '🏛️', label: 'Licencia CDEEE Verificada' },
+              { icon: '🛡️', label: 'Seguro Responsabilidad Civil' },
+              { icon: '⭐', label: '4.9/5 – 200+ Reseñas' },
+              { icon: '⚡', label: '15+ Años Experiencia' },
+              { icon: '✅', label: 'Garantía Escrita 30 Días' },
+              { icon: '📞', label: 'Soporte 24/7' },
+            ].map(t => (
+              <div key={t.label} className="trust-badge">
+                <span>{t.icon}</span> {t.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          ABOUT NENO
+      ═══════════════════════════════════════ */}
+      <section id="nosotros" className="section-secondary py-24 relative overflow-hidden">
+        {/* background accent */}
+        <div className="section-glow" style={{ width: '600px', height: '600px', top: '-100px', right: '-100px' }} />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+
+            {/* Left: Photo */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="relative"
+            >
+              <div className="relative rounded-2xl overflow-hidden border-2 border-electric/25 electric-glow-ring">
+                {/* Photo mosaic representing Neno's work */}
+                <div className="grid grid-cols-2 gap-0.5 bg-navy-700">
+                  <Image src="/7108a911-e716-4416-a620-97be93f4c140.jpeg" alt="Trabajo de Neno" width={280} height={320} className="object-cover w-full h-64" />
+                  <Image src="/b420cfaa-cec4-47a5-a363-d8bebabcef4d.jpeg" alt="Instalación eléctrica" width={280} height={320} className="object-cover w-full h-64" />
+                  <Image src="/cf856cdc-a1e1-40ef-b079-eeab55418c17.jpeg" alt="Panel eléctrico" width={280} height={320} className="object-cover w-full h-48 col-span-2" />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-navy-950/60 via-transparent" />
+              </div>
+
+              {/* Credential bar on photo */}
+              <div className="absolute bottom-4 left-4 right-4">
+                <div className="dark-card p-3 !rounded-xl flex items-center gap-3">
+                  <div className="w-8 h-8 bg-electric rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Award className="h-4 w-4 text-navy-950" />
+                  </div>
+                  <div>
+                    <p className="text-electric text-xs font-bold uppercase tracking-wide" style={{ fontFamily: 'var(--font-sub)' }}>
+                      Verificado CDEEE
+                    </p>
+                    <p className="text-gray-400 text-xs">Licencia #ES-2024-001</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Right: Copy */}
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-6"
+            >
+              <span className="electric-badge">👷 El Especialista</span>
+
+              <h2 className="section-headline text-white">
+                Neno Báez,<br />
+                <span className="gradient-text-electric">Tu Electricista</span>
+              </h2>
+
+              <p className="text-gray-400 leading-relaxed text-lg">
+                Con más de <span className="text-white font-semibold">15 años de experiencia</span> en El Seibo y la región Este,
+                Neno Báez es el electricista de confianza de cientos de hogares y negocios.
+              </p>
+
+              <p className="text-gray-400 leading-relaxed">
+                Cada trabajo viene respaldado por <span className="text-electric font-semibold">garantía escrita</span>,
+                precios transparentes y atención personalizada. Sin sorpresas. Sin letra pequeña.
+              </p>
+
+              {/* Credential pills */}
+              <div className="flex flex-wrap gap-2 pt-2">
+                {['Licencia CDEEE', 'Asegurado RD$500k', '1,000+ Proyectos', '24/7 Disponible'].map(c => (
+                  <span key={c} className="electric-badge-outline">{c}</span>
+                ))}
+              </div>
+
+              {/* Mini stats row */}
+              <div className="grid grid-cols-3 gap-3 pt-2">
+                {[
+                  { n: '1,000+', l: 'Proyectos' },
+                  { n: '4.9★', l: 'Calificación' },
+                  { n: '30 días', l: 'Garantía' },
+                ].map(s => (
+                  <div key={s.l} className="dark-card-accent p-3 text-center">
+                    <p className="text-electric font-black text-xl" style={{ fontFamily: 'var(--font-display)' }}>{s.n}</p>
+                    <p className="text-gray-400 text-xs mt-0.5">{s.l}</p>
+                  </div>
+                ))}
+              </div>
+
+              <Link href="/booking" className="btn-electric inline-flex mt-2">
+                Reservar con Neno <ArrowRight className="h-4 w-4" />
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          HOW IT WORKS
+      ═══════════════════════════════════════ */}
+      <section className="section-primary py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <span className="electric-badge mb-4 inline-flex">⚡ Proceso</span>
+            <h2 className="section-headline text-white">Así de simple</h2>
+            <p className="text-gray-400 mt-3 text-lg">3 pasos, sin complicaciones</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 relative">
+            {/* connector lines desktop */}
+            <div className="hidden md:block absolute top-14 left-[calc(16.66%+1.75rem)] right-[calc(16.66%+1.75rem)] h-0.5 bg-gradient-to-r from-electric/50 via-electric/20 to-electric/50" />
+
             {[
               {
-                icon: Shield,
-                title: "100% Asegurado",
-                description: "Cobertura total en todos nuestros servicios",
-                color: "text-green-600",
-                gradient: "from-green-400 to-emerald-500"
+                num: '1',
+                icon: <Calendar className="h-7 w-7" />,
+                title: 'Contacta a Neno',
+                sub: 'Llama o escribe por WhatsApp',
+                desc: 'Selecciona tu servicio y llámanos o escríbenos. Te respondemos en minutos y coordinamos tu visita.',
               },
               {
-                icon: Star,
-                title: "Calificación 4.9/5",
-                description: "Basado en 1000+ reseñas verificadas",
-                color: "text-yellow-600",
-                gradient: "from-yellow-400 to-orange-500"
+                num: '2',
+                icon: <MapPin className="h-7 w-7" />,
+                title: 'Neno Llega',
+                sub: 'Puntual, con equipo completo',
+                desc: 'Confirmación por WhatsApp. Llegamos en la ventana acordada, con todo el equipo necesario.',
               },
               {
-                icon: Zap,
-                title: "Respuesta 24/7",
-                description: "Emergencias atendidas en menos de 30 minutos",
-                color: "text-blue-600",
-                gradient: "from-blue-400 to-cyan-500"
-              }
-            ].map((item, index) => (
+                num: '3',
+                icon: <ShieldCheck className="h-7 w-7" />,
+                title: 'Trabajo Garantizado',
+                sub: 'Sin sorpresas en el precio',
+                desc: 'Cotización antes de comenzar. Pagas solo lo acordado. Garantía escrita de 30 días.',
+              },
+            ].map((step, i) => (
               <motion.div
-                key={item.title}
-                className="glass-card p-8 text-center relative overflow-hidden group"
-                initial={{ opacity: 0, y: 30, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: 3 + index * 0.2 }}
-                whileHover={{ y: -5, scale: 1.02 }}
+                key={i}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 }}
+                className="dark-card p-8 text-center relative"
               >
-                <motion.div
-                  className={`p-4 rounded-2xl inline-block mb-6 bg-gradient-to-r ${item.gradient} opacity-20 group-hover:opacity-30 transition-opacity`}
-                  whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
-                  transition={{ duration: 0.6 }}
+                {/* Step number circle */}
+                <div className="process-step-number mx-auto mb-5">{step.num}</div>
+                {/* Icon box */}
+                <div className="w-14 h-14 bg-electric/10 border border-electric/20 rounded-2xl flex items-center justify-center mx-auto mb-5 text-electric">
+                  {step.icon}
+                </div>
+                <h3
+                  className="text-xl font-black text-white mb-1 uppercase tracking-tight"
+                  style={{ fontFamily: 'var(--font-sub)' }}
                 >
-                  <item.icon className={`h-8 w-8 ${item.color}`} />
-                </motion.div>
-                <h3 className="text-xl font-bold mb-3 text-gray-800">{item.title}</h3>
-                <p className="text-gray-600 leading-relaxed">{item.description}</p>
-                
-                {/* Hover Glow Effect */}
-                <motion.div
-                  className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  style={{
-                    background: `radial-gradient(circle at center, ${item.gradient.includes('green') ? 'rgba(34, 197, 94, 0.1)' : item.gradient.includes('yellow') ? 'rgba(251, 191, 36, 0.1)' : 'rgba(59, 130, 246, 0.1)'} 0%, transparent 70%)`
-                  }}
-                />
+                  {step.title}
+                </h3>
+                <p className="text-electric text-xs font-bold uppercase tracking-wider mb-3" style={{ fontFamily: 'var(--font-sub)' }}>
+                  {step.sub}
+                </p>
+                <p className="text-gray-400 text-sm leading-relaxed">{step.desc}</p>
               </motion.div>
             ))}
-                </div>
-        </motion.div>
-      </main>
+          </div>
+        </div>
+      </section>
 
-      {/* Loading State with Modern Animation */}
-      <AnimatePresence>
-        {isNavigating && (
+      {/* ═══════════════════════════════════════
+          SERVICE AREA
+      ═══════════════════════════════════════ */}
+      <ServiceAreaMap />
+
+      {/* ═══════════════════════════════════════
+          TESTIMONIALS
+      ═══════════════════════════════════════ */}
+      <TestimonialsSection />
+
+      {/* ═══════════════════════════════════════
+          FAQ
+      ═══════════════════════════════════════ */}
+      <section className="section-secondary py-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-14">
+            <span className="electric-badge mb-4 inline-flex">❓ FAQ</span>
+            <h2 className="section-headline text-white mb-3">Preguntas Frecuentes</h2>
+            <p className="text-gray-400 text-lg">Todo lo que necesitas saber antes de reservar</p>
+          </div>
+          <FAQAccordion />
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          FINAL CTA
+      ═══════════════════════════════════════ */}
+      <section id="contacto" className="section-primary py-28 relative overflow-hidden">
+        {/* Giant yellow radial behind */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse 60% 50% at 50% 50%, rgba(234,179,8,0.1) 0%, transparent 70%)',
+          }}
+        />
+        {/* Circuit grid */}
+        <div className="circuit-overlay opacity-40" />
+
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
           >
-            <motion.div
-              className="glass-modal-overlay absolute inset-0"
-              initial={{ backdropFilter: "blur(0px)" }}
-              animate={{ backdropFilter: "blur(20px)" }}
-            />
-            <motion.div
-              className="glass-modal p-8 rounded-3xl text-center relative z-10"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            <span className="electric-badge mb-6 inline-flex">⚡ Listo para Ayudarte</span>
+
+            <h2 className="hero-headline text-white mb-2">¿Tienes un</h2>
+            <h2 className="hero-headline gradient-text-electric mb-8">problema eléctrico?</h2>
+
+            <p className="text-gray-400 text-xl mb-10 font-medium">
+              Sin compromiso &nbsp;•&nbsp; Evaluación GRATIS &nbsp;•&nbsp; Respuesta en 15 minutos
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+              <Link href="/booking" className="btn-electric text-base !py-4 !px-10">
+                Ver Nuestros Servicios <ArrowRight className="h-5 w-5" />
+              </Link>
+              <a href="tel:+18095550123" className="btn-emergency text-base !py-4 !px-10">
+                <Phone className="h-5 w-5" /> Emergencia – Llamar Ahora
+              </a>
+            </div>
+
+            {/* Large phone display */}
+            <a
+              href="tel:+18095550123"
+              className="inline-flex items-center gap-3 group"
             >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                className="mb-4"
+              <div className="w-12 h-12 bg-electric/10 border border-electric/30 rounded-full flex items-center justify-center group-hover:bg-electric/20 transition-all">
+                <Phone className="h-5 w-5 text-electric" />
+              </div>
+              <span
+                className="text-electric text-3xl font-black"
+                style={{ fontFamily: 'var(--font-display)', letterSpacing: '0.04em' }}
               >
-                <Zap className="h-12 w-12 text-blue-600 mx-auto" />
-              </motion.div>
-              <h3 className="text-xl font-bold mb-2">¡Conectando con técnicos!</h3>
-              <p className="text-gray-600">Preparando tu experiencia personalizada...</p>
-              <motion.div
-                className="mt-4 h-2 bg-gray-200 rounded-full overflow-hidden"
-                initial={{ width: 0 }}
-                animate={{ width: "100%" }}
-              >
-                <motion.div
-                  className="h-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 2, ease: "easeInOut" }}
-                />
-              </motion.div>
-            </motion.div>
+                (809) 555-0123
+              </span>
+            </a>
+            <p className="text-gray-500 text-sm mt-2">Emergencias disponibles 24 horas, 7 días a la semana</p>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════
+          ELEVENLABS + FOOTER
+      ═══════════════════════════════════════ */}
+      <ElevenLabsWidget />
+      <Footer />
+      <WhatsAppButton />
 
       {/* Modals */}
-      <AuthModal
-        isOpen={authModal.isOpen}
-        onClose={closeAuthModal}
-        defaultTab={authModal.defaultTab}
-        defaultUserType={authModal.defaultUserType}
-      />
-
-      <SettingsModal
-        isOpen={settingsModal.isOpen}
-        onClose={() => setSettingsModal({ isOpen: false })}
-      />
-
-      {/* ElevenLabs Convai Widget - Disabled due to account limitations */}
-      {/* <ElevenLabsWidget agentId="agent_01jzjp0q3sekq8jddpvd0q8xrq" /> */}
-
-      {/* Footer */}
-      <Footer />
+      <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} defaultTab={authMode} />
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   )
 }

@@ -68,7 +68,7 @@ export const metadata: Metadata = {
       {
         rel: 'mask-icon',
         url: '/favicon.ico',
-        color: '#3b82f6',
+        color: '#EAB308',
       },
     ],
   },
@@ -77,8 +77,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#3b82f6' },
-    { media: '(prefers-color-scheme: dark)', color: '#1e40af' },
+    { media: '(prefers-color-scheme: light)', color: '#0A0F1E' },
+    { media: '(prefers-color-scheme: dark)', color: '#0A0F1E' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -96,17 +96,17 @@ export default function RootLayout({
       <head>
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
         
-        <link rel="mask-icon" href="/favicon.ico" color="#3b82f6" />
-        
+        <link rel="mask-icon" href="/favicon.ico" color="#EAB308" />
+
         <link rel="manifest" href="/manifest.json" />
-        
-        <meta name="theme-color" content="#3b82f6" />
+
+        <meta name="theme-color" content="#0A0F1E" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="MultiServicios" />
         <meta name="mobile-web-app-capable" content="yes" />
-        
-        <meta name="msapplication-TileColor" content="#3b82f6" />
+
+        <meta name="msapplication-TileColor" content="#EAB308" />
         <meta name="msapplication-TileImage" content="/favicon.ico" />
         <meta name="msapplication-tap-highlight" content="no" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
@@ -116,6 +116,7 @@ export default function RootLayout({
         
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
         
         <link rel="dns-prefetch" href="//calendly.com" />
         <link rel="dns-prefetch" href="//api.whatsapp.com" />
@@ -123,7 +124,7 @@ export default function RootLayout({
         {/* ElevenLabs Convai Widget */}
         <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
       </head>
-      <body className="font-sans antialiased min-h-screen">
+      <body className="font-sans antialiased min-h-screen bg-navy-950 text-white">
         <NotificationProvider>
           <ErrorBoundary>
             {children}

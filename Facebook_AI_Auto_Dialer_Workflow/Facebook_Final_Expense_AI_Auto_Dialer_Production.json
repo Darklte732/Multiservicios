@@ -1,0 +1,416 @@
+{
+  "name": "Facebook Final Expense AI Auto Dialer - Production Ready",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "facebook-final-expense-lead",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "facebook-lead-webhook",
+      "name": "Facebook Lead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "facebook-final-expense-trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract and validate Facebook lead data for final expense\nconst leadData = $input.first().json;\n\n// Initialize lead object with final expense specific fields\nconst lead = {\n  id: leadData.leadgen_id || leadData.id || `lead_${Date.now()}`,\n  name: '',\n  phone: '',\n  email: '',\n  beneficiary: '',\n  dob: '',\n  state: '',\n  age: null,\n  form_id: leadData.form_id,\n  ad_id: leadData.ad_id,\n  campaign_id: leadData.campaign_id,\n  created_time: leadData.created_time || new Date().toISOString(),\n  source: 'facebook_final_expense_ad'\n};\n\n// Parse Facebook field_data array\nif (leadData.field_data && Array.isArray(leadData.field_data)) {\n  leadData.field_data.forEach(field => {\n    const fieldName = field.name?.toLowerCase();\n    const value = field.values?.[0] || '';\n    \n    if (fieldName?.includes('full_name') || fieldName?.includes('name')) {\n      lead.name = value;\n    } else if (fieldName?.includes('phone') || fieldName?.includes('number')) {\n      lead.phone = value.replace(/[^0-9+]/g, ''); // Clean phone number\n    } else if (fieldName?.includes('email')) {\n      lead.email = value;\n    } else if (fieldName?.includes('beneficiary')) {\n      lead.beneficiary = value;\n    } else if (fieldName?.includes('state')) {\n      lead.state = value;\n    } else if (fieldName?.includes('date_of_birth') || fieldName?.includes('dob')) {\n      lead.dob = value;\n      // Calculate age for lead scoring\n      if (value) {\n        const birthDate = new Date(value);\n        const today = new Date();\n        lead.age = today.getFullYear() - birthDate.getFullYear();\n        const monthDiff = today.getMonth() - birthDate.getMonth();\n        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {\n          lead.age--;\n        }\n      }\n    }\n  });\n}\n\n// Validate required fields for final expense\nif (!lead.phone) {\n  throw new Error('Phone number is required for auto-dialing');\n}\nif (!lead.name) {\n  throw new Error('Name is required for final expense leads');\n}\n\n// Lead scoring for final expense (age-based)\nlet leadScore = 0;\nif (lead.age) {\n  if (lead.age >= 50 && lead.age <= 65) leadScore += 40; // Prime age\n  if (lead.age >= 66 && lead.age <= 80) leadScore += 35; // Good age\n  if (lead.age >= 81) leadScore += 20; // Older demographic\n}\nif (lead.beneficiary) leadScore += 25; // Has beneficiary\nif (lead.email) leadScore += 15; // Email provided\nif (lead.dob) leadScore += 10; // DOB provided\nif (lead.state) leadScore += 5; // State provided\n\nlead.score = leadScore;\nlead.priority = leadScore >= 70 ? 'high' : leadScore >= 50 ? 'medium' : 'low';\n\n// Initialize call tracking\nlead.call_attempts = 0;\nlead.last_call_time = null;\nlead.status = 'new';\nlead.next_action_time = new Date().toISOString();\n\n// Detect time zone based on state\nconst stateTimeZones = {\n  'AL': 'America/Chicago', 'AK': 'America/Anchorage', 'AZ': 'America/Phoenix',\n  'AR': 'America/Chicago', 'CA': 'America/Los_Angeles', 'CO': 'America/Denver',\n  'CT': 'America/New_York', 'DE': 'America/New_York', 'FL': 'America/New_York',\n  'GA': 'America/New_York', 'HI': 'Pacific/Honolulu', 'ID': 'America/Denver',\n  'IL': 'America/Chicago', 'IN': 'America/New_York', 'IA': 'America/Chicago',\n  'KS': 'America/Chicago', 'KY': 'America/New_York', 'LA': 'America/Chicago',\n  'ME': 'America/New_York', 'MD': 'America/New_York', 'MA': 'America/New_York',\n  'MI': 'America/New_York', 'MN': 'America/Chicago', 'MS': 'America/Chicago',\n  'MO': 'America/Chicago', 'MT': 'America/Denver', 'NE': 'America/Chicago',\n  'NV': 'America/Los_Angeles', 'NH': 'America/New_York', 'NJ': 'America/New_York',\n  'NM': 'America/Denver', 'NY': 'America/New_York', 'NC': 'America/New_York',\n  'ND': 'America/Chicago', 'OH': 'America/New_York', 'OK': 'America/Chicago',\n  'OR': 'America/Los_Angeles', 'PA': 'America/New_York', 'RI': 'America/New_York',\n  'SC': 'America/New_York', 'SD': 'America/Chicago', 'TN': 'America/Chicago',\n  'TX': 'America/Chicago', 'UT': 'America/Denver', 'VT': 'America/New_York',\n  'VA': 'America/New_York', 'WA': 'America/Los_Angeles', 'WV': 'America/New_York',\n  'WI': 'America/Chicago', 'WY': 'America/Denver'\n};\n\nlead.timeZone = stateTimeZones[lead.state?.toUpperCase()] || 'America/New_York';\n\nreturn { lead };"
+      },
+      "id": "process-lead-data",
+      "name": "Process Final Expense Lead Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "optimal_calling_hours",
+              "leftValue": "={{ \n  const leadData = $node['Process Final Expense Lead Data'].json.lead;\n  const timeZone = leadData.timeZone || 'America/New_York';\n  \n  // Get current time in prospect's timezone\n  const now = new Date();\n  const prospectTime = new Date(now.toLocaleString('en-US', {timeZone}));\n  const hour = prospectTime.getHours();\n  const day = prospectTime.getDay(); // 0 = Sunday, 6 = Saturday\n  \n  // Optimal calling times for final expense/seniors\n  // Best: 9-11:30 AM, 1-3 PM, 5-7 PM in prospect's timezone\n  // Avoid: Before 9 AM, lunch (11:30-1), after 8 PM, Sundays\n  \n  if (day === 0) return false; // No Sunday calls\n  \n  // Saturday: limited hours 10 AM - 5 PM\n  if (day === 6) return hour >= 10 && hour < 17;\n  \n  // Weekdays: optimal windows\n  const morningWindow = hour >= 9 && hour < 11.5; // 9:00-11:30 AM\n  const afternoonWindow = hour >= 13 && hour < 15; // 1:00-3:00 PM  \n  const eveningWindow = hour >= 17 && hour < 19; // 5:00-7:00 PM\n  \n  return morningWindow || afternoonWindow || eveningWindow;\n}}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "id": "optimal-calling-hours-check",
+      "name": "Optimal Calling Hours Check (Prospect TZ)",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.retellai.com/create-phone-call",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer key_5e093309191124304579ddc503bf"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "agent_id",
+              "value": "agent_55c0cf93eacd75c4d326295950"
+            },
+            {
+              "name": "to_number",
+              "value": "{{ $node['Process Final Expense Lead Data'].json['lead']['phone'] }}"
+            },
+            {
+              "name": "from_number",
+              "value": "+19087396912"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ {\n  lead_id: $node['Process Final Expense Lead Data'].json['lead']['id'],\n  name: $node['Process Final Expense Lead Data'].json['lead']['name'],\n  age: $node['Process Final Expense Lead Data'].json['lead']['age'],\n  beneficiary: $node['Process Final Expense Lead Data'].json['lead']['beneficiary'],\n  state: $node['Process Final Expense Lead Data'].json['lead']['state'],\n  source: 'facebook_final_expense',\n  attempt: 1,\n  priority: $node['Process Final Expense Lead Data'].json['lead']['priority'],\n  score: $node['Process Final Expense Lead Data'].json['lead']['score']\n} }}"
+            }
+          ]
+        }
+      },
+      "id": "initiate-retell-call",
+      "name": "Initiate Retell AI Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "amount": 8,
+        "unit": "minutes"
+      },
+      "id": "wait-call-completion",
+      "name": "Wait for Call Completion",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://api.retellai.com/get-call/{{ $node['Initiate Retell AI Call'].json['call_id'] }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer key_5e093309191124304579ddc503bf"
+            }
+          ]
+        }
+      },
+      "id": "check-call-status",
+      "name": "Check Call Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Determine call success based on qualification and transfer to licensed agent\nconst callData = $node['Check Call Status'].json;\nconst leadData = $node['Process Final Expense Lead Data'].json.lead;\n\n// Success criteria: Lead qualified and transferred to licensed agent\nconst callStatus = callData.call_status || 'failed';\nconst callDuration = callData.call_analysis?.duration || 0;\nconst wasAnswered = callData.call_analysis?.answered || false;\nconst wasTransferred = callData.call_analysis?.transferred || false;\nconst qualificationScore = callData.call_analysis?.qualification_score || 0;\nconst conversationSummary = callData.call_analysis?.summary || '';\n\n// Define success criteria - YOUR SPECIFICATION: qualified and transferred to licensed agent\nlet isSuccessful = false;\nlet successReason = '';\n\nif (callStatus === 'completed' && wasAnswered) {\n  // Primary success: Lead was qualified and transferred to licensed agent\n  if (wasTransferred && qualificationScore > 0.6) {\n    isSuccessful = true;\n    successReason = 'qualified_and_transferred';\n  }\n  // Secondary success: High qualification but no immediate transfer (follow-up scheduled)\n  else if (qualificationScore > 0.7 && callDuration >= 180) {\n    isSuccessful = true;\n    successReason = 'highly_qualified_followup_scheduled';\n  }\n  // Moderate success: Some interest shown, worth follow-up\n  else if (qualificationScore > 0.4 && callDuration >= 120) {\n    isSuccessful = true;\n    successReason = 'interested_followup_needed';\n  }\n}\n\n// If not successful, determine retry logic\nlet shouldRetry = true;\nlet nextRetryHours = 0;\n\nconst currentAttempt = leadData.call_attempts + 1;\n\nif (currentAttempt >= 4) {\n  shouldRetry = false; // Max 4 attempts for final expense\n} else if (!wasAnswered) {\n  // Progressive retry timing for no answer\n  switch(currentAttempt) {\n    case 1:\n      nextRetryHours = 3; // 3 hours later, different time window\n      break;\n    case 2:\n      nextRetryHours = 24; // Next day, optimal time\n      break;\n    case 3:\n      nextRetryHours = 72; // 3 days later (seniors need time to consider)\n      break;\n  }\n} else {\n  // If answered but not qualified, longer wait times\n  switch(currentAttempt) {\n    case 1:\n      nextRetryHours = 48; // 2 days for answered but unqualified\n      break;\n    case 2:\n      nextRetryHours = 168; // 1 week\n      break;\n    case 3:\n      shouldRetry = false; // Don't retry if answered multiple times but not qualified\n      break;\n  }\n}\n\nreturn {\n  callResult: {\n    isSuccessful,\n    successReason,\n    shouldRetry,\n    nextRetryHours,\n    callDuration,\n    wasAnswered,\n    wasTransferred,\n    qualificationScore,\n    conversationSummary,\n    currentAttempt\n  }\n};"
+      },
+      "id": "analyze-call-success",
+      "name": "Analyze Call Success (Qualification + Transfer)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "call_successful",
+              "leftValue": "={{ $node['Analyze Call Success (Qualification + Transfer)'].json['callResult']['isSuccessful'] }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "combineOperation": "all"
+      },
+      "id": "success-check",
+      "name": "Call Success Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1780, 200]
+    },
+    {
+      "parameters": {
+        "amount": "={{ \n  const leadData = $node['Process Final Expense Lead Data'].json.lead;\n  const timeZone = leadData.timeZone || 'America/New_York';\n  \n  // Get current time in prospect's timezone to find next optimal calling time\n  const now = new Date();\n  const prospectTime = new Date(now.toLocaleString('en-US', {timeZone}));\n  const hour = prospectTime.getHours();\n  const day = prospectTime.getDay();\n  \n  // If it's outside optimal hours, wait until next optimal window\n  if (day === 0) { // Sunday\n    // Wait until Monday 9 AM\n    const hoursUntilMonday = 24 + (9 - hour);\n    return hoursUntilMonday > 0 ? hoursUntilMonday : 1;\n  }\n  \n  // Find next optimal calling window\n  if (hour < 9) {\n    return 9 - hour; // Wait until 9 AM\n  } else if (hour >= 11.5 && hour < 13) {\n    return 13 - hour; // Wait until 1 PM\n  } else if (hour >= 15 && hour < 17) {\n    return 17 - hour; // Wait until 5 PM\n  } else if (hour >= 19) {\n    return 24 - hour + 9; // Wait until next day 9 AM\n  }\n  \n  return 1; // Default 1 hour wait\n}}",
+        "unit": "hours"
+      },
+      "id": "wait-for-optimal-time",
+      "name": "Wait for Optimal Calling Time",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [900, 400]
+    },
+    {
+      "parameters": {
+        "documentId": "{{ $credentials.google_sheets_doc_id }}",
+        "sheetName": "Final Expense Leads",
+        "columnNames": "lead_id,name,phone,email,beneficiary,age,state,score,priority,status,created_time,call_attempts,last_call_time,qualification_score,was_answered,was_transferred,conversation_summary,next_action",
+        "dataMode": "autoMapInputData",
+        "options": {}
+      },
+      "id": "log-to-google-sheets",
+      "name": "Log Lead to Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [2000, 800]
+    }
+  ],
+  "connections": {
+    "Facebook Lead Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process Final Expense Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Final Expense Lead Data": {
+      "main": [
+        [
+          {
+            "node": "Optimal Calling Hours Check (Prospect TZ)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Optimal Calling Hours Check (Prospect TZ)": {
+      "main": [
+        [
+          {
+            "node": "Initiate Retell AI Call",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait for Optimal Calling Time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initiate Retell AI Call": {
+      "main": [
+        [
+          {
+            "node": "Wait for Call Completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Call Completion": {
+      "main": [
+        [
+          {
+            "node": "Check Call Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Call Status": {
+      "main": [
+        [
+          {
+            "node": "Analyze Call Success (Qualification + Transfer)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Call Success (Qualification + Transfer)": {
+      "main": [
+        [
+          {
+            "node": "Call Success Check",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Lead Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Success Check": {
+      "main": [
+        [
+          {
+            "node": "Log Lead to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Retry Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Lead Status": {
+      "main": [
+        [
+          {
+            "node": "Send Final Expense Follow-up SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Decision": {
+      "main": [
+        [
+          {
+            "node": "Wait for Next Retry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Final Expense Follow-up SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Next Retry": {
+      "main": [
+        [
+          {
+            "node": "Retry Retell AI Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry Retell AI Call": {
+      "main": [
+        [
+          {
+            "node": "Wait for Call Completion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Final Expense Follow-up SMS": {
+      "main": [
+        [
+          {
+            "node": "Send Final Expense Follow-up Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Final Expense Follow-up Email": {
+      "main": [
+        [
+          {
+            "node": "Wait 48 Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 48 Hours": {
+      "main": [
+        [
+          {
+            "node": "Send Final SMS with Urgency",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Final SMS with Urgency": {
+      "main": [
+        [
+          {
+            "node": "Log Lead to Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Optimal Calling Time": {
+      "main": [
+        [
+          {
+            "node": "Initiate Retell AI Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-01-17T22:00:00.000Z",
+  "versionId": "1"
+}
