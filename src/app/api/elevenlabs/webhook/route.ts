@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import Anthropic from '@anthropic-ai/sdk'
+import { checkAndSelfHeal } from '@/lib/selfHeal'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -348,6 +349,7 @@ export async function POST(request: NextRequest) {
   ])
 
   // Save Claude's analysis to ms_call_analysis
+  let analysisWasSaved = false
   if (callAnalysis.status === 'fulfilled' && callAnalysis.value) {
     const ev = callAnalysis.value
     const { error: analysisError } = await supabase.from('ms_call_analysis').upsert({
@@ -371,8 +373,23 @@ export async function POST(request: NextRequest) {
 
     if (analysisError) {
       console.error('[webhook] Supabase ms_call_analysis error:', analysisError)
+    } else {
+      analysisWasSaved = true
     }
   }
 
-  return NextResponse.json({ received: true, lead })
+  // Self-heal: check rolling window and auto-fix Ana if she's underperforming
+  let healResult = null
+  if (analysisWasSaved) {
+    try {
+      healResult = await checkAndSelfHeal(conversation_id)
+      if (healResult.triggered) {
+        console.log(`[webhook] Self-heal triggered for conversation ${conversation_id}:`, healResult.reason)
+      }
+    } catch (healErr) {
+      console.error('[webhook] Self-heal error (non-fatal):', healErr)
+    }
+  }
+
+  return NextResponse.json({ received: true, lead, selfHeal: healResult })
 }

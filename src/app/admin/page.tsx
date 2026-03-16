@@ -41,6 +41,9 @@ interface Stats {
   avgScore: string | null
   statusCounts: Record<string, number>
   conversionRate: string
+  selfHealCount: number
+  autoImprovementCount: number
+  totalVersions: number
 }
 
 interface ImprovementData {
@@ -363,8 +366,8 @@ export default function AdminPage() {
             {[
               { label: 'Llamadas totales', value: stats.totalCalls, icon: Phone, color: 'text-electric' },
               { label: 'Leads capturados', value: `${stats.leadsWithPhone} (${stats.conversionRate}%)`, icon: Users, color: 'text-green-400' },
-              { label: 'Duración promedio', value: `${Math.floor(stats.avgDurationSecs / 60)}m ${stats.avgDurationSecs % 60}s`, icon: Clock, color: 'text-blue-400' },
               { label: 'Score Ana (prom.)', value: stats.avgScore ? `${stats.avgScore}/10` : 'Sin datos', icon: Star, color: 'text-yellow-400' },
+              { label: 'Auto-correcciones', value: stats.selfHealCount > 0 ? `${stats.selfHealCount} self-heal` : stats.totalVersions > 0 ? `v${stats.totalVersions} actual` : 'Sin versiones', icon: RefreshCw, color: stats.selfHealCount > 0 ? 'text-orange-400' : 'text-blue-400' },
             ].map(({ label, value, icon: Icon, color }) => (
               <div key={label} className="bg-navy-700 border border-white/10 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -593,8 +596,8 @@ export default function AdminPage() {
               ) : (
                 <div className="space-y-2">
                   {versions.map((v, i) => (
-                    <div key={v.id} className="bg-navy-700 border border-white/10 rounded-xl p-4 flex items-start gap-4">
-                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-electric text-navy-950' : 'bg-navy-800 text-gray-400'}`}>
+                    <div key={v.id} className={`bg-navy-700 border rounded-xl p-4 flex items-start gap-4 ${v.applied_by?.includes('self-heal') ? 'border-orange-500/40' : 'border-white/10'}`}>
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-electric text-navy-950' : v.applied_by?.includes('self-heal') ? 'bg-orange-500/20 text-orange-400' : 'bg-navy-800 text-gray-400'}`}>
                         v{v.version}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -602,7 +605,7 @@ export default function AdminPage() {
                         <div className="text-xs text-gray-500 mt-1">
                           {new Date(v.created_at).toLocaleDateString('es-DO', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           {' · '}
-                          {v.applied_by === 'cron:weekly-improvement' ? '🤖 Auto-aplicado' : '👤 Manual'}
+                          {v.applied_by?.includes('self-heal') ? '🚨 Auto-corrección' : v.applied_by?.includes('cron') ? '🤖 Mejora semanal' : '👤 Manual'}
                         </div>
                         {v.performance_before && (
                           <div className="flex gap-3 mt-2">
@@ -614,11 +617,18 @@ export default function AdminPage() {
                           </div>
                         )}
                       </div>
-                      {i === 0 && (
-                        <span className="flex-shrink-0 text-xs bg-electric/10 text-electric border border-electric/30 px-2 py-0.5 rounded-full">
-                          Actual
-                        </span>
-                      )}
+                      <div className="flex gap-2 flex-shrink-0">
+                        {v.applied_by?.includes('self-heal') && (
+                          <span className="text-xs bg-orange-500/10 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full">
+                            🚨 Self-heal
+                          </span>
+                        )}
+                        {i === 0 && (
+                          <span className="text-xs bg-electric/10 text-electric border border-electric/30 px-2 py-0.5 rounded-full">
+                            Actual
+                          </span>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>

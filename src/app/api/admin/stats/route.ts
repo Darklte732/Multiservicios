@@ -51,6 +51,10 @@ export async function GET() {
     ? (scoredCalls.reduce((sum, a) => sum + a.score_overall, 0) / scoredCalls.length).toFixed(1)
     : null
 
+  // Self-heal stats
+  const selfHealCount = versions.filter(v => v.applied_by?.includes('self-heal')).length
+  const autoCount = versions.filter(v => v.applied_by?.includes('cron')).length
+
   const statusCounts = leads.reduce((acc, l) => {
     acc[l.status || 'nuevo'] = (acc[l.status || 'nuevo'] || 0) + 1
     return acc
@@ -70,6 +74,9 @@ export async function GET() {
       avgScore,
       statusCounts,
       conversionRate: totalCalls ? ((leadsWithPhone / totalCalls) * 100).toFixed(1) : '0',
+      selfHealCount,
+      autoImprovementCount: autoCount,
+      totalVersions: versions.length,
     },
     leads: enrichedLeads,
     versions,
