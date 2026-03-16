@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Filter, Grid, List, Search, ChevronDown, Zap, Home, Building, Wrench, AlertTriangle, Lightbulb, Settings, ZoomIn } from 'lucide-react';
+import { ArrowLeft, Filter, Grid, List, Search, ChevronDown, Zap, Home, Building, Wrench, Zap as ZapAlt, Lightbulb, Settings, ZoomIn } from 'lucide-react';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { Footer } from '@/components/Footer';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
@@ -45,11 +45,11 @@ const galleryData = {
       { src: '/7108a911-e716-4416-a620-97be93f4c140.jpeg', title: 'Reparación Especializada', description: 'Reparación de fallas eléctricas complejas' }
     ]
   },
-  'Sistemas de Emergencia': {
-    icon: AlertTriangle,
-    color: 'from-red-500 to-red-600',
+  'Reparaciones Eléctricas': {
+    icon: ZapAlt,
+    color: 'from-purple-500 to-purple-600',
     images: [
-      { src: '/2394664b-563a-48aa-900e-7ff62152b422.jpeg', title: 'Sistema de Emergencia', description: 'Instalación de sistemas de respaldo de emergencia' }
+      { src: '/2394664b-563a-48aa-900e-7ff62152b422.jpeg', title: 'Sistema de Respaldo Eléctrico', description: 'Instalación de sistema de respaldo e inversor para hogar' }
     ]
   },
   'Proyectos Especiales': {

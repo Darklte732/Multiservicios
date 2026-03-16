@@ -9,21 +9,9 @@ export interface Service {
   status: ServiceStatus
   fee?: string
   featured?: boolean
-  emergencyCard?: boolean
 }
 
 export const services: Service[] = [
-  {
-    id: 'emergencia',
-    name: 'Emergencia Eléctrica',
-    description: 'Atención inmediata 24/7 para apagones, cortocircuitos y fallas críticas. Llegamos en menos de 30 minutos.',
-    shortDesc: 'Atención inmediata 24/7',
-    icon: '🚨',
-    status: 'active',
-    fee: '4,000 - 8,000',
-    featured: true,
-    emergencyCard: true,
-  },
   {
     id: 'instalacion',
     name: 'Instalación Eléctrica',

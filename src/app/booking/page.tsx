@@ -16,31 +16,6 @@ import { WhatsAppButton } from '@/components/WhatsAppButton'
 // ─── Service data ────────────────────────────
 const bookingServices = [
   {
-    id: 'emergencia',
-    name: 'Emergencia Eléctrica',
-    description: 'Atención inmediata 24/7 para apagones, cortocircuitos y fallas críticas.',
-    icon: '🚨',
-    priority: 'ALTA',
-    priorityColor: 'bg-red-500',
-    borderColor: 'border-red-500/50',
-    responseTime: '< 30 min',
-    rating: 4.9,
-    isEmergency: true,
-    images: [
-      '/2394664b-563a-48aa-900e-7ff62152b422.jpeg',
-      '/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg',
-      '/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg',
-    ],
-    badges: ['24/7 Disponible', 'Respuesta < 30min', '1,000+ Emergencias'],
-    included: [
-      'Visita técnica especializada de emergencia',
-      'Diagnóstico completo con equipo profesional',
-      'Evaluación detallada del problema eléctrico',
-      'Cotización transparente del trabajo necesario',
-      'Garantía de 15 días en el trabajo realizado',
-    ],
-  },
-  {
     id: 'instalacion',
     name: 'Instalación Eléctrica',
     description: 'Instalaciones nuevas, paneles, conexiones y cableado profesional.',
@@ -93,7 +68,7 @@ const bookingServices = [
   {
     id: 'reparacion',
     name: 'Reparación Eléctrica',
-    description: 'Diagnóstico y reparación de fallas eléctricas en hogares y locales.',
+    description: 'Diagnóstico y reparación de fallas eléctricas en hogares y locales. Respuesta el mismo día.',
     icon: '⚡',
     priority: 'URGENTE',
     priorityColor: 'bg-purple-500',
@@ -102,6 +77,7 @@ const bookingServices = [
     rating: 4.8,
     isEmergency: false,
     images: [
+      '/2394664b-563a-48aa-900e-7ff62152b422.jpeg',
       '/cf629f37-1d13-4d7b-8774-7a5ce95bf946.jpeg',
       '/cf856cdc-a1e1-40ef-b079-eeab55418c17.jpeg',
       '/db2d6452-ebcc-4f8a-8588-9df01d849b74.jpeg',
@@ -122,7 +98,7 @@ const portfolioImages = [
   { src: '/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg', title: 'Instalación Moderna', category: 'Residencial' },
   { src: '/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg', title: 'Panel Industrial', category: 'Comercial' },
   { src: '/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg', title: 'Cableado Completo', category: 'Industrial' },
-  { src: '/2394664b-563a-48aa-900e-7ff62152b422.jpeg', title: 'Sistema Emergencia', category: 'Crítico' },
+  { src: '/2394664b-563a-48aa-900e-7ff62152b422.jpeg', title: 'Sistema de Respaldo', category: 'Reparación' },
   { src: '/43a0a5cf-6fea-49e8-b174-7382d6ebfa5d.jpeg', title: 'Iluminación LED', category: 'Eficiente' },
   { src: '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg', title: 'Mantenimiento', category: 'Preventivo' },
   { src: '/7108a911-e716-4416-a620-97be93f4c140.jpeg', title: 'Reparación Pro', category: 'Especializada' },
@@ -150,7 +126,7 @@ const ServiceCard = ({
 
   return (
     <motion.div
-      className={`service-card-dark ${service.isEmergency ? 'featured-emergency' : ''} cursor-pointer`}
+      className="service-card-dark cursor-pointer"
       whileHover={{ y: -6 }}
       whileTap={{ scale: 0.97 }}
       onHoverStart={() => setHovered(true)}
@@ -191,9 +167,7 @@ const ServiceCard = ({
 
       {/* Header */}
       <div className="flex items-start gap-3 mb-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${
-          service.isEmergency ? 'bg-red-900/40' : 'bg-electric/10'
-        }`}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 bg-electric/10">
           {service.icon}
         </div>
         <div>
@@ -211,10 +185,10 @@ const ServiceCard = ({
       <p className="text-gray-400 text-sm leading-relaxed mb-3">{service.description}</p>
 
       {/* Availability indicator */}
-      <div className={`flex items-center gap-1.5 text-xs mb-4 ${service.isEmergency ? 'text-red-400' : 'text-green-400'}`}>
-        <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${service.isEmergency ? 'bg-red-400' : 'bg-green-400'}`} />
+      <div className="flex items-center gap-1.5 text-xs mb-4 text-green-400">
+        <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-green-400" />
         <span className="font-semibold uppercase tracking-wide">
-          {service.isEmergency ? 'Disponible ahora — respuesta < 30 min' : 'Disponible hoy — llama para coordinar'}
+          Disponible hoy — llama para coordinar
         </span>
       </div>
 
@@ -227,7 +201,7 @@ const ServiceCard = ({
 
       {/* CTA */}
       <div className="flex items-center justify-end pt-2 border-t border-white/5">
-        <button className={`${service.isEmergency ? 'btn-emergency' : 'btn-electric'} text-sm !py-2 !px-4`}>
+        <button className="btn-electric text-sm !py-2 !px-4">
           Ver cómo contactar
           <ArrowRight className="h-3.5 w-3.5" />
         </button>
@@ -297,10 +271,10 @@ export default function BookingPage() {
 
             <a
               href="tel:+18095550123"
-              className="btn-emergency text-sm !py-2 !px-3 sm:!px-4"
+              className="btn-electric text-sm !py-2 !px-3 sm:!px-4"
             >
               <Phone className="h-4 w-4" />
-              <span className="hidden sm:inline">Llamar Ahora</span>
+              <span className="hidden sm:inline">Llamar a Neno</span>
               <span className="sm:hidden">Llamar</span>
             </a>
           </div>
@@ -346,7 +320,7 @@ export default function BookingPage() {
                       { val: '4.9', label: 'Calificación', color: 'text-electric' },
                       { val: '< 15min', label: 'Respuesta', color: 'text-green-400' },
                       { val: '1,000+', label: 'Clientes', color: 'text-blue-400' },
-                      { val: '24/7', label: 'Emergencias', color: 'text-red-400' },
+                      { val: '15+', label: 'Años exp.', color: 'text-purple-400' },
                     ].map(s => (
                       <div key={s.label}>
                         <div className={`text-2xl font-black ${s.color}`}>{s.val}</div>
@@ -451,18 +425,18 @@ export default function BookingPage() {
                 </div>
               </div>
 
-              {/* Emergency CTA */}
-              <div className="bg-red-900/20 border border-red-500/30 rounded-2xl p-6 text-center">
-                <h3 className="text-xl font-bold text-white mb-2">🚨 ¿Es una Emergencia?</h3>
-                <p className="text-gray-400 mb-4">Llámanos ahora para atención inmediata 24/7</p>
-                <a href="tel:+18095550123" className="btn-emergency inline-flex mb-4">
+              {/* Contact CTA */}
+              <div className="bg-electric/5 border border-electric/20 rounded-2xl p-6 text-center">
+                <h3 className="text-xl font-bold text-white mb-2">⚡ ¿Listo para coordinar?</h3>
+                <p className="text-gray-400 mb-4">Llama o escríbenos — Neno te atiende directamente</p>
+                <a href="tel:+18095550123" className="btn-electric inline-flex mb-4">
                   <Phone className="h-5 w-5" />
-                  Llamar Ahora: +1 (809) 555-0123
+                  Llamar: +1 (809) 555-0123
                 </a>
                 <div className="flex items-center justify-center gap-4 text-xs text-gray-500 flex-wrap">
                   <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-electric text-electric" /> 4.9/5 en 200+ reseñas</span>
                   <span>•</span>
-                  <span>Respuesta en &lt; 30 min</span>
+                  <span>Evaluación GRATIS</span>
                   <span>•</span>
                   <span>Licencia CDEEE</span>
                 </div>
@@ -502,9 +476,7 @@ export default function BookingPage() {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.15 }}
               >
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5 ${
-                  selected.isEmergency ? 'bg-red-900/40' : 'bg-electric/10'
-                }`}>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-5 bg-electric/10">
                   {selected.icon}
                 </div>
 
@@ -519,16 +491,14 @@ export default function BookingPage() {
                 </p>
 
                 {/* Availability */}
-                <div className={`flex items-center justify-center gap-2 mb-6 text-sm font-semibold ${
-                  selected.isEmergency ? 'text-red-400' : 'text-green-400'
-                }`}>
-                  <span className={`w-2 h-2 rounded-full animate-pulse ${selected.isEmergency ? 'bg-red-400' : 'bg-green-400'}`} />
-                  {selected.isEmergency ? 'Disponible ahora — respuesta en < 30 minutos' : 'Disponible hoy — agenda tu visita'}
+                <div className="flex items-center justify-center gap-2 mb-6 text-sm font-semibold text-green-400">
+                  <span className="w-2 h-2 rounded-full animate-pulse bg-green-400" />
+                  Disponible hoy — agenda tu visita
                 </div>
 
                 <a
                   href="tel:+18095550123"
-                  className={`${selected.isEmergency ? 'btn-emergency' : 'btn-electric'} w-full justify-center text-lg !py-4 mb-4`}
+                  className="btn-electric w-full justify-center text-lg !py-4 mb-4"
                   style={{ fontFamily: 'var(--font-display)', fontSize: '1.35rem' }}
                 >
                   <Phone className="h-6 w-6" />
@@ -536,7 +506,7 @@ export default function BookingPage() {
                 </a>
 
                 <p className="text-xs text-gray-500">
-                  Lunes a Domingo · 24 horas para emergencias · Respuesta garantizada
+                  Lunes a sábado · 8am–6pm · Respuesta garantizada
                 </p>
               </motion.div>
 

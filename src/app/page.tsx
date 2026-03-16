@@ -17,7 +17,6 @@ import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { SEO, generateLocalBusinessStructuredData, StructuredData } from '@/components/SEO'
 import { Footer } from '@/components/Footer'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
-import { EmergencyBanner } from '@/components/EmergencyBanner'
 import { FAQAccordion } from '@/components/FAQAccordion'
 import { TestimonialsSection } from '@/components/TestimonialsSection'
 import { ServiceAreaMap } from '@/components/ServiceAreaMap'
@@ -61,10 +60,9 @@ const workPhotos = [
 ]
 
 const servicePhotos: Record<string, string[]> = {
-  emergencia:    ['/2394664b-563a-48aa-900e-7ff62152b422.jpeg', '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg'],
   instalacion:   ['/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg', '/43a0a5cf-6fea-49e8-b174-7382d6ebfa5d.jpeg'],
   mantenimiento: ['/7108a911-e716-4416-a620-97be93f4c140.jpeg', '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg'],
-  reparacion:    ['/cf856cdc-a1e1-40ef-b079-eeab55418c17.jpeg', '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg'],
+  reparacion:    ['/2394664b-563a-48aa-900e-7ff62152b422.jpeg', '/cf856cdc-a1e1-40ef-b079-eeab55418c17.jpeg', '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg'],
 }
 
 // ──────────────────────────────────────────
@@ -110,7 +108,7 @@ const ServiceCard = ({ service, onSelect }: { service: Service; onSelect: (id: s
 
   return (
     <motion.div
-      className={`service-card-dark ${service.emergencyCard ? 'featured-emergency' : ''}`}
+      className="service-card-dark"
       whileHover={{ y: -6 }}
       whileTap={{ scale: 0.97 }}
       onClick={() => onSelect(service.id)}
@@ -132,12 +130,9 @@ const ServiceCard = ({ service, onSelect }: { service: Service; onSelect: (id: s
           </AnimatePresence>
           {/* badge */}
           <div className="absolute top-2.5 left-2.5 z-10">
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-              service.emergencyCard
-                ? 'bg-red-500 text-white'
-                : 'bg-electric text-navy-950'
-            }`} style={{ fontFamily: 'var(--font-sub)', letterSpacing:'0.05em', textTransform:'uppercase' }}>
-              {service.emergencyCard ? '🚨 Emergencia' : '⭐ Calidad'}
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-electric text-navy-950"
+              style={{ fontFamily: 'var(--font-sub)', letterSpacing:'0.05em', textTransform:'uppercase' }}>
+              ⭐ Calidad
             </span>
           </div>
           {/* dots */}
@@ -151,32 +146,27 @@ const ServiceCard = ({ service, onSelect }: { service: Service; onSelect: (id: s
 
       {/* Body */}
       <div className="flex items-start gap-3 mb-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 ${
-          service.emergencyCard ? 'bg-red-900/40' : 'bg-electric/10'
-        }`}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0 bg-electric/10">
           {service.icon}
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-bold text-white text-lg leading-tight">{service.name}</h3>
-          {service.emergencyCard && (
-            <p className="text-red-400 text-xs font-bold uppercase tracking-wide" style={{fontFamily:'var(--font-sub)'}}>Disponible 24/7</p>
-          )}
         </div>
       </div>
 
       <p className="text-gray-400 text-sm leading-relaxed mb-3">{service.description}</p>
 
-      {/* Urgency / availability indicator */}
-      <div className={`flex items-center gap-1.5 text-xs mb-4 ${service.emergencyCard ? 'text-red-400' : 'text-green-400'}`}>
-        <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${service.emergencyCard ? 'bg-red-400' : 'bg-green-400'}`} />
+      {/* Availability indicator */}
+      <div className="flex items-center gap-1.5 text-xs mb-4 text-green-400">
+        <span className="w-1.5 h-1.5 rounded-full animate-pulse bg-green-400" />
         <span className="font-semibold" style={{ fontFamily: 'var(--font-sub)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          {service.emergencyCard ? 'Disponible ahora — respuesta < 30 min' : 'Próxima cita: disponible hoy'}
+          Próxima cita: disponible hoy
         </span>
       </div>
 
       <div className="flex items-center justify-end pt-3 border-t border-white/5 mt-auto">
-        <button className={`${service.emergencyCard ? 'btn-emergency' : 'btn-electric'} text-xs !py-2 !px-4`}>
-          {service.emergencyCard ? <><Phone className="h-3.5 w-3.5" /> Llamar Ahora</> : <>Ver Servicio <ArrowRight className="h-3.5 w-3.5" /></>}
+        <button className="btn-electric text-xs !py-2 !px-4">
+          Ver Servicio <ArrowRight className="h-3.5 w-3.5" />
         </button>
       </div>
     </motion.div>
@@ -215,11 +205,6 @@ export default function HomePage() {
         description="Servicios eléctricos profesionales en El Seibo, Rep. Dom. Reserva en línea, respuesta en 15 min, 24/7."
       />
       <StructuredData data={structuredData} />
-
-      {/* ═══════════════════════════════════════
-          EMERGENCY BANNER
-      ═══════════════════════════════════════ */}
-      <EmergencyBanner />
 
       {/* ═══════════════════════════════════════
           NAVIGATION
@@ -333,8 +318,8 @@ export default function HomePage() {
                   >
                     <MessageCircle className="h-4 w-4" /> WhatsApp
                   </a>
-                  <a href="tel:+18095550123" className="btn-emergency w-full justify-center">
-                    <Phone className="h-4 w-4" /> Emergencias 24/7
+                  <a href="tel:+18095550123" className="btn-outline-electric w-full justify-center">
+                    <Phone className="h-4 w-4" /> Llamar a Neno
                   </a>
                 </div>
               </div>
@@ -901,8 +886,8 @@ export default function HomePage() {
               <Link href="/booking" className="btn-electric text-base !py-4 !px-10">
                 Ver Nuestros Servicios <ArrowRight className="h-5 w-5" />
               </Link>
-              <a href="tel:+18095550123" className="btn-emergency text-base !py-4 !px-10">
-                <Phone className="h-5 w-5" /> Emergencia – Llamar Ahora
+              <a href="tel:+18095550123" className="btn-outline-electric text-base !py-4 !px-10">
+                <Phone className="h-5 w-5" /> Llamar a Neno
               </a>
             </div>
 
@@ -921,7 +906,7 @@ export default function HomePage() {
                 (809) 555-0123
               </span>
             </a>
-            <p className="text-gray-500 text-sm mt-2">Emergencias disponibles 24 horas, 7 días a la semana</p>
+            <p className="text-gray-500 text-sm mt-2">Lunes a sábado · 8am–6pm · El Seibo y alrededores</p>
           </motion.div>
         </div>
       </section>
