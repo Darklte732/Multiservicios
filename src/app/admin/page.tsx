@@ -367,7 +367,7 @@ export default function AdminPage() {
               { label: 'Llamadas totales', value: stats.totalCalls, icon: Phone, color: 'text-electric' },
               { label: 'Leads capturados', value: `${stats.leadsWithPhone} (${stats.conversionRate}%)`, icon: Users, color: 'text-green-400' },
               { label: 'Score Ana (prom.)', value: stats.avgScore ? `${stats.avgScore}/10` : 'Sin datos', icon: Star, color: 'text-yellow-400' },
-              { label: 'Auto-correcciones', value: stats.selfHealCount > 0 ? `${stats.selfHealCount} self-heal` : stats.totalVersions > 0 ? `v${stats.totalVersions} actual` : 'Sin versiones', icon: RefreshCw, color: stats.selfHealCount > 0 ? 'text-orange-400' : 'text-blue-400' },
+              { label: 'Auto-correcciones', value: stats.selfHealCount > 0 ? `${stats.selfHealCount}× auto-fix` : stats.totalVersions > 0 ? `v${stats.totalVersions} actual` : 'Sin versiones', icon: RefreshCw, color: stats.selfHealCount > 0 ? 'text-orange-400' : 'text-blue-400' },
             ].map(({ label, value, icon: Icon, color }) => (
               <div key={label} className="bg-navy-700 border border-white/10 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -618,9 +618,19 @@ export default function AdminPage() {
                         )}
                       </div>
                       <div className="flex gap-2 flex-shrink-0">
-                        {v.applied_by?.includes('self-heal') && (
-                          <span className="text-xs bg-orange-500/10 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full">
-                            🚨 Self-heal
+                        {v.applied_by?.includes('self-heal:level-3') && (
+                          <span className="text-xs bg-red-500/15 text-red-400 border border-red-500/40 px-2 py-0.5 rounded-full">
+                            🚨 L3 Reconstrucción
+                          </span>
+                        )}
+                        {v.applied_by?.includes('self-heal:level-2') && (
+                          <span className="text-xs bg-orange-500/15 text-orange-400 border border-orange-500/40 px-2 py-0.5 rounded-full">
+                            ⚠️ L2 Revisión
+                          </span>
+                        )}
+                        {v.applied_by?.includes('self-heal:level-1') && (
+                          <span className="text-xs bg-yellow-500/15 text-yellow-400 border border-yellow-500/40 px-2 py-0.5 rounded-full">
+                            🔧 L1 Parche
                           </span>
                         )}
                         {i === 0 && (
