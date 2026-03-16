@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import Anthropic from '@anthropic-ai/sdk'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -39,6 +40,23 @@ interface LeadData {
   ubicacion: string | null
   tipo_servicio: string | null
   descripcion: string | null
+}
+
+interface CallAnalysis {
+  score_info_capture: number
+  score_objection_handling: number
+  score_warm_transfer: number
+  score_tone: number
+  score_overall: number
+  info_captured: { nombre: boolean; telefono: boolean; ubicacion: boolean; problema: boolean }
+  objections_encountered: string[]
+  objections_handled_well: boolean
+  transfer_attempted: boolean
+  transfer_succeeded: boolean
+  missed_opportunities: string[]
+  strengths: string[]
+  improvement_suggestions: string[]
+  call_outcome: string
 }
 
 // ─── Signature verification ───────────────────────────────────────────────────
@@ -84,7 +102,7 @@ function extractLeadFromTranscript(transcript: TranscriptMessage[]): LeadData {
   const fullText = transcript.map(m => `${m.role}: ${m.message}`).join('\n')
 
   // Extract phone numbers (DR formats: 809/829/849-xxx-xxxx or +1809...)
-  const phoneMatch = fullText.match(/(?:\+?1[-.\s]?)?(?:809|829|849)[-.\s]?\d{3}[-.\s]?\d{4}/)
+  const phoneMatch = fullText.match(/(?:\+?1[-.\\s]?)?(?:809|829|849)[-.\\s]?\d{3}[-.\\s]?\d{4}/)
   // Extract names after common patterns Ana uses when confirming
   const nameMatch = fullText.match(/(?:tu nombre es|nombre es|llamo|me llamo|soy)\s+([A-ZÁ-Ú][a-záéíóú]+(?:\s+[A-ZÁ-Ú][a-záéíóú]+)?)/i)
 
@@ -94,6 +112,79 @@ function extractLeadFromTranscript(transcript: TranscriptMessage[]): LeadData {
     ubicacion: null,
     tipo_servicio: null,
     descripcion: null,
+  }
+}
+
+// ─── Claude AI call evaluation ────────────────────────────────────────────────
+
+async function evaluateCallWithClaude(
+  transcript: TranscriptMessage[],
+  lead: LeadData,
+  durationSecs: number
+): Promise<CallAnalysis | null> {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) return null
+
+  const transcriptText = transcript
+    .map(m => `[${m.role.toUpperCase()}] ${m.message}`)
+    .join('\n')
+
+  const client = new Anthropic({ apiKey })
+
+  const systemPrompt = `Eres un evaluador experto de agentes de voz de IA para MultiServicios El Seibo, un negocio de electricidad en República Dominicana.
+Evalúas el desempeño de "Ana", la asistente virtual de Neno Báez (electricista).
+
+El objetivo de Ana es:
+1. Entender el problema eléctrico del cliente
+2. Obtener: nombre, teléfono/WhatsApp, ubicación, tipo de servicio, descripción del problema
+3. Manejar objeciones con confianza
+4. Intentar hacer transferencia en caliente a Neno
+5. Si Neno no contesta, terminar con cortesía prometiendo que Neno llama pronto
+
+Responde ÚNICAMENTE con JSON válido (sin markdown, sin texto adicional).`
+
+  const userPrompt = `Transcripción de llamada (${durationSecs}s):
+${transcriptText}
+
+Datos capturados:
+- Nombre: ${lead.nombre || 'No capturado'}
+- Teléfono: ${lead.telefono || 'No capturado'}
+- Ubicación: ${lead.ubicacion || 'No capturado'}
+- Tipo servicio: ${lead.tipo_servicio || 'No especificado'}
+- Descripción: ${lead.descripcion || 'No especificado'}
+
+Evalúa y responde con este JSON exacto:
+{
+  "score_info_capture": <0-10>,
+  "score_objection_handling": <0-10, usa 5 si no hubo objeciones>,
+  "score_warm_transfer": <0-10>,
+  "score_tone": <0-10>,
+  "score_overall": <0-10>,
+  "info_captured": {"nombre": <bool>, "telefono": <bool>, "ubicacion": <bool>, "problema": <bool>},
+  "objections_encountered": [<lista de objeciones que planteó el cliente>],
+  "objections_handled_well": <bool>,
+  "transfer_attempted": <bool>,
+  "transfer_succeeded": <bool>,
+  "missed_opportunities": [<cosas que Ana pudo haber dicho/hecho pero no hizo>],
+  "strengths": [<cosas que Ana hizo bien en esta llamada>],
+  "improvement_suggestions": [<sugerencias específicas para esta llamada>],
+  "call_outcome": <"lead_captured" | "transferred" | "no_lead" | "hung_up">
+}`
+
+  try {
+    const response = await client.messages.create({
+      model: 'claude-opus-4-6',
+      max_tokens: 1024,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+    })
+
+    const text = response.content[0].type === 'text' ? response.content[0].text : ''
+    const analysis = JSON.parse(text) as CallAnalysis
+    return analysis
+  } catch (err) {
+    console.error('[webhook] Claude evaluation error:', err)
+    return null
   }
 }
 
@@ -209,7 +300,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true })
   }
 
-  const { conversation_id, transcript, metadata, analysis } = payload.data
+  const { conversation_id, transcript, metadata, analysis, agent_id } = payload.data
   const durationSecs = metadata?.call_duration_secs ?? 0
 
   // Extract lead data — prefer structured data_collection, fall back to transcript parsing
@@ -222,16 +313,17 @@ export async function POST(request: NextRequest) {
 
   // Skip if we couldn't capture a phone number (call was too short / wrong number)
   if (!lead.telefono && !lead.nombre) {
-    return NextResponse.json({ received: true, skipped: 'no lead data' })
+    // Still save for analytics even if no lead captured
+    console.log('[webhook] No lead data captured — saving call for analytics only')
   }
 
-  // Save to Supabase
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { error: dbError } = await supabase.from('leads').upsert({
+  // Save to ms_leads
+  const { error: dbError } = await supabase.from('ms_leads').upsert({
     conversation_id,
     nombre: lead.nombre,
     telefono: lead.telefono,
@@ -241,17 +333,46 @@ export async function POST(request: NextRequest) {
     transcript: transcript,
     call_duration_secs: durationSecs,
     notified_at: new Date().toISOString(),
+    agent_id,
   }, { onConflict: 'conversation_id' })
 
   if (dbError) {
-    console.error('[webhook] Supabase error:', dbError)
+    console.error('[webhook] Supabase ms_leads error:', dbError)
   }
 
-  // Notify Neno — WhatsApp first (if Twilio configured), email as fallback
-  await Promise.allSettled([
+  // Run Claude evaluation + notifications in parallel (non-blocking on errors)
+  const [callAnalysis] = await Promise.allSettled([
+    evaluateCallWithClaude(transcript ?? [], lead, durationSecs),
     notifyNenoWhatsApp(lead, conversation_id),
-    notifyNeno(lead, conversation_id, durationSecs),
+    lead.telefono || lead.nombre ? notifyNeno(lead, conversation_id, durationSecs) : Promise.resolve(),
   ])
+
+  // Save Claude's analysis to ms_call_analysis
+  if (callAnalysis.status === 'fulfilled' && callAnalysis.value) {
+    const ev = callAnalysis.value
+    const { error: analysisError } = await supabase.from('ms_call_analysis').upsert({
+      conversation_id,
+      score_info_capture: ev.score_info_capture,
+      score_objection_handling: ev.score_objection_handling,
+      score_warm_transfer: ev.score_warm_transfer,
+      score_tone: ev.score_tone,
+      score_overall: ev.score_overall,
+      info_captured: ev.info_captured,
+      objections_encountered: ev.objections_encountered,
+      objections_handled_well: ev.objections_handled_well,
+      transfer_attempted: ev.transfer_attempted,
+      transfer_succeeded: ev.transfer_succeeded,
+      missed_opportunities: ev.missed_opportunities,
+      strengths: ev.strengths,
+      improvement_suggestions: ev.improvement_suggestions,
+      call_outcome: ev.call_outcome,
+      raw_analysis: ev,
+    }, { onConflict: 'conversation_id' })
+
+    if (analysisError) {
+      console.error('[webhook] Supabase ms_call_analysis error:', analysisError)
+    }
+  }
 
   return NextResponse.json({ received: true, lead })
 }
