@@ -8,7 +8,7 @@ export async function GET() {
   )
 
   // Fetch all data in parallel
-  const [leadsResult, analysisResult] = await Promise.all([
+  const [leadsResult, analysisResult, versionsResult, weeklyResult] = await Promise.all([
     supabase
       .from('ms_leads')
       .select('*')
@@ -19,10 +19,22 @@ export async function GET() {
       .select('*')
       .order('created_at', { ascending: false })
       .limit(100),
+    supabase
+      .from('ms_prompt_versions')
+      .select('id, version, change_summary, applied_by, created_at, performance_before')
+      .order('version', { ascending: false })
+      .limit(20),
+    supabase
+      .from('ms_weekly_insights')
+      .select('*')
+      .order('week_start', { ascending: false })
+      .limit(10),
   ])
 
   const leads = leadsResult.data ?? []
   const analyses = analysisResult.data ?? []
+  const versions = versionsResult.data ?? []
+  const weeklyInsights = weeklyResult.data ?? []
 
   // Build analysis map for quick lookup
   const analysisMap = new Map(analyses.map(a => [a.conversation_id, a]))
@@ -60,5 +72,7 @@ export async function GET() {
       conversionRate: totalCalls ? ((leadsWithPhone / totalCalls) * 100).toFixed(1) : '0',
     },
     leads: enrichedLeads,
+    versions,
+    weeklyInsights,
   })
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Phone, TrendingUp, Users, Clock, Star, ChevronDown, ChevronUp, RefreshCw, Zap, MessageSquare, Target, AlertCircle, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { Phone, TrendingUp, Users, Clock, Star, ChevronDown, ChevronUp, RefreshCw, Zap, MessageSquare, Target, AlertCircle, CheckCircle2, XCircle, Loader2, History, Calendar } from 'lucide-react'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -51,6 +51,26 @@ interface ImprovementData {
   topStrengths: string[]
   suggestions: string
   currentVersion: number
+}
+
+interface PromptVersion {
+  id: string
+  version: number
+  change_summary: string
+  applied_by: string
+  created_at: string
+  performance_before: Record<string, number> | null
+}
+
+interface WeeklyInsight {
+  id: string
+  week_start: string
+  week_end: string
+  total_calls: number
+  calls_with_lead: number
+  avg_score_overall: number
+  prompt_applied: boolean
+  prompt_suggestions: string
 }
 
 // ─── Score badge component ─────────────────────────────────────────────────────
@@ -242,8 +262,10 @@ function LeadCard({ lead }: { lead: Lead }) {
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [leads, setLeads] = useState<Lead[]>([])
+  const [versions, setVersions] = useState<PromptVersion[]>([])
+  const [weeklyInsights, setWeeklyInsights] = useState<WeeklyInsight[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'leads' | 'improvement'>('leads')
+  const [activeTab, setActiveTab] = useState<'leads' | 'improvement' | 'history'>('leads')
   const [improvement, setImprovement] = useState<ImprovementData | null>(null)
   const [improvementLoading, setImprovementLoading] = useState(false)
   const [newPrompt, setNewPrompt] = useState('')
@@ -257,6 +279,8 @@ export default function AdminPage() {
       const data = await res.json()
       setStats(data.stats)
       setLeads(data.leads || [])
+      setVersions(data.versions || [])
+      setWeeklyInsights(data.weeklyInsights || [])
     } catch (err) {
       console.error('Error loading stats:', err)
     } finally {
@@ -358,11 +382,12 @@ export default function AdminPage() {
           {[
             { id: 'leads', label: 'Llamadas & Leads' },
             { id: 'improvement', label: 'Mejorar a Ana' },
+            { id: 'history', label: 'Historial' },
           ].map(tab => (
             <button
               key={tab.id}
               onClick={() => {
-                setActiveTab(tab.id as 'leads' | 'improvement')
+                setActiveTab(tab.id as 'leads' | 'improvement' | 'history')
                 if (tab.id === 'improvement' && !improvement) loadImprovement()
               }}
               className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${activeTab === tab.id ? 'bg-electric text-navy-950' : 'text-gray-400 hover:text-white'}`}
@@ -514,6 +539,91 @@ export default function AdminPage() {
                 <p className="text-xs mt-1">Necesitas al menos 1 llamada analizada.</p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Tab: History */}
+        {activeTab === 'history' && (
+          <div className="space-y-6">
+            {/* Weekly reports */}
+            <div>
+              <h2 className="text-sm font-semibold text-electric mb-3 uppercase tracking-wider flex items-center gap-2">
+                <Calendar className="w-4 h-4" /> Reportes semanales automáticos
+              </h2>
+              {weeklyInsights.length === 0 ? (
+                <div className="bg-navy-700 border border-white/10 rounded-xl p-6 text-center text-gray-500">
+                  <Calendar className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">El primer reporte se generará el lunes a las 8am automáticamente.</p>
+                  <p className="text-xs mt-1">Necesita al menos 3 llamadas analizadas en la semana.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {weeklyInsights.map(w => (
+                    <div key={w.id} className="bg-navy-700 border border-white/10 rounded-xl p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-sm font-medium text-white">
+                          Semana del {new Date(w.week_start).toLocaleDateString('es-DO', { month: 'short', day: 'numeric' })} al {new Date(w.week_end).toLocaleDateString('es-DO', { month: 'short', day: 'numeric' })}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-400">{w.total_calls} llamadas · Score {w.avg_score_overall?.toFixed(1)}/10</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full border ${w.prompt_applied ? 'bg-green-900/30 text-green-300 border-green-700' : 'bg-gray-800 text-gray-500 border-gray-600'}`}>
+                            {w.prompt_applied ? '✓ Prompt actualizado' : 'Sin cambios'}
+                          </span>
+                        </div>
+                      </div>
+                      {w.prompt_suggestions && (
+                        <p className="text-xs text-gray-400 line-clamp-2">{w.prompt_suggestions}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Prompt version history */}
+            <div>
+              <h2 className="text-sm font-semibold text-electric mb-3 uppercase tracking-wider flex items-center gap-2">
+                <History className="w-4 h-4" /> Historial de versiones de Ana
+              </h2>
+              {versions.length === 0 ? (
+                <div className="bg-navy-700 border border-white/10 rounded-xl p-6 text-center text-gray-500">
+                  <History className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">Aún no hay versiones guardadas.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {versions.map((v, i) => (
+                    <div key={v.id} className="bg-navy-700 border border-white/10 rounded-xl p-4 flex items-start gap-4">
+                      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${i === 0 ? 'bg-electric text-navy-950' : 'bg-navy-800 text-gray-400'}`}>
+                        v{v.version}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-white font-medium">{v.change_summary || 'Sin descripción'}</div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {new Date(v.created_at).toLocaleDateString('es-DO', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          {' · '}
+                          {v.applied_by === 'cron:weekly-improvement' ? '🤖 Auto-aplicado' : '👤 Manual'}
+                        </div>
+                        {v.performance_before && (
+                          <div className="flex gap-3 mt-2">
+                            {Object.entries(v.performance_before).map(([key, val]) => (
+                              <span key={key} className="text-xs text-gray-500">
+                                {key}: <span className="text-gray-300">{typeof val === 'number' ? val.toFixed(1) : val}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {i === 0 && (
+                        <span className="flex-shrink-0 text-xs bg-electric/10 text-electric border border-electric/30 px-2 py-0.5 rounded-full">
+                          Actual
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
