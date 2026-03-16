@@ -26,9 +26,10 @@ interface AuthActions {
 
 type AuthStore = AuthState & AuthActions
 
-// Simple password hashing function (in production, use bcrypt or similar)
+// SECURITY WARNING: SHA-256 is not suitable for password hashing in production.
+// Before launching publicly, replace with bcrypt or argon2 via a server-side API route.
+// Client-side hashing also exposes the salt — move password handling to a Next.js API route.
 const hashPassword = async (password: string): Promise<string> => {
-  // For demo purposes - in production use proper bcrypt hashing
   const encoder = new TextEncoder()
   const data = encoder.encode(password + 'multiservicios_salt_2024')
   const hashBuffer = await crypto.subtle.digest('SHA-256', data)
