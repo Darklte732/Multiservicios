@@ -5,22 +5,27 @@ import { useSearchParams } from 'next/navigation'
 import { AccountCreation } from '@/components/AccountCreation'
 import { useRouter } from 'next/navigation'
 import { Footer } from '@/components/Footer'
+import { validateServiceCodeFormat } from '@/lib/serviceCode'
 
 function AccountCreationContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  
+
+  // Only trust a service code in the URL if it actually matches the MS-YYYY-XXXXX
+  // format. Anything else (empty, garbage, missing) drops the user into the manual
+  // code-entry flow inside AccountCreation, which validates again before linking.
+  const rawCode = searchParams.get('code') || ''
+  const validCode = validateServiceCodeFormat(rawCode) ? rawCode : ''
+
   // Extract session data from URL parameters
   const sessionData = {
     serviceType: searchParams.get('service') || 'instalacion',
     customerName: searchParams.get('name') || 'Cliente',
     customerPhone: searchParams.get('phone') || '',
     serviceDate: searchParams.get('date') || 'Hoy',
-    serviceCode: searchParams.get('code') || '',
+    serviceCode: validCode,
     finalPrice: parseInt(searchParams.get('fee') || '400')
   }
-
-  const isAutomatic = searchParams.get('auto') === 'true'
 
   const handleAccountCreated = (userData: any) => {
     // Redirect to customer dashboard
