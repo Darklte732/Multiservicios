@@ -13,6 +13,16 @@ export interface Service {
 
 export const services: Service[] = [
   {
+    id: 'emergencia',
+    name: 'Emergencia Eléctrica',
+    description: 'Respuesta en menos de 30 minutos, 24 horas al día, 7 días a la semana. Cortocircuitos, bajones, apagones y fallas críticas.',
+    shortDesc: 'Atención inmediata 24/7',
+    icon: '🚨',
+    status: 'active',
+    fee: '4,000 - 8,000',
+    featured: true,
+  },
+  {
     id: 'instalacion',
     name: 'Instalación Eléctrica',
     description: 'Instalaciones eléctricas para hogares y negocios. Paneles, tomacorrientes, luminarias y cableado completo.',

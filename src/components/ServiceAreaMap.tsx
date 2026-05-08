@@ -59,7 +59,7 @@ export const ServiceAreaMap = () => {
               </div>
             ))}
             <p className="text-sm text-gray-500 mt-4 text-center">
-              ¿No ves tu municipio? Cubrimos un radio de 60 km — <a href="tel:+18095550123" className="text-electric hover:underline">Llámanos</a>
+              ¿No ves tu municipio? Cubrimos un radio de 60 km — <a href="tel:+18092514329" className="text-electric hover:underline">Llámanos</a>
             </p>
           </div>
 

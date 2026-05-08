@@ -93,7 +93,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       setNotifications([])
       setConnectionStatus('disconnected')
     }
-  }, [user?.id, addToast])
+  }, [user?.id])
 
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId: string) => {
@@ -184,9 +184,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     // Initial fetch
     fetchNotifications()
 
-    // Set up real-time subscription
+    // Set up real-time subscription. Channel name is user-scoped so each user
+    // gets their own broadcast lane — prevents cross-user payload visibility
+    // once Supabase RLS policies arrive (a single shared 'notifications'
+    // channel is a leak risk if the filter ever drifts).
     const subscription = supabase
-      .channel('notifications')
+      .channel(`notifications:${user.id}`)
       .on(
         'postgres_changes',
         {

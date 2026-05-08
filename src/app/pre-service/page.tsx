@@ -2,7 +2,8 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { Clock, Phone, MessageCircle, MapPin, CheckCircle, ArrowRight, Shield } from 'lucide-react'
+import { Clock, Phone, MapPin, CheckCircle, ArrowRight } from 'lucide-react'
+import { WhatsAppIcon } from '@/components/icons/WhatsAppIcon'
 import Link from 'next/link'
 import { Footer } from '@/components/Footer'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
@@ -113,7 +114,7 @@ function PreServiceContent() {
           </h3>
           <div className="space-y-3 text-sm text-gray-400">
             <div className="flex items-start gap-3">
-              <MessageCircle className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+              <WhatsAppIcon className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-medium text-white">WhatsApp Confirmado</p>
                 <p>El técnico {booking.technician} te contactó con los detalles finales</p>
@@ -166,7 +167,7 @@ function PreServiceContent() {
               </div>
               <div>
                 <h3 className="font-semibold text-white">{booking.technician} — Técnico Especialista</h3>
-                <p className="text-sm text-gray-400">15+ años de experiencia • WhatsApp: +1 (809) 555-0123</p>
+                <p className="text-sm text-gray-400">15+ años de experiencia • WhatsApp: +1 (809) 251-4329</p>
               </div>
             </div>
           </div>
@@ -224,11 +225,11 @@ function PreServiceContent() {
           <div className="text-center">
             <p className="text-sm text-gray-400 mb-4">Si tienes una emergencia eléctrica antes de tu cita programada</p>
             <a
-              href="tel:+18095550123"
+              href="tel:+18092514329"
               className="btn-emergency inline-flex"
             >
               <Phone className="w-5 h-5" />
-              Emergencias 24/7: +1 (809) 555-0123
+              Emergencias 24/7: +1 (809) 251-4329
             </a>
           </div>
         </div>

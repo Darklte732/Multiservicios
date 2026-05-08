@@ -68,4 +68,12 @@ temp/
 
 # Supabase
 .branches
-.temp 
+.temp
+.gstack/
+
+# Local working scratch — never commit
+dev.log
+scripts/
+design_review/
+design_review_v2/
+/Desktop redesign*.html

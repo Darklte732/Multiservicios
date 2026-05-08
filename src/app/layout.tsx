@@ -120,9 +120,6 @@ export default function RootLayout({
         
         <link rel="dns-prefetch" href="//calendly.com" />
         <link rel="dns-prefetch" href="//api.whatsapp.com" />
-        
-        {/* ElevenLabs Convai Widget */}
-        <script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
       </head>
       <body className="font-sans antialiased min-h-screen bg-navy-950 text-white">
         <NotificationProvider>

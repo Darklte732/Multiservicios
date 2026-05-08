@@ -62,7 +62,7 @@ function NotificationsTestPageContent() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="809-555-0123"
+                    placeholder="809-251-4329"
                     required
                   />
                 </div>

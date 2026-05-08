@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useMemo, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { CheckCircle, Star, MessageCircle, Shield, ArrowLeft, ArrowRight, Phone, UserPlus } from 'lucide-react'
+import { CheckCircle, Star, Shield, ArrowLeft, UserPlus } from 'lucide-react'
+import { WhatsAppIcon } from '@/components/icons/WhatsAppIcon'
 import Link from 'next/link'
 import { Footer } from '@/components/Footer'
+import { generateServiceCode } from '@/lib/serviceCode'
 
 const serviceConfig = {
   'emergencia': {
@@ -68,6 +70,8 @@ const serviceWorkDetails = {
 function ServiceCompleteContent() {
   const searchParams = useSearchParams()
   const [rating, setRating] = useState(5)
+  // Stable service code generated once on mount — uses MS-YYYY-XXXXX format
+  const serviceCode = useMemo(() => generateServiceCode(), [])
   const [bookingDetails, setBookingDetails] = useState({
     service: 'Instalación Eléctrica',
     serviceKey: 'instalacion',
@@ -296,10 +300,15 @@ function ServiceCompleteContent() {
               </button>
             ))}
           </div>
-          <button className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
-            <MessageCircle className="w-5 h-5" />
+          <a
+            href={`https://wa.me/18092514329?text=${encodeURIComponent('¡Hola Neno! Quería compartir mi comentario sobre el servicio que recibí.')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+          >
+            <WhatsAppIcon className="w-5 h-5" />
             Enviar Comentario por WhatsApp
-          </button>
+          </a>
         </div>
 
         {/* Warranty Information */}
@@ -341,7 +350,7 @@ function ServiceCompleteContent() {
           <div className="space-y-3 text-sm text-blue-800">
             <div className="flex items-start gap-3">
               <span className="text-blue-600 font-bold">📱</span>
-              <span>Guarda nuestro WhatsApp (+1 809 555-0123) para futuras consultas</span>
+              <span>Guarda nuestro WhatsApp (+1 809 251-4329) para futuras consultas</span>
             </div>
             <div className="flex items-start gap-3">
               <span className="text-blue-600 font-bold">🏠</span>
@@ -397,7 +406,7 @@ function ServiceCompleteContent() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href={`/account-creation?service=${bookingDetails.serviceKey}&fee=${bookingDetails.evaluationFee}&code=MS-2025-${Math.random().toString(36).substr(2, 5).toUpperCase()}&name=${encodeURIComponent(bookingDetails.technician)}&auto=true`}
+                href={`/account-creation?service=${bookingDetails.serviceKey}&fee=${bookingDetails.evaluationFee}&code=${serviceCode}&name=${encodeURIComponent(bookingDetails.technician)}&auto=true`}
                 className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
               >
                 <UserPlus className="w-5 h-5" />

@@ -2,8 +2,10 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { CheckCircle, Calendar, Phone, ArrowRight, MessageCircle, Star, Award, Shield } from 'lucide-react'
+import { CheckCircle, Calendar, Phone, ArrowRight, Star, Award, Shield } from 'lucide-react'
+import { WhatsAppIcon } from '@/components/icons/WhatsAppIcon'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Footer } from '@/components/Footer'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
 
@@ -213,12 +215,12 @@ function ConfirmationContent() {
               <p className="text-green-400 text-sm">Contacta a Neno directamente por WhatsApp</p>
             </div>
             <a
-              href={`https://wa.me/18095550123?text=Hola! Tengo una cita confirmada para ${booking.service} el ${booking.date}.`}
+              href={`https://wa.me/18092514329?text=${encodeURIComponent(`¡Hola Neno! Tengo una cita confirmada para ${booking.service} el ${booking.date}. Quería confirmar los detalles.`)}`}
               className="btn-whatsapp"
               target="_blank"
               rel="noopener noreferrer"
             >
-              <MessageCircle className="w-5 h-5" />
+              <WhatsAppIcon className="w-5 h-5" />
               Contactar Ahora
             </a>
           </div>
@@ -263,14 +265,13 @@ function ConfirmationContent() {
             {/* Technician */}
             <div className="flex items-center gap-4 p-5 bg-navy-700 rounded-xl border border-white/5">
               <div className="relative flex-shrink-0">
-                <div className="w-16 h-16 rounded-full overflow-hidden bg-navy-600 border-2 border-electric/40">
-                  <img
+                <div className="relative w-16 h-16 rounded-full overflow-hidden bg-navy-600 border-2 border-electric/40">
+                  <Image
                     src="/neno-baez-electrician.jpeg"
                     alt="Neno Báez"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none'
-                    }}
+                    fill
+                    sizes="64px"
+                    className="object-cover"
                   />
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-navy-700 flex items-center justify-center">
@@ -285,7 +286,7 @@ function ConfirmationContent() {
                   <span className="electric-badge-outline text-xs">Licenciado CDEEE</span>
                   <span className="electric-badge-outline text-xs">Seguro RD$500K</span>
                 </div>
-                <p className="text-gray-400 text-sm mt-2">📱 WhatsApp: +1 (809) 555-0123</p>
+                <p className="text-gray-400 text-sm mt-2">📱 WhatsApp: +1 (809) 251-4329</p>
               </div>
             </div>
           </div>

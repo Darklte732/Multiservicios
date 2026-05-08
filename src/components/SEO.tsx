@@ -53,7 +53,7 @@ export const SEO = memo(function SEO({
     "description": description,
     "url": baseUrl,
     "telephone": "+18095551234",
-    "email": "contacto@multiservicios.app",
+    "email": "info@multiservicios.app",
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Calle Principal #123",
@@ -226,7 +226,7 @@ export const generateLocalBusinessStructuredData = () => {
     "name": "MultiServicios El Seibo",
     "description": "Servicios eléctricos profesionales en El Seibo y Hato Mayor, República Dominicana. Más de 30 años de experiencia. Instalaciones, reparaciones, mantenimiento y emergencias 24/7 con técnicos certificados.",
     "url": "https://multiservicios.app",
-    "telephone": "+18095550123",
+    "telephone": "+18092514329",
     "email": "info@multiservicios.app",
     "foundingDate": "1994",
     "logo": "https://multiservicios.app/icon-512x512.png",

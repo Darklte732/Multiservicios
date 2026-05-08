@@ -278,7 +278,7 @@ Gracias por confiar en MultiServicios El Seibo.
       <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
       
       <p style="color: #6b7280; font-size: 14px;">
-        ¿Preguntas? Contáctanos por WhatsApp: +1 (809) 555-0123<br>
+        ¿Preguntas? Contáctanos por WhatsApp: +1 (809) 251-4329<br>
         Gracias por confiar en MultiServicios El Seibo ⚡
       </p>
     </div>

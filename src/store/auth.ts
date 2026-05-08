@@ -10,6 +10,13 @@ interface AuthState {
   error: string | null
   lastLoginTime: number | null
   sessionTimeout: number
+  /**
+   * True once Zustand has finished rehydrating from localStorage.
+   * Components rendering an auth gate should wait for this before deciding
+   * "unauthenticated" — otherwise an authenticated user sees a flash of
+   * "Acceso Denegado" before the persisted state loads.
+   */
+  hasHydrated: boolean
 }
 
 interface AuthActions {
@@ -22,6 +29,7 @@ interface AuthActions {
   refreshSession: () => void
   clearError: () => void
   resetTestUser: (identifier: string, userType: UserType, name: string, password: string) => Promise<void>
+  setHasHydrated: (v: boolean) => void
 }
 
 type AuthStore = AuthState & AuthActions
@@ -63,7 +71,7 @@ const mockCreateUser = (identifier: string, userType: UserType, name: string, ha
   const phone = isEmail ? '' : identifier
   const email = isEmail ? identifier : (userType === 'customer' 
     ? `${identifier.replace(/\D/g, '')}@example.com` 
-    : `tech_${identifier.replace(/\D/g, '')}@multiservicios.com`)
+    : `tech_${identifier.replace(/\D/g, '')}@example.com`)
   
   return {
     id,
@@ -116,6 +124,7 @@ export const useAuthStore = create<AuthStore>()(
       error: null,
       lastLoginTime: null,
       sessionTimeout: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+      hasHydrated: false,
 
       // Actions
       login: async (identifier: string, userType: UserType, name: string, password: string) => {
@@ -210,7 +219,7 @@ export const useAuthStore = create<AuthStore>()(
           const phone = isEmail ? '' : identifier
           const email = isEmail ? identifier : (userType === 'customer' 
             ? `${identifier.replace(/\D/g, '')}@example.com` 
-            : `tech_${identifier.replace(/\D/g, '')}@multiservicios.com`)
+            : `tech_${identifier.replace(/\D/g, '')}@example.com`)
 
           // Hash password
           const hashedPassword = await hashPassword(password)
@@ -430,6 +439,8 @@ export const useAuthStore = create<AuthStore>()(
           set({ lastLoginTime: Date.now() })
         }
       },
+
+      setHasHydrated: (v: boolean) => set({ hasHydrated: v }),
     }),
     {
       name: 'multiservicios-auth',
@@ -438,6 +449,13 @@ export const useAuthStore = create<AuthStore>()(
         status: state.status,
         lastLoginTime: state.lastLoginTime,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Mark the store as hydrated once persist has finished restoring.
+        // Components gating on this avoid the "auth flash" where an
+        // authenticated user briefly sees the Acceso Denegado panel while
+        // localStorage is still loading.
+        state?.setHasHydrated(true)
+      },
     }
   )
-) 
+)

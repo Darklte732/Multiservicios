@@ -47,7 +47,7 @@ interface MockJob {
 }
 
 export function TechnicianDashboard() {
-  const { user } = useAuthStore()
+  const { user, hasHydrated } = useAuthStore()
   const [activeTab, setActiveTab] = useState<TabType>('pending')
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [notifications, setNotifications] = useState<Array<{
@@ -82,6 +82,15 @@ export function TechnicianDashboard() {
     responseTime: '12 min',
     customerSatisfaction: 98
   })
+
+  // Wait for persist rehydration before gating — prevents auth-flash on first paint.
+  if (!hasHydrated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center" aria-busy="true">
+        <div className="w-10 h-10 rounded-full border-2 border-yellow-500 border-t-transparent animate-spin" />
+      </div>
+    )
+  }
 
   // Check if user is a technician
   if (!user?.electrician_profile) {

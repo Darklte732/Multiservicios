@@ -293,7 +293,7 @@ export function AccountCreation({ sessionData, onAccountCreated, onSkip }: Accou
                     "w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
                     errors.phone ? "border-red-300 bg-red-50" : "border-gray-300"
                   )}
-                  placeholder="+1 (809) 555-0123"
+                  placeholder="+1 (809) 251-4329"
                 />
                 {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
               </div>

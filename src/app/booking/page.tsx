@@ -1,20 +1,46 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Zap, Star, Shield, Clock, CheckCircle,
-  ArrowRight, Eye, Phone, MessageCircle, MapPin
+  ArrowRight, Eye, Phone, MapPin
 } from 'lucide-react'
+import { WhatsAppIcon } from '@/components/icons/WhatsAppIcon'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ImageLightbox } from '@/components/ui/ImageLightbox'
-import { ElevenLabsWidget } from '@/components/ElevenLabsWidget'
 import { Footer } from '@/components/Footer'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
 
 // ─── Service data ────────────────────────────
 const bookingServices = [
+  {
+    id: 'emergencia',
+    name: 'Emergencia Eléctrica',
+    description: 'Atención inmediata 24/7. Cortocircuitos, apagones y fallas críticas en menos de 30 minutos.',
+    icon: '🚨',
+    priority: 'EMERGENCIA',
+    priorityColor: 'bg-red-500',
+    borderColor: 'border-red-500/30',
+    responseTime: '< 30 min',
+    rating: 4.9,
+    isEmergency: true,
+    images: [
+      '/2394664b-563a-48aa-900e-7ff62152b422.jpeg',
+      '/cf629f37-1d13-4d7b-8774-7a5ce95bf946.jpeg',
+      '/db2d6452-ebcc-4f8a-8588-9df01d849b74.jpeg',
+    ],
+    badges: ['Disponible 24/7', 'Garantía 15 días', 'Respuesta Inmediata'],
+    included: [
+      'Atención inmediata las 24 horas, todos los días',
+      'Estabilización del sistema eléctrico',
+      'Diagnóstico de la falla crítica',
+      'Reparación de emergencia',
+      'Garantía de 15 días en el trabajo realizado',
+    ],
+  },
   {
     id: 'instalacion',
     name: 'Instalación Eléctrica',
@@ -211,11 +237,34 @@ const ServiceCard = ({
 }
 
 // ─── MAIN PAGE ───────────────────────────────
-export default function BookingPage() {
+function BookingPageContent() {
+  const searchParams = useSearchParams()
   const [selectedService, setSelectedService] = useState<string | null>(null)
   const [lightbox, setLightbox] = useState({ isOpen: false, currentIndex: 0 })
 
+  // Pre-select service from ?service= query param (handoff from home redesign)
+  useEffect(() => {
+    const serviceParam = searchParams.get('service')
+    if (!serviceParam) return
+    const match = bookingServices.find(s => s.id === serviceParam)
+    if (match) setSelectedService(match.id)
+  }, [searchParams])
+
   const selected = bookingServices.find(s => s.id === selectedService)
+  const urgencyParam = searchParams.get('urgency') // 'now' | '24h' | 'week' | null
+  const phoneParam = searchParams.get('phone') ?? ''
+
+  // Build WhatsApp prefilled message — incorporates the urgency + phone the
+  // visitor entered in the home-page quote form so Neno gets full context.
+  const buildWhatsAppHref = (serviceName: string) => {
+    const urgencyText =
+      urgencyParam === 'now'  ? ' (lo necesito hoy mismo)'   :
+      urgencyParam === '24h'  ? ' (en las próximas 24 horas)' :
+      urgencyParam === 'week' ? ' (esta semana)'              : ''
+    const phoneText = phoneParam.trim() ? ` Mi número es ${phoneParam.trim()}.` : ''
+    const msg = `¡Hola Neno! Vi tu sitio web y necesito un servicio de ${serviceName}${urgencyText}.${phoneText} ¿Está disponible?`
+    return `https://wa.me/18092514329?text=${encodeURIComponent(msg)}`
+  }
 
   const openLightbox = (index: number) => setLightbox({ isOpen: true, currentIndex: index })
   const closeLightbox = () => setLightbox(prev => ({ ...prev, isOpen: false }))
@@ -270,7 +319,7 @@ export default function BookingPage() {
             </div>
 
             <a
-              href="tel:+18095550123"
+              href="tel:+18092514329"
               className="btn-electric text-sm !py-2 !px-3 sm:!px-4"
             >
               <Phone className="h-4 w-4" />
@@ -373,12 +422,12 @@ export default function BookingPage() {
                   <p className="text-gray-400 text-sm">Escríbenos y coordinamos tu cita al instante</p>
                 </div>
                 <a
-                  href="https://wa.me/18095550123?text=Hola%20Neno!%20Necesito%20un%20servicio%20el%C3%A9ctrico"
+                  href={`https://wa.me/18092514329?text=${encodeURIComponent('¡Hola Neno! Vi tu sitio web y me gustaría más información sobre tus servicios eléctricos. ¿Está disponible?')}`}
                   className="btn-whatsapp flex-shrink-0"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <MessageCircle className="h-5 w-5" />
+                  <WhatsAppIcon className="h-5 w-5" />
                   Escribir por WhatsApp
                 </a>
               </div>
@@ -429,9 +478,9 @@ export default function BookingPage() {
               <div className="bg-electric/5 border border-electric/20 rounded-2xl p-6 text-center">
                 <h3 className="text-xl font-bold text-white mb-2">⚡ ¿Listo para coordinar?</h3>
                 <p className="text-gray-400 mb-4">Llama o escríbenos — Neno te atiende directamente</p>
-                <a href="tel:+18095550123" className="btn-electric inline-flex mb-4">
+                <a href="tel:+18092514329" className="btn-electric inline-flex mb-4">
                   <Phone className="h-5 w-5" />
-                  Llamar: +1 (809) 555-0123
+                  Llamar: +1 (809) 251-4329
                 </a>
                 <div className="flex items-center justify-center gap-4 text-xs text-gray-500 flex-wrap">
                   <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-electric text-electric" /> 4.9/5 en 200+ reseñas</span>
@@ -456,6 +505,12 @@ export default function BookingPage() {
             >
               {/* Service selected badge */}
               <div className="text-center">
+                {urgencyParam === 'now' && (
+                  <span className="inline-flex items-center gap-1.5 mb-3 px-3 py-1 rounded-full bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-extrabold tracking-[0.12em] uppercase">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
+                    URGENTE — Hoy mismo
+                  </span>
+                )}
                 <span className="electric-badge mb-4 inline-flex">
                   <CheckCircle className="h-3 w-3" />
                   Servicio seleccionado
@@ -497,12 +552,12 @@ export default function BookingPage() {
                 </div>
 
                 <a
-                  href="tel:+18095550123"
+                  href="tel:+18092514329"
                   className="btn-electric w-full justify-center text-lg !py-4 mb-4"
                   style={{ fontFamily: 'var(--font-display)', fontSize: '1.35rem' }}
                 >
                   <Phone className="h-6 w-6" />
-                  +1 (809) 555-0123
+                  +1 (809) 251-4329
                 </a>
 
                 <p className="text-xs text-gray-500">
@@ -519,12 +574,12 @@ export default function BookingPage() {
               >
                 <p className="text-gray-400 text-sm mb-4">¿Prefieres coordinar por WhatsApp?</p>
                 <a
-                  href={`https://wa.me/18095550123?text=Hola%20Neno!%20Necesito%20un%20servicio%20de%20${encodeURIComponent(selected.name)}`}
+                  href={buildWhatsAppHref(selected.name)}
                   className="btn-whatsapp inline-flex"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <MessageCircle className="h-5 w-5" />
+                  <WhatsAppIcon className="h-5 w-5" />
                   Escribir por WhatsApp
                 </a>
               </motion.div>
@@ -584,9 +639,25 @@ export default function BookingPage() {
         onNavigate={navigateLightbox}
       />
 
-      <ElevenLabsWidget />
       <Footer />
       <WhatsAppButton />
     </div>
+  )
+}
+
+export default function BookingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-navy-950 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-electric" />
+            <p className="mt-3 text-electric">Cargando...</p>
+          </div>
+        </div>
+      }
+    >
+      <BookingPageContent />
+    </Suspense>
   )
 }

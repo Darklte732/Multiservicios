@@ -12,7 +12,7 @@ import { WarrantyCard } from './dashboard/WarrantyCard'
 import { DashboardStats } from './dashboard/DashboardStats'
 
 export function CustomerDashboard() {
-  const { user } = useAuthStore()
+  const { user, hasHydrated } = useAuthStore()
   const [activeTab, setActiveTab] = useState('current')
   const [isLoading, setIsLoading] = useState(true)
   const [authModalOpen, setAuthModalOpen] = useState(false)
@@ -63,6 +63,17 @@ export function CustomerDashboard() {
   const completedServices = serviceRequests.filter(r => 
     r.status === 'completed'
   )
+
+  // Wait for the persist layer to rehydrate before deciding the user is
+  // unauthenticated — otherwise a logged-in visitor sees the gate flash on
+  // first paint while localStorage finishes loading.
+  if (!hasHydrated) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center" aria-busy="true">
+        <div className="w-10 h-10 rounded-full border-2 border-blue-600 border-t-transparent animate-spin" />
+      </div>
+    )
+  }
 
   if (!user) {
     return (

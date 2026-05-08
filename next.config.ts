@@ -27,12 +27,15 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://elevenlabs.io https://*.elevenlabs.io",
-      "style-src 'self' 'unsafe-inline'",
+      // Google Fonts CSS is fetched via <link rel="stylesheet"> from fonts.googleapis.com.
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https:",
       "media-src 'self' blob: https://*.elevenlabs.io",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.elevenlabs.io wss://*.elevenlabs.io",
-      "frame-src 'self'",
-      "font-src 'self'",
+      // Allow OpenStreetMap embed used by the coverage map.
+      "frame-src 'self' https://www.openstreetmap.org",
+      // Google Fonts woff2 files are served from fonts.gstatic.com.
+      "font-src 'self' https://fonts.gstatic.com",
       "worker-src 'self' blob:",
     ].join('; '),
   },

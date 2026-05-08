@@ -32,8 +32,8 @@ export const Footer = () => {
             {/* Emergency phone */}
             <div className="p-3 bg-red-900/30 border border-red-500/30 rounded-lg">
               <p className="text-xs text-red-400 font-semibold uppercase tracking-wide mb-1">Emergencias 24/7</p>
-              <a href="tel:+18095550123" className="text-electric font-bold text-lg hover:text-electric-bright transition-colors">
-                +1 (809) 555-0123
+              <a href="tel:+18092514329" className="text-electric font-bold text-lg hover:text-electric-bright transition-colors">
+                +1 (809) 251-4329
               </a>
             </div>
             <div className="flex space-x-3">
@@ -110,14 +110,14 @@ export const Footer = () => {
               </li>
               <li className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-electric flex-shrink-0" />
-                <a href="tel:+18095550123" className="text-gray-400 hover:text-electric transition-colors cursor-pointer">
-                  +1 (809) 555-0123
+                <a href="tel:+18092514329" className="text-gray-400 hover:text-electric transition-colors cursor-pointer">
+                  +1 (809) 251-4329
                 </a>
               </li>
               <li className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-electric flex-shrink-0" />
-                <a href="mailto:info@multiservicios.com" className="text-gray-400 hover:text-electric transition-colors break-all cursor-pointer">
-                  info@multiservicios.com
+                <a href="mailto:info@multiservicios.app" className="text-gray-400 hover:text-electric transition-colors break-all cursor-pointer">
+                  info@multiservicios.app
                 </a>
               </li>
               <li className="flex items-start space-x-3">
@@ -153,7 +153,7 @@ export const Footer = () => {
                 </li>
               ))}
               <li>
-                <a href="tel:+18095550123" className="text-gray-400 hover:text-electric transition-colors cursor-pointer flex items-center gap-2">
+                <a href="tel:+18092514329" className="text-gray-400 hover:text-electric transition-colors cursor-pointer flex items-center gap-2">
                   <span className="text-red-400/70">›</span>
                   Contacto de Emergencia
                 </a>

@@ -11,7 +11,7 @@ const faqs = [
   },
   {
     q: '¿Atienden emergencias de noche y fines de semana?',
-    a: 'Absolutamente. Contamos con servicio de emergencias 24 horas al día, 7 días a la semana, incluyendo feriados. Llama al +1 (809) 555-0123 para atención inmediata.'
+    a: 'Absolutamente. Contamos con servicio de emergencias 24 horas al día, 7 días a la semana, incluyendo feriados. Llama al +1 (809) 251-4329 para atención inmediata.'
   },
   {
     q: '¿Qué zonas o municipios cubren?',
@@ -27,7 +27,7 @@ const faqs = [
   },
   {
     q: '¿Cómo reservo una cita?',
-    a: 'Puedes reservar en línea directamente desde nuestra página web en menos de 2 minutos usando el calendario Calendly, o contactarnos por WhatsApp al +1 (809) 555-0123. Recibirás confirmación inmediata.'
+    a: 'Puedes reservar en línea directamente desde nuestra página web en menos de 2 minutos usando el calendario Calendly, o contactarnos por WhatsApp al +1 (809) 251-4329. Recibirás confirmación inmediata.'
   },
 ]
 
