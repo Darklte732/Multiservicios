@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { Clock, Calendar, Star, Wrench, User, Shield, Phone, MapPin, CheckCircle, AlertCircle, Zap } from 'lucide-react'
 import { useAuthStore } from '@/store/auth'
 import { db } from '@/lib/supabase'
 import { LoadingSpinner } from './LoadingSpinner'
+import { AuthModal } from './AuthModal'
 import { ServiceCard } from './dashboard/ServiceCard'
 import { WarrantyCard } from './dashboard/WarrantyCard'
 import { DashboardStats } from './dashboard/DashboardStats'
@@ -13,6 +15,7 @@ export function CustomerDashboard() {
   const { user } = useAuthStore()
   const [activeTab, setActiveTab] = useState('current')
   const [isLoading, setIsLoading] = useState(true)
+  const [authModalOpen, setAuthModalOpen] = useState(false)
   const [serviceRequests, setServiceRequests] = useState<any[]>([])
   const [warranties, setWarranties] = useState<any[]>([])
   const [notifications, setNotifications] = useState<any[]>([])
@@ -63,12 +66,38 @@ export function CustomerDashboard() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Acceso Denegado</h2>
-          <p className="text-gray-600">Por favor inicia sesión para acceder al panel.</p>
+      <>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+              <User className="w-8 h-8 text-blue-600" />
+            </div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Acceso Denegado</h2>
+            <p className="text-gray-600 mb-6">Por favor inicia sesión para acceder al Panel de Cliente.</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <button
+                type="button"
+                onClick={() => setAuthModalOpen(true)}
+                className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Iniciar Sesión
+              </button>
+              <Link
+                href="/"
+                className="px-6 py-3 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+              >
+                Volver al Inicio
+              </Link>
+            </div>
+          </div>
         </div>
-      </div>
+        <AuthModal
+          isOpen={authModalOpen}
+          onClose={() => setAuthModalOpen(false)}
+          defaultTab="login"
+          defaultUserType="customer"
+        />
+      </>
     )
   }
 

@@ -29,6 +29,7 @@ import { useAuthStore } from '@/store/auth'
 import type { Appointment, ServiceType } from '@/types'
 import { SERVICE_TRANSLATIONS } from '@/types'
 import { cn } from '@/utils/cn'
+import { AuthModal } from './AuthModal'
 
 type TabType = 'pending' | 'today' | 'earnings' | 'notifications'
 
@@ -48,6 +49,7 @@ interface MockJob {
 export function TechnicianDashboard() {
   const { user } = useAuthStore()
   const [activeTab, setActiveTab] = useState<TabType>('pending')
+  const [authModalOpen, setAuthModalOpen] = useState(false)
   const [notifications, setNotifications] = useState<Array<{
     id: string
     title: string
@@ -83,13 +85,54 @@ export function TechnicianDashboard() {
 
   // Check if user is a technician
   if (!user?.electrician_profile) {
+    const isLoggedInAsCustomer = !!user && !user.electrician_profile
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Acceso Denegado</h2>
-          <p className="text-gray-600">Solo los técnicos pueden acceder a este panel.</p>
+      <>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+          <div className="text-center max-w-md">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mb-4">
+              <Zap className="w-8 h-8 text-yellow-600" />
+            </div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Acceso Denegado</h2>
+            <p className="text-gray-600 mb-6">
+              {isLoggedInAsCustomer
+                ? 'Solo los técnicos pueden acceder a este panel. Tu cuenta es de cliente.'
+                : 'Solo los técnicos pueden acceder a este panel. Por favor inicia sesión como técnico.'}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              {!isLoggedInAsCustomer && (
+                <button
+                  type="button"
+                  onClick={() => setAuthModalOpen(true)}
+                  className="px-6 py-3 bg-yellow-500 text-white font-semibold rounded-lg hover:bg-yellow-600 transition-colors"
+                >
+                  Iniciar Sesión como Técnico
+                </button>
+              )}
+              {isLoggedInAsCustomer && (
+                <Link
+                  href="/customer-dashboard"
+                  className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Ir al Panel de Cliente
+                </Link>
+              )}
+              <Link
+                href="/"
+                className="px-6 py-3 bg-white text-gray-700 font-semibold rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+              >
+                Volver al Inicio
+              </Link>
+            </div>
+          </div>
         </div>
-      </div>
+        <AuthModal
+          isOpen={authModalOpen}
+          onClose={() => setAuthModalOpen(false)}
+          defaultTab="login"
+          defaultUserType="technician"
+        />
+      </>
     )
   }
 
