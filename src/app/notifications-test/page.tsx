@@ -1,11 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { useAuthStore } from '@/store/auth'
 import { NotificationDemo } from '@/components/notifications/NotificationDemo'
 import { Footer } from '@/components/Footer'
 
-export default function NotificationsTestPage() {
+// Dev-only page. Hidden in production builds to avoid exposing the auth/notification
+// test harness to real visitors.
+const IS_PRODUCTION = process.env.NODE_ENV === 'production'
+
+function NotificationsTestPageContent() {
   const { login, user, status, isLoading, error, logout } = useAuthStore()
   const [phone, setPhone] = useState('')
   const [name, setName] = useState('')
@@ -173,4 +178,25 @@ export default function NotificationsTestPage() {
       <Footer />
     </div>
   )
-} 
+}
+
+export default function NotificationsTestPage() {
+  if (IS_PRODUCTION) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-2">Página no disponible</h1>
+          <p className="text-gray-600 mb-6">Esta página solo está disponible en entornos de desarrollo.</p>
+          <Link
+            href="/"
+            className="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Volver al Inicio
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  return <NotificationsTestPageContent />
+}
