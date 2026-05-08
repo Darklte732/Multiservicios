@@ -31,7 +31,9 @@ export function NotificationDemo() {
           title: testNotification.title,
           message: testNotification.message,
           type: testNotification.type,
-          read: false
+          // DB column is `is_read`, not `read` — keep this in sync with NotificationsTable
+          // schema (src/types/index.ts) and the read-path in NotificationContext.
+          is_read: false
         })
 
       if (error) {
