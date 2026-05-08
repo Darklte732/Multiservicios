@@ -10,6 +10,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/icons/WhatsAppIcon'
+import { capture } from '@/lib/analytics'
 
 // Pre-populated WhatsApp opener — same friendly intro every customer
 // gets so Neno can identify a fresh website lead at a glance.
@@ -89,8 +90,15 @@ function DesktopInlineQuote() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    const trimmedPhone = phone.trim()
+    capture('quote_form_submitted', {
+      surface: 'desktop_hero_inline',
+      service: serviceId,
+      urgency: urgencyId,
+      phone_provided: trimmedPhone.length > 0,
+    })
     const params = new URLSearchParams({ service: serviceId, urgency: urgencyId })
-    if (phone.trim()) params.set('phone', phone.trim())
+    if (trimmedPhone) params.set('phone', trimmedPhone)
     window.location.href = `/booking?${params.toString()}`
   }
 
@@ -281,6 +289,7 @@ export default function HomePage() {
   }, [])
 
   const handleServiceSelect = (id: string) => {
+    capture('service_card_clicked', { surface: 'home', service: id })
     const params = new URLSearchParams({ service: id })
     window.location.href = `/booking?${params.toString()}`
   }
@@ -375,7 +384,11 @@ export default function HomePage() {
                   <LogIn className="h-4 w-4" /> Entrar
                 </button>
               )}
-              <a href="tel:+18092514329" className="hidden xl:block text-right">
+              <a
+                href="tel:+18092514329"
+                onClick={() => capture('phone_clicked', { surface: 'home_nav' })}
+                className="hidden xl:block text-right"
+              >
                 <p className="text-[11px] text-gray-500 leading-tight">Emergencias 24/7</p>
                 <p className="text-white font-extrabold text-base leading-tight">(809) 251-4329</p>
               </a>
@@ -532,6 +545,7 @@ export default function HomePage() {
               {/* Mobile-only direct call (in-flow, not the sticky bar) */}
               <motion.a
                 href="tel:+18092514329"
+                onClick={() => capture('phone_clicked', { surface: 'home_hero_mobile' })}
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
                 className="md:hidden flex items-center justify-center gap-3 w-full bg-red-600 hover:bg-red-500 text-white font-bold py-4 px-6 rounded-xl transition-colors border border-red-400/30 mt-5"
@@ -853,6 +867,7 @@ export default function HomePage() {
                 </Link>
                 <a
                   href={`https://wa.me/18092514329?text=${WHATSAPP_OPENER_GENERIC}`}
+                  onClick={() => capture('whatsapp_clicked', { surface: 'home_guarantee_band' })}
                   target="_blank" rel="noopener noreferrer"
                   className="text-white text-[14px] font-extrabold px-[22px] py-[14px] rounded-[12px] inline-flex items-center gap-2 border border-white/20 hover:border-white/40 transition-colors"
                   style={{ fontFamily: 'var(--font-sub)', letterSpacing: '0.04em' }}
@@ -938,6 +953,7 @@ export default function HomePage() {
             <div className="relative grid gap-3">
               <a
                 href={`https://wa.me/18092514329?text=${WHATSAPP_OPENER_QUOTE}`}
+                onClick={() => capture('whatsapp_clicked', { surface: 'home_final_cta' })}
                 target="_blank" rel="noopener noreferrer"
                 className="cta-stack-btn is-whatsapp"
                 style={{ fontFamily: 'var(--font-sub)', letterSpacing: '0.04em' }}
@@ -947,6 +963,7 @@ export default function HomePage() {
               </a>
               <a
                 href="tel:+18092514329"
+                onClick={() => capture('phone_clicked', { surface: 'home_final_cta' })}
                 className="cta-stack-btn is-phone"
                 style={{ fontFamily: 'var(--font-sub)', letterSpacing: '0.04em' }}
               >

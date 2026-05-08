@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { CheckCircle, Star, Shield, ArrowLeft, UserPlus } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/icons/WhatsAppIcon'
+import { capture } from '@/lib/analytics'
 import Link from 'next/link'
 import { Footer } from '@/components/Footer'
 import { generateServiceCode } from '@/lib/serviceCode'
@@ -302,6 +303,7 @@ function ServiceCompleteContent() {
           </div>
           <a
             href={`https://wa.me/18092514329?text=${encodeURIComponent('¡Hola Neno! Quería compartir mi comentario sobre el servicio que recibí.')}`}
+            onClick={() => capture('service_complete_feedback_submitted', { rating, surface: 'whatsapp' })}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"

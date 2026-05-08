@@ -8,6 +8,7 @@ import {
   ArrowRight, Eye, Phone, MapPin
 } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/icons/WhatsAppIcon'
+import { capture } from '@/lib/analytics'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ImageLightbox } from '@/components/ui/ImageLightbox'
@@ -320,6 +321,7 @@ function BookingPageContent() {
 
             <a
               href="tel:+18092514329"
+              onClick={() => capture('phone_clicked', { surface: 'booking_header' })}
               className="btn-electric text-sm !py-2 !px-3 sm:!px-4"
             >
               <Phone className="h-4 w-4" />
@@ -410,7 +412,13 @@ function BookingPageContent() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 + i * 0.08 }}
                   >
-                    <ServiceCard service={service} onSelect={setSelectedService} />
+                    <ServiceCard
+                      service={service}
+                      onSelect={(id) => {
+                        capture('booking_service_selected', { service: id })
+                        setSelectedService(id)
+                      }}
+                    />
                   </motion.div>
                 ))}
               </div>
@@ -423,6 +431,7 @@ function BookingPageContent() {
                 </div>
                 <a
                   href={`https://wa.me/18092514329?text=${encodeURIComponent('¡Hola Neno! Vi tu sitio web y me gustaría más información sobre tus servicios eléctricos. ¿Está disponible?')}`}
+                  onClick={() => capture('whatsapp_clicked', { surface: 'booking_quick_strip' })}
                   className="btn-whatsapp flex-shrink-0"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -478,7 +487,11 @@ function BookingPageContent() {
               <div className="bg-electric/5 border border-electric/20 rounded-2xl p-6 text-center">
                 <h3 className="text-xl font-bold text-white mb-2">⚡ ¿Listo para coordinar?</h3>
                 <p className="text-gray-400 mb-4">Llama o escríbenos — Neno te atiende directamente</p>
-                <a href="tel:+18092514329" className="btn-electric inline-flex mb-4">
+                <a
+                  href="tel:+18092514329"
+                  onClick={() => capture('phone_clicked', { surface: 'booking_contact_cta' })}
+                  className="btn-electric inline-flex mb-4"
+                >
                   <Phone className="h-5 w-5" />
                   Llamar: +1 (809) 251-4329
                 </a>
@@ -553,6 +566,7 @@ function BookingPageContent() {
 
                 <a
                   href="tel:+18092514329"
+                  onClick={() => capture('phone_clicked', { surface: 'booking_call_to_book', service: selected.id })}
                   className="btn-electric w-full justify-center text-lg !py-4 mb-4"
                   style={{ fontFamily: 'var(--font-display)', fontSize: '1.35rem' }}
                 >
@@ -575,6 +589,12 @@ function BookingPageContent() {
                 <p className="text-gray-400 text-sm mb-4">¿Prefieres coordinar por WhatsApp?</p>
                 <a
                   href={buildWhatsAppHref(selected.name)}
+                  onClick={() => capture('whatsapp_clicked', {
+                    surface: 'booking_call_to_book',
+                    service: selected.id,
+                    urgency: urgencyParam,
+                    phone_provided: phoneParam.trim().length > 0,
+                  })}
                   className="btn-whatsapp inline-flex"
                   target="_blank"
                   rel="noopener noreferrer"

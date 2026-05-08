@@ -2,6 +2,22 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '@/lib/supabase'
 import type { User, AuthStatus, UserType } from '@/types'
+import { capture, identify, reset as analyticsReset } from '@/lib/analytics'
+
+/**
+ * Send an identify + login event to PostHog after a successful auth.
+ * Called from all three success branches in `login()`.
+ */
+function trackAuthSuccess(user: User, kind: 'login' | 'register' | 'mock_fallback') {
+  identify(user.id, {
+    name: user.name,
+    user_type: user.user_type,
+    // Don't send the raw phone — id is enough for distinct ID. Send the
+    // last 4 as a low-PII property for support lookups if needed.
+    phone_last4: user.phone ? user.phone.slice(-4) : undefined,
+  })
+  capture('auth_login_success', { kind, user_type: user.user_type })
+}
 
 interface AuthState {
   user: User | null
@@ -205,6 +221,7 @@ export const useAuthStore = create<AuthStore>()(
               error: null,
               lastLoginTime: Date.now(),
             })
+            trackAuthSuccess(existingUser, 'login')
             return
           }
 
@@ -301,6 +318,7 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
             lastLoginTime: Date.now(),
           })
+          trackAuthSuccess(completeUser, 'register')
 
         } catch (error: any) {
           console.error('Login error:', error)
@@ -322,6 +340,7 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
             lastLoginTime: Date.now(),
           })
+          trackAuthSuccess(user, 'mock_fallback')
         }
       },
 
@@ -381,6 +400,8 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
+        capture('auth_logout')
+        analyticsReset()
         set({
           user: null,
           status: 'unauthenticated',

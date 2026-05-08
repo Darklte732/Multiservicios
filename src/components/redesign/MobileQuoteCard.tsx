@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { capture } from '@/lib/analytics'
 
 const ACCENT = '#F5B800'
 
@@ -25,10 +26,16 @@ export function MobileQuoteCard() {
   const [phone, setPhone] = useState<string>('')
 
   const handleSubmit = () => {
+    const trimmed = phone.trim()
+    capture('quote_form_submitted', {
+      surface: 'mobile_hero_3step',
+      service,
+      urgency,
+      phone_provided: trimmed.length > 0,
+    })
     const params = new URLSearchParams()
     if (service) params.set('service', service)
     if (urgency) params.set('urgency', urgency)
-    const trimmed = phone.trim()
     if (trimmed) params.set('phone', trimmed)
     window.location.href = `/booking?${params.toString()}`
   }
@@ -89,6 +96,7 @@ export function MobileQuoteCard() {
                     key={s.id}
                     onClick={() => {
                       setService(s.id)
+                      capture('quote_form_step_advanced', { from_step: 1, service: s.id })
                       setStep(2)
                     }}
                     style={{
@@ -135,6 +143,7 @@ export function MobileQuoteCard() {
                     key={o.id}
                     onClick={() => {
                       setUrgency(o.id)
+                      capture('quote_form_step_advanced', { from_step: 2, urgency: o.id })
                       setStep(3)
                     }}
                     style={{

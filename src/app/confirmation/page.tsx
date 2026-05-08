@@ -8,6 +8,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Footer } from '@/components/Footer'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
+import { capture } from '@/lib/analytics'
 
 // ─── Confetti ───────────────────────────────
 const ConfettiAnimation = () => {
@@ -129,6 +130,11 @@ function ConfirmationContent() {
       customerName: inviteeName,
       customerEmail: inviteeEmail,
     })
+    capture('confirmation_viewed', {
+      service_key: serviceKey,
+      service: info.name,
+      has_real_date: formattedDate !== 'Fecha por confirmar',
+    })
   }, [searchParams])
 
   return (
@@ -216,6 +222,7 @@ function ConfirmationContent() {
             </div>
             <a
               href={`https://wa.me/18092514329?text=${encodeURIComponent(`¡Hola Neno! Tengo una cita confirmada para ${booking.service} el ${booking.date}. Quería confirmar los detalles.`)}`}
+              onClick={() => capture('whatsapp_clicked', { surface: 'confirmation', service: booking.serviceKey })}
               className="btn-whatsapp"
               target="_blank"
               rel="noopener noreferrer"

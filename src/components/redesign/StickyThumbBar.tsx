@@ -1,6 +1,7 @@
 'use client'
 
 import { WhatsAppIcon } from '@/components/icons/WhatsAppIcon'
+import { capture } from '@/lib/analytics'
 
 const WHATSAPP_OPENER = encodeURIComponent(
   '¡Hola Neno! Vi tu sitio web y me gustaría más información sobre tus servicios eléctricos. ¿Está disponible?'
@@ -30,6 +31,7 @@ export function StickyThumbBar() {
     >
       <a
         href={`https://wa.me/18092514329?text=${WHATSAPP_OPENER}`}
+        onClick={() => capture('whatsapp_clicked', { surface: 'sticky_thumb_bar' })}
         target="_blank"
         rel="noopener noreferrer"
         style={{
@@ -50,6 +52,7 @@ export function StickyThumbBar() {
       </a>
       <a
         href="tel:+18092514329"
+        onClick={() => capture('phone_clicked', { surface: 'sticky_thumb_bar' })}
         style={{
           background: '#F5B800',
           color: '#000',

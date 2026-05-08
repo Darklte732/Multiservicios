@@ -46,6 +46,18 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
+  // PostHog reverse proxy — keeps analytics requests same-origin so they
+  // bypass ad-blockers and don't require additional CSP entries.
+  // See instrumentation-client.ts for the corresponding api_host config.
+  async rewrites() {
+    return [
+      { source: '/ingest/static/:path*', destination: 'https://us-assets.i.posthog.com/static/:path*' },
+      { source: '/ingest/array/:path*',  destination: 'https://us-assets.i.posthog.com/array/:path*' },
+      { source: '/ingest/:path*',        destination: 'https://us.i.posthog.com/:path*' },
+    ]
+  },
+  // Required for PostHog's trailing-slash API requests to pass through cleanly.
+  skipTrailingSlashRedirect: true,
   async headers() {
     return [
       {
