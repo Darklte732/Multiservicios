@@ -266,3 +266,18 @@ ms_weekly_insights
 ```
 
 (plus whatever Supabase auth + storage extension tables exist by default).
+
+---
+
+## **ms_* teardown (2026-05-13)**
+
+`supabase/migrations/20260512200000_drop_ms_tables.sql` drops the four Ana-era
+tables (`ms_leads`, `ms_call_analysis`, `ms_prompt_versions`,
+`ms_weekly_insights`) inside a single `BEGIN; … COMMIT;`. The ElevenLabs voice
+agent and its `/api/elevenlabs/webhook`, `/api/cron/weekly-improvement`,
+`/api/admin/*`, and `/admin` page were deleted in the same commit, so nothing
+in the codebase reads or writes these tables anymore. Apply via Supabase
+Dashboard → SQL Editor → paste the file contents → Run, or `supabase db push`
+from the project root. Destructive and irreversible — pre-launch only, no
+production data to preserve.
+

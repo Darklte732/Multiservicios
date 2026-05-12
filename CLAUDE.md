@@ -6,9 +6,7 @@
 
 ## Project Overview
 
-**MultiServicios El Seibo** is a professional electrical services platform for Neno Báez, an electrician in El Seibo, Dominican Republic. Built with Next.js 15 App Router. Serves three audiences: customers booking services, Neno managing jobs, and an AI voice assistant (Ana) handling inbound calls and WhatsApp prequalification.
-
-The site is a marketing landing page only — no customer or technician accounts. The single source of staff access is the `/admin` page, gated by a server-only `ADMIN_API_TOKEN` bearer header.
+**MultiServicios El Seibo** is a marketing landing page for Neno Báez, an electrician in El Seibo, Dominican Republic. Built with Next.js 15 App Router. Primary conversion is a direct phone call or WhatsApp message to Neno — there are no customer/technician accounts, no voice agent, and no admin dashboard. PostHog captures product analytics; that is the only backend dependency the live site relies on.
 
 **Live domain:** `multiservicios.app`
 **GitHub:** `github.com/Darklte732/Multiservicios`
@@ -29,7 +27,6 @@ The site is a marketing landing page only — no customer or technician accounts
 | Icons | Lucide React | 0.523 |
 | Database | Supabase (PostgreSQL + Realtime) | 2.50.2 |
 | State | Zustand (with localStorage persistence) | 5.x |
-| AI Voice | ElevenLabs Conversational AI | Widget embed |
 | Toasts | react-hot-toast | 2.5.2 |
 | 3D | Three.js + React Three Fiber | 0.178 / 9.1 |
 
@@ -105,14 +102,9 @@ src/
 │   ├── pre-service/page.tsx    — Pre-service info for customer
 │   ├── gallery/page.tsx        — Work portfolio with lightbox
 │   ├── service-complete/       — Post-service feedback form (WhatsApp rating capture)
-│   ├── admin/                  — Bearer-token-gated admin (stats + prompt improver)
-│   ├── api/admin/{stats,improve-prompt}/ — Admin server routes (service-role)
-│   ├── api/cron/weekly-improvement/      — Cron self-heal pipeline
-│   ├── api/elevenlabs/webhook/           — Ana webhook → ms_leads / ms_call_analysis
 │   └── [privacy-policy, cookie-policy, terms-of-service]
 │
 ├── components/
-│   ├── ElevenLabsWidget.tsx    — AI voice widget (agentId optional, falls back to env var)
 │   ├── EmergencyBanner.tsx     — Dismissible red top banner
 │   ├── WhatsAppButton.tsx      — Fixed floating WhatsApp CTA
 │   ├── Footer.tsx              — Site footer
@@ -126,12 +118,9 @@ src/
 │   └── redesign/               — Mobile CRO components (HeroCollage, CoverageMap, StickyThumbBar, etc.)
 │
 ├── lib/
-│   ├── require-admin.ts        — ADMIN_API_TOKEN bearer header guard
 │   ├── analytics.ts            — PostHog `capture` wrapper
-│   ├── selfHeal.ts             — Weekly prompt-improvement pipeline
 │   ├── site-branding.ts        — Logo path + brand constants
-│   ├── local-business-jsonld.ts — LocalBusiness structured data
-│   └── (no supabase.ts — webhook + cron routes create service-role clients inline)
+│   └── local-business-jsonld.ts — LocalBusiness structured data
 ├── types/index.ts              — ServiceType + service translations (no user/account types)
 ├── data/services.ts            — Service definitions
 └── utils/cn.ts                 — classname utility
@@ -149,7 +138,6 @@ src/
 | `/confirmation` | Public | Booking confirmed + service code |
 | `/gallery` | Public | Work portfolio |
 | `/service-complete` | Public | Post-service feedback (WhatsApp rating capture) |
-| `/admin` | Bearer-token gated | Stats + prompt-improver dashboard for Neno |
 
 ---
 
@@ -157,15 +145,9 @@ src/
 
 **Project URL:** `https://ncnbwaxtugvswavbrpck.supabase.co`
 
-### Key Tables
-- `ms_leads` — leads captured from Ana's ElevenLabs webhook
-- `ms_call_analysis` — per-call analysis (success markers, summaries)
-- `ms_prompt_versions` — versioned prompt history for the self-heal pipeline
-- `ms_weekly_insights` — aggregated weekly admin dashboard data
+The live site does not read or write Supabase. The Supabase JS client is still in `package.json` and `.env.example` carries the project URL + anon key, but no server route or browser bundle in `src/` currently imports `@supabase/supabase-js`. Safe to remove on the next dependency pass.
 
-All four are accessed only by service-role server routes (the ElevenLabs webhook, the cron self-heal job, and the bearer-gated `/admin/*` routes). The browser bundle never touches Supabase.
-
-The legacy `users`, `customer_profiles`, `electrician_profiles`, `service_requests`, `service_warranties`, `notifications`, `availability_slots`, and `service_codes` tables were dropped on 2026-05-13 — see `supabase/migrations/20260513000000_drop_unused_tables.sql`.
+The Ana-era tables (`ms_leads`, `ms_call_analysis`, `ms_prompt_versions`, `ms_weekly_insights`) were dropped on 2026-05-12 — see `supabase/migrations/20260512200000_drop_ms_tables.sql`. The earlier customer/technician tables were dropped on 2026-05-13 — see `supabase/migrations/20260513000000_drop_unused_tables.sql`.
 
 ---
 
@@ -175,45 +157,19 @@ The legacy `users`, `customer_profiles`, `electrician_profiles`, `service_reques
 # .env.local (gitignored — never commit)
 NEXT_PUBLIC_SUPABASE_URL=https://ncnbwaxtugvswavbrpck.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-NEXT_PUBLIC_ELEVENLABS_AGENT_ID=agent_0201kksw7trqeqet5qzbtzm6nv6q
 
 # .env (committed — public config only)
 NEXT_PUBLIC_APP_URL=https://multiservicios.app
 NEXT_PUBLIC_APP_NAME=MultiServicios El Seibo
-NEXT_PUBLIC_BUSINESS_PHONE=+18095550123
-NEXT_PUBLIC_BUSINESS_WHATSAPP=+18095550123
+NEXT_PUBLIC_BUSINESS_PHONE=+18092514329
+NEXT_PUBLIC_BUSINESS_WHATSAPP=+18092514329
 NEXT_PUBLIC_BUSINESS_EMAIL=info@multiservicios.app
 NEXT_PUBLIC_BUSINESS_ADDRESS=El Seibo, República Dominicana
+
+# PostHog product analytics — independent of Supabase. Empty value disables silently.
+NEXT_PUBLIC_POSTHOG_KEY=
+NEXT_PUBLIC_POSTHOG_HOST=https://us.posthog.com
 ```
-
----
-
-## ElevenLabs AI Agent (Ana)
-
-**Agent ID:** `agent_0201kksw7trqeqet5qzbtzm6nv6q`
-**Account email:** nationalliferegcenter@gmail.com
-**Voice:** Sofía — Colombian accent, young, conversational (`b2htR0pMe28pYwCY9gnP`)
-**LLM:** Gemini 2.5 Flash
-**Language:** Spanish (`es`)
-**Max call duration:** 600 seconds (10 min)
-
-**What Ana does:**
-- Greets inbound callers/web visitors in Caribbean Spanish
-- Triages: emergency vs. scheduled service
-- Collects: name, location, phone, problem description
-- Answers FAQs: pricing policy (no prices given), coverage zone, hours, guarantees
-- Closes: "Neno te llama en los próximos minutos"
-
-**Widget placement:** Bottom-right, branded navy bg + yellow buttons
-**Pages active:** `/` (home) and `/booking`
-
-**ElevenLabsWidget component usage:**
-```tsx
-<ElevenLabsWidget />  // uses NEXT_PUBLIC_ELEVENLABS_AGENT_ID by default
-<ElevenLabsWidget agentId="custom-id" />  // override if needed
-```
-
-**Manage agent:** https://elevenlabs.io/app/conversational-ai
 
 ---
 
@@ -297,9 +253,6 @@ npm start        # serve production build
 npm run lint     # ESLint
 ```
 
-### Utility Scripts (not committed)
-- `scripts/update_agent.py` — Updates ElevenLabs agent prompt via API (contains API key, never commit)
-
 ---
 
 ## Security Notes
@@ -310,13 +263,10 @@ npm run lint     # ESLint
 - Supabase anon key is intentionally public (protected by Row Level Security)
 
 ### Known issues to fix before production
-1. **No CSP headers** — add Content-Security-Policy in `next.config.ts`
-2. **Supabase RLS** — confirm RLS is enabled on the surviving `ms_*` tables (`ms_leads`, `ms_call_analysis`, `ms_prompt_versions`, `ms_weekly_insights`). They are only touched by service-role server routes, but defense in depth says lock anon access too.
-3. **Dev dependencies** — `flatted`, `glob`, `minimatch` have known CVEs; run `npm audit fix` before launch (dev-only, not production risk)
+1. **Dev dependencies** — `flatted`, `glob`, `minimatch` have known CVEs; run `npm audit fix` before launch (dev-only, not production risk)
 
 ### Never commit
 - `.env.local`
-- `scripts/update_agent.py` (contains ElevenLabs API key)
 - Any file with `sk_`, `service_role`, or full JWT tokens
 
 ---
@@ -325,7 +275,6 @@ npm run lint     # ESLint
 
 - Auto-deploys from `master` branch
 - All `NEXT_PUBLIC_*` vars must be set in Vercel dashboard
-- `NEXT_PUBLIC_ELEVENLABS_AGENT_ID` must be set for Ana widget to work in production
 - Domain: `multiservicios.app`
 
 ---
@@ -334,9 +283,7 @@ npm run lint     # ESLint
 
 | Feature | Status |
 |---|---|
-| ElevenLabs WhatsApp integration | Planning — Ana handles inbound WhatsApp |
 | Solar panel services | Coming soon (card on home page) |
 | Generator/inverter services | Coming soon |
 | Air conditioning | Coming soon |
 | Plumbing | Coming soon |
-| Real phone number replace | Pending — placeholder `(809) 555-0123` throughout |

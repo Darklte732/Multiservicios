@@ -26,12 +26,12 @@ const securityHeaders = [
     key: 'Content-Security-Policy',
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://elevenlabs.io https://*.elevenlabs.io",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       // Google Fonts CSS is fetched via <link rel="stylesheet"> from fonts.googleapis.com.
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https:",
-      "media-src 'self' blob: https://*.elevenlabs.io",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.elevenlabs.io wss://*.elevenlabs.io",
+      "media-src 'self' blob:",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
       // Allow OpenStreetMap embed used by the coverage map.
       "frame-src 'self' https://www.openstreetmap.org",
       // Google Fonts woff2 files are served from fonts.gstatic.com.

@@ -188,21 +188,6 @@ export default function CookiePolicyPage() {
                 </div>
 
                 <div>
-                  <h4 className="font-semibold text-electric mb-2">ElevenLabs</h4>
-                  <p className="text-gray-400 text-sm">
-                    Para el widget de inteligencia artificial conversacional (Ana).{' '}
-                    <a
-                      href="https://elevenlabs.io/privacy"
-                      className="text-electric hover:text-electric-bright underline transition-colors"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Política de privacidad de ElevenLabs
-                    </a>
-                  </p>
-                </div>
-
-                <div>
                   <h4 className="font-semibold text-electric mb-2">Supabase</h4>
                   <p className="text-gray-400 text-sm">
                     Para autenticación, gestión de cuentas y almacenamiento seguro de datos.{' '}
