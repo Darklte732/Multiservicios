@@ -117,7 +117,7 @@ src/
 │   ├── WhatsAppButton.tsx      — Fixed floating WhatsApp CTA
 │   ├── Footer.tsx              — Site footer
 │   ├── FAQAccordion.tsx        — Animated FAQ (Framer Motion, first item open by default)
-│   ├── TestimonialsSection.tsx — 3-card review grid (El Seibo, Hato Mayor, Miches)
+│   ├── TestimonialsSection.tsx — 3-card review grid (El Seibo, Hato Mayor)
 │   ├── ServiceAreaMap.tsx      — Coverage zone visualization
 │   ├── CalendlyEmbed.tsx       — Calendly integration (selectedService: string | null prop)
 │   ├── SEO.tsx                 — Structured data (LocalBusiness schema)
@@ -229,7 +229,7 @@ NEXT_PUBLIC_BUSINESS_ADDRESS=El Seibo, República Dominicana
 | Rating | 4.9/5 (200+ reviews) |
 | Projects | 1,000+ completed |
 | Base | El Seibo, Rep. Dom. |
-| Coverage | 60 km radius: Miches (25km), Hato Mayor (30km), Los Llanos (35km), Sabana de la Mar (40km), Bayaguana (50km) |
+| Coverage | El Seibo and Hato Mayor (~35 km serviceable footprint, ~30 km apart) |
 | Emergency | 24/7 including holidays, <30 min response |
 | Regular hours | Mon-Sat 8am–6pm |
 

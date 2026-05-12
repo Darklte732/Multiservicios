@@ -265,7 +265,7 @@ export default function HomePage() {
   // Mobile-only recent jobs (per handoff §1 item 9 — mobile design only)
   const recentJobs = [
     { tag: 'Hoy · 2:14 PM', barrio: 'Santa Cruz, El Seibo', svc: 'Reparación de panel', tone: '#eab308', src: '/7108a911-e716-4416-a620-97be93f4c140.jpeg' },
-    { tag: 'Ayer',          barrio: 'Miches',              svc: 'Instalación 220V',     tone: '#22c55e', src: '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg' },
+    { tag: 'Ayer',          barrio: 'Hato Mayor',          svc: 'Instalación 220V',     tone: '#22c55e', src: '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg' },
     { tag: 'Hace 2 días',   barrio: 'Hato Mayor',          svc: 'Mantenimiento comercial', tone: '#06b6d4', src: '/b420cfaa-cec4-47a5-a363-d8bebabcef4d.jpeg' },
   ]
 

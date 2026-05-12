@@ -30,7 +30,7 @@ const testimonials: Testimonial[] = [
   },
   {
     name: 'Carmen L.',
-    loc: 'Colmado en Miches',
+    loc: 'Colmado en Hato Mayor',
     stars: 5,
     q: 'Mantenimiento mensual de mi colmado por 2 años. Nunca un problema. Siempre puntuales, profesionales y con uniforme.',
     date: 'Hace 2 semanas',

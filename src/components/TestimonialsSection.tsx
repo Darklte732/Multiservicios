@@ -23,7 +23,7 @@ const testimonials = [
     rating: 5,
     text: 'Servicio excepcional. Muy honesto con los precios y la calidad del trabajo es de primera. Lo volveré a contratar sin duda.',
     service: 'Mantenimiento Preventivo',
-    location: 'Miches',
+    location: 'Hato Mayor',
   },
 ]
 

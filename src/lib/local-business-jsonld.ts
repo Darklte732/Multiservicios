@@ -69,10 +69,6 @@ export function generateLocalBusinessStructuredData(
     areaServed: [
       { '@type': 'City', name: 'El Seibo', addressCountry: 'DO' },
       { '@type': 'City', name: 'Hato Mayor', addressCountry: 'DO' },
-      { '@type': 'City', name: 'Miches', addressCountry: 'DO' },
-      { '@type': 'City', name: 'Sabana de la Mar', addressCountry: 'DO' },
-      { '@type': 'City', name: 'Bayaguana', addressCountry: 'DO' },
-      { '@type': 'City', name: 'Los Llanos', addressCountry: 'DO' },
     ],
     serviceArea: {
       '@type': 'GeoCircle',
@@ -81,7 +77,7 @@ export function generateLocalBusinessStructuredData(
         latitude: '18.7647',
         longitude: '-69.0387',
       },
-      geoRadius: '60000',
+      geoRadius: '35000',
     },
     founder: {
       '@type': 'Person',
@@ -161,7 +157,7 @@ export function generateLocalBusinessStructuredData(
           name: 'Instalación Eléctrica',
           description: 'Instalación completa de sistemas eléctricos residenciales y comerciales',
         },
-        areaServed: ['El Seibo', 'Hato Mayor', 'Miches'],
+        areaServed: ['El Seibo', 'Hato Mayor'],
         availabilityStarts: '2010-01-01',
       },
       {
@@ -171,7 +167,7 @@ export function generateLocalBusinessStructuredData(
           name: 'Reparación Eléctrica',
           description: 'Diagnóstico y reparación de problemas eléctricos',
         },
-        areaServed: ['El Seibo', 'Hato Mayor', 'Miches'],
+        areaServed: ['El Seibo', 'Hato Mayor'],
         availabilityStarts: '2010-01-01',
       },
       {
@@ -181,7 +177,7 @@ export function generateLocalBusinessStructuredData(
           name: 'Mantenimiento Eléctrico',
           description: 'Mantenimiento preventivo de sistemas eléctricos',
         },
-        areaServed: ['El Seibo', 'Hato Mayor', 'Miches'],
+        areaServed: ['El Seibo', 'Hato Mayor'],
         availabilityStarts: '2010-01-01',
       },
       {
@@ -191,7 +187,7 @@ export function generateLocalBusinessStructuredData(
           name: 'Emergencias Eléctricas 24/7',
           description: 'Atención de emergencias eléctricas las 24 horas, todos los días',
         },
-        areaServed: ['El Seibo', 'Hato Mayor', 'Miches', 'Sabana de la Mar', 'Bayaguana'],
+        areaServed: ['El Seibo', 'Hato Mayor'],
         availabilityStarts: '2010-01-01',
       },
     ],

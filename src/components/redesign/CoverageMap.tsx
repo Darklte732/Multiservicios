@@ -36,30 +36,24 @@ type Point = {
 };
 
 const ALL_POINTS: Point[] = [
-  { lon: -69.0421, lat: 18.7641, name: 'El Seibo · Base', main: true },
-  { lon: -69.0397, lat: 18.9886, name: 'Miches' },
-  { lon: -68.7079, lat: 18.6156, name: 'Higüey' },
+  { lon: -69.0387, lat: 18.7647, name: 'El Seibo · Base', main: true },
   { lon: -69.2575, lat: 18.7625, name: 'Hato Mayor' },
-  { lon: -69.3056, lat: 18.4539, name: 'San Pedro' },
-  { lon: -69.3819, lat: 19.0606, name: 'Sabana de la Mar' },
 ];
 
-const MOBILE_POINTS: Point[] = ALL_POINTS.slice(0, 4);
+const MOBILE_POINTS: Point[] = ALL_POINTS;
 
 const CITIES = [
   'El Seibo',
-  'Miches',
-  'Higüey',
   'Hato Mayor',
-  'Sabana de la Mar',
-  'San Pedro de Macorís',
 ];
 
 const ACCENT = '#F5B800';
 
+// Bbox tightened over El Seibo + Hato Mayor (lng width 0.37, lat height 0.23).
+// Keep in sync with the OSM iframe bbox query param below.
 function project(p: Point): { x: number; y: number } {
-  const x = ((p.lon - -69.6) / 1.1) * 100;
-  const y = (1 - (p.lat - 18.35) / 0.8) * 100;
+  const x = ((p.lon - -69.32) / 0.37) * 100;
+  const y = (1 - (p.lat - 18.65) / 0.23) * 100;
   return { x, y };
 }
 
@@ -141,10 +135,10 @@ export function CoverageMap({ id }: { id?: string }) {
                 margin: '8px 0 16px',
               }}
             >
-              SERVIMOS TODA LA<br />PROVINCIA Y MÁS
+              CUBRIMOS EL SEIBO<br />Y HATO MAYOR
             </h2>
             <p style={{ fontSize: 15, color: '#cfcfd6', lineHeight: 1.55 }}>
-              Base en El Seibo, atendemos toda la región Este de la República Dominicana. Tiempo de llegada promedio: 60 minutos.
+              Base en El Seibo. Concentramos el servicio en El Seibo y Hato Mayor para llegar rápido y mantener la calidad alta. Tiempo de llegada promedio: 60 minutos.
             </p>
             <div
               className="hidden lg:grid"
@@ -172,12 +166,13 @@ export function CoverageMap({ id }: { id?: string }) {
           </div>
 
           {/* RIGHT — OSM iframe (per design handoff §2 item 8).
-              aspect-[11/8] matches the bbox lon/lat range (1.1 / 0.8 = 1.375)
-              so OSM renders edge-to-edge and our percent-based marker projection
-              lands correctly. CSP allows openstreetmap.org via next.config.ts. */}
+              aspect-[16/10] matches the tightened bbox lon/lat range
+              (0.37 / 0.23 ≈ 1.609) so OSM renders edge-to-edge and our
+              percent-based marker projection lands correctly.
+              CSP allows openstreetmap.org via next.config.ts. */}
           <div
             ref={mapRef}
-            className="relative aspect-[11/8] w-full overflow-hidden"
+            className="relative aspect-[16/10] w-full overflow-hidden"
             style={{
               borderRadius: 20,
               border: '1px solid rgba(255,255,255,0.08)',
@@ -193,7 +188,7 @@ export function CoverageMap({ id }: { id?: string }) {
             {mapMounted ? (
               <iframe
                 title="Cobertura"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=-69.6%2C18.35%2C-68.5%2C19.15&layer=mapnik"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-69.32%2C18.65%2C-68.95%2C18.88&layer=mapnik"
                 loading="lazy"
                 tabIndex={-1}
                 aria-hidden="true"

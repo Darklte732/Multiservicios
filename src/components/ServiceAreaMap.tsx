@@ -4,11 +4,7 @@ import { MapPin } from 'lucide-react'
 
 const towns = [
   { name: 'El Seibo', distance: '0 km', primary: true },
-  { name: 'Miches', distance: '25 km', primary: false },
   { name: 'Hato Mayor', distance: '30 km', primary: false },
-  { name: 'Los Llanos', distance: '35 km', primary: false },
-  { name: 'Sabana de la Mar', distance: '40 km', primary: false },
-  { name: 'Bayaguana', distance: '50 km', primary: false },
 ]
 
 export const ServiceAreaMap = () => {
@@ -59,7 +55,7 @@ export const ServiceAreaMap = () => {
               </div>
             ))}
             <p className="text-sm text-gray-500 mt-4 text-center">
-              ¿No ves tu municipio? Cubrimos un radio de 60 km — <a href="tel:+18092514329" className="text-electric hover:underline">Llámanos</a>
+              Concentramos el servicio en El Seibo y Hato Mayor — <a href="tel:+18092514329" className="text-electric hover:underline">Llámanos</a>
             </p>
           </div>
 
@@ -80,7 +76,7 @@ export const ServiceAreaMap = () => {
                 </div>
                 <p className="font-bold text-white">El Seibo</p>
                 <p className="text-electric text-sm font-medium">Centro de Operaciones</p>
-                <p className="text-gray-500 text-xs mt-1">Radio: 60 km</p>
+                <p className="text-gray-500 text-xs mt-1">El Seibo y Hato Mayor</p>
               </div>
             </div>
           </div>

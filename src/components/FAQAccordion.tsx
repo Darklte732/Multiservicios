@@ -15,7 +15,7 @@ const faqs = [
   },
   {
     q: '¿Qué zonas o municipios cubren?',
-    a: 'Cubrimos El Seibo y un radio de 60 km a la redonda, incluyendo Miches, Hato Mayor, Los Llanos, Sabana de la Mar y Bayaguana. ¿No ves tu municipio? Contáctanos y verificamos cobertura.'
+    a: 'Cubrimos El Seibo y Hato Mayor. Concentramos el servicio en estas dos ciudades para llegar rápido y mantener la calidad alta. Si estás fuera de la zona, contáctanos y verificamos disponibilidad.'
   },
   {
     q: '¿Los trabajos tienen garantía?',
