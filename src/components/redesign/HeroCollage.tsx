@@ -1,24 +1,80 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 
+// Initial photos per slot — these are the images that paint on first render.
+// PHOTO_TOP_LEFT is the LCP candidate (top of left column, height 300, priority).
 const PHOTO_TOP_LEFT = '/41a4fd06-d34c-42a6-b234-46fa1debd1df.jpeg'
 const PHOTO_BOTTOM_LEFT = '/cf629f37-1d13-4d7b-8774-7a5ce95bf946.jpeg'
 const PHOTO_TOP_RIGHT = '/4ca1b64b-7b5f-4145-b7de-099d7806492f.jpeg'
 const PHOTO_BOTTOM_RIGHT = '/db2d6452-ebcc-4f8a-8588-9df01d849b74.jpeg'
 
+// Rotation pool — every work photo we've shipped to /public, in a fixed order.
+// Each slot starts at its initial photo's index and advances through the pool.
+// Keep the four initial photos at the top of the list so their first-paint
+// position matches their natural ordering for resource hints.
+const WORK_PHOTOS: readonly string[] = [
+  PHOTO_TOP_LEFT,
+  PHOTO_BOTTOM_LEFT,
+  PHOTO_TOP_RIGHT,
+  PHOTO_BOTTOM_RIGHT,
+  '/2394664b-563a-48aa-900e-7ff62152b422.jpeg',
+  '/43a0a5cf-6fea-49e8-b174-7382d6ebfa5d.jpeg',
+  '/6bb20545-9b5b-43f9-b5f8-d7bbb4bcbd5b.jpeg',
+  '/7108a911-e716-4416-a620-97be93f4c140.jpeg',
+  '/7c810f87-294b-4352-a3f6-7b9ace4d39c3.jpeg',
+  '/ae496ec7-f200-41db-9e1d-54aa3de8fccd.jpeg',
+  '/b420cfaa-cec4-47a5-a363-d8bebabcef4d.jpeg',
+  '/cf856cdc-a1e1-40ef-b079-eeab55418c17.jpeg',
+  '/e2f858db-6d50-48ad-b286-36a67483dfe5.jpeg',
+]
+
 const ACCENT = '#F5B800'
 const BEBAS_FONT_FAMILY = '"Bebas Neue", Impact, sans-serif'
 
-type PhotoProps = {
-  src: string
+// One photo cycles every 5 s. The four slots are staggered 1.25 s apart so the
+// crossfades are spread evenly across the cycle — there is almost always a
+// gentle transition happening somewhere on the collage, but never two at once.
+const ROTATION_INTERVAL_MS = 5000
+const STAGGER_MS = 1250
+const CROSSFADE_DURATION_S = 0.8
+
+type RotatingPhotoProps = {
+  startSrc: string
+  delayMs: number
   height: number
   alt: string
   priority?: boolean
   sizes?: string
 }
 
-function Photo({ src, height, alt, priority, sizes }: PhotoProps) {
+function RotatingPhoto({ startSrc, delayMs, height, alt, priority, sizes }: RotatingPhotoProps) {
+  const startIndex = Math.max(0, WORK_PHOTOS.indexOf(startSrc))
+  const [index, setIndex] = useState(startIndex)
+  const [hasRotated, setHasRotated] = useState(false)
+  const reducedMotion = useReducedMotion()
+
+  useEffect(() => {
+    if (reducedMotion) return
+
+    let interval: ReturnType<typeof setInterval> | null = null
+    const startTimer = setTimeout(() => {
+      interval = setInterval(() => {
+        setIndex((i) => (i + 1) % WORK_PHOTOS.length)
+        setHasRotated(true)
+      }, ROTATION_INTERVAL_MS)
+    }, delayMs)
+
+    return () => {
+      clearTimeout(startTimer)
+      if (interval) clearInterval(interval)
+    }
+  }, [reducedMotion, delayMs])
+
+  const currentSrc = WORK_PHOTOS[index]
+
   return (
     <div
       style={{
@@ -29,16 +85,29 @@ function Photo({ src, height, alt, priority, sizes }: PhotoProps) {
         overflow: 'hidden',
       }}
     >
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        // Collage is hidden lg:block — only renders ≥1024px. Each photo is ~half of
-        // the right hero column (~270-340px depending on viewport).
-        sizes={sizes ?? '(min-width: 1536px) 340px, (min-width: 1280px) 300px, (min-width: 1024px) 270px, 320px'}
-        priority={priority}
-        style={{ objectFit: 'cover' }}
-      />
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={currentSrc}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: CROSSFADE_DURATION_S, ease: 'easeInOut' }}
+          style={{ position: 'absolute', inset: 0 }}
+        >
+          <Image
+            src={currentSrc}
+            alt={alt}
+            fill
+            // Collage is hidden lg:block — only renders ≥1024px. Each photo is ~half of
+            // the right hero column (~270-340px depending on viewport).
+            sizes={sizes ?? '(min-width: 1536px) 340px, (min-width: 1280px) 300px, (min-width: 1024px) 270px, 320px'}
+            // Only the first render of the LCP slot keeps `priority` — subsequent
+            // rotations are normal lazy-decoded swaps so we don't spam preload tags.
+            priority={priority && !hasRotated}
+            style={{ objectFit: 'cover' }}
+          />
+        </motion.div>
+      </AnimatePresence>
     </div>
   )
 }
@@ -61,14 +130,16 @@ export function HeroCollage({ className }: { className?: string }) {
         {/* LEFT inner column */}
         <div style={{ display: 'grid', gap: 12 }}>
           {/* LCP candidate (desktop): largest above-fold collage photo — keep priority */}
-          <Photo
-            src={PHOTO_TOP_LEFT}
+          <RotatingPhoto
+            startSrc={PHOTO_TOP_LEFT}
+            delayMs={STAGGER_MS * 0}
             height={300}
             alt="Trabajo eléctrico de MultiServicios El Seibo"
             priority
           />
-          <Photo
-            src={PHOTO_BOTTOM_LEFT}
+          <RotatingPhoto
+            startSrc={PHOTO_BOTTOM_LEFT}
+            delayMs={STAGGER_MS * 1}
             height={240}
             alt="Instalación eléctrica realizada por Neno Báez"
           />
@@ -76,13 +147,15 @@ export function HeroCollage({ className }: { className?: string }) {
 
         {/* RIGHT inner column — staggered with paddingTop 60 */}
         <div style={{ display: 'grid', gap: 12, paddingTop: 60 }}>
-          <Photo
-            src={PHOTO_TOP_RIGHT}
+          <RotatingPhoto
+            startSrc={PHOTO_TOP_RIGHT}
+            delayMs={STAGGER_MS * 2}
             height={240}
             alt="Reparación eléctrica profesional"
           />
-          <Photo
-            src={PHOTO_BOTTOM_RIGHT}
+          <RotatingPhoto
+            startSrc={PHOTO_BOTTOM_RIGHT}
+            delayMs={STAGGER_MS * 3}
             height={300}
             alt="Mantenimiento eléctrico en El Seibo"
           />
