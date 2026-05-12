@@ -39,6 +39,7 @@ export function StickyThumbBar() {
           color: '#fff',
           borderRadius: 14,
           padding: 14,
+          minHeight: 56,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -58,16 +59,18 @@ export function StickyThumbBar() {
           color: '#000',
           borderRadius: 14,
           padding: 14,
+          minHeight: 56,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: 6,
-          fontSize: 13,
+          fontSize: 14,
           fontWeight: 800,
           textDecoration: 'none',
+          lineHeight: 1,
         }}
       >
-        <span style={{ fontSize: 16 }}>📞</span> LLAMAR
+        <span style={{ fontSize: 18 }}>📞</span> LLAMAR
       </a>
     </div>
   )

@@ -15,9 +15,10 @@ type PhotoProps = {
   height: number
   alt: string
   priority?: boolean
+  sizes?: string
 }
 
-function Photo({ src, height, alt, priority }: PhotoProps) {
+function Photo({ src, height, alt, priority, sizes }: PhotoProps) {
   return (
     <div
       style={{
@@ -32,7 +33,9 @@ function Photo({ src, height, alt, priority }: PhotoProps) {
         src={src}
         alt={alt}
         fill
-        sizes="(min-width: 1024px) 320px, 100vw"
+        // Collage is hidden lg:block — only renders ≥1024px. Each photo is ~half of
+        // the right hero column (~270-340px depending on viewport).
+        sizes={sizes ?? '(min-width: 1536px) 340px, (min-width: 1280px) 300px, (min-width: 1024px) 270px, 320px'}
         priority={priority}
         style={{ objectFit: 'cover' }}
       />
@@ -57,6 +60,7 @@ export function HeroCollage({ className }: { className?: string }) {
       >
         {/* LEFT inner column */}
         <div style={{ display: 'grid', gap: 12 }}>
+          {/* LCP candidate (desktop): largest above-fold collage photo — keep priority */}
           <Photo
             src={PHOTO_TOP_LEFT}
             height={300}

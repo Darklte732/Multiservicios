@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { capture } from '@/lib/analytics'
 
@@ -24,19 +24,37 @@ export function MobileQuoteCard() {
   const [service, setService] = useState<string | null>(null)
   const [urgency, setUrgency] = useState<string | null>(null)
   const [phone, setPhone] = useState<string>('')
+  const [phoneError, setPhoneError] = useState<string | null>(null)
 
-  const handleSubmit = () => {
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
     const trimmed = phone.trim()
+    const digits = trimmed.replace(/\D/g, '')
+
+    if (trimmed.length === 0 || digits.length < 7) {
+      setPhoneError(
+        trimmed.length === 0
+          ? 'Ingresa tu número para que Neno pueda llamarte'
+          : 'Ese número parece incompleto. Verifícalo, por favor.'
+      )
+      capture('quote_form_validation_error', {
+        surface: 'mobile_hero_3step',
+        reason: trimmed.length === 0 ? 'empty_phone' : 'short_phone',
+      })
+      return
+    }
+
+    setPhoneError(null)
     capture('quote_form_submitted', {
       surface: 'mobile_hero_3step',
       service,
       urgency,
-      phone_provided: trimmed.length > 0,
+      phone_provided: true,
     })
     const params = new URLSearchParams()
     if (service) params.set('service', service)
     if (urgency) params.set('urgency', urgency)
-    if (trimmed) params.set('phone', trimmed)
+    params.set('phone', digits)
     window.location.href = `/booking?${params.toString()}`
   }
 
@@ -205,87 +223,116 @@ export function MobileQuoteCard() {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
           >
-            <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6, color: '#fff' }}>
-              ¿A qué número te enviamos la cotización?
-            </div>
-            <div style={{ fontSize: 12, color: '#8a8a92', marginBottom: 14 }}>
-              Te respondemos por WhatsApp en menos de 15 minutos.
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                background: 'rgba(255,255,255,0.05)',
-                border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 12,
-                padding: '14px 14px',
-              }}
-            >
-              <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>🇩🇴 +1</span>
-              <input
-                type="tel"
-                inputMode="tel"
-                placeholder="809 251 4329"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+            <form onSubmit={handleSubmit} noValidate>
+              <div style={{ fontSize: 17, fontWeight: 700, marginBottom: 6, color: '#fff' }}>
+                ¿A qué número te enviamos la cotización?
+              </div>
+              <div style={{ fontSize: 12, color: '#8a8a92', marginBottom: 14 }}>
+                Te respondemos por WhatsApp en menos de 15 minutos.
+              </div>
+              <div
                 style={{
-                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  background: 'rgba(255,255,255,0.05)',
+                  border: `1px solid ${phoneError ? 'rgba(239,68,68,0.55)' : 'rgba(255,255,255,0.12)'}`,
+                  borderRadius: 12,
+                  padding: '14px 14px',
+                }}
+              >
+                <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>🇩🇴 +1</span>
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  placeholder="809 251 4329"
+                  value={phone}
+                  onChange={(e) => {
+                    setPhone(e.target.value)
+                    if (phoneError) setPhoneError(null)
+                  }}
+                  required
+                  aria-invalid={phoneError ? 'true' : 'false'}
+                  aria-describedby={phoneError ? 'mqc-phone-error' : undefined}
+                  style={{
+                    flex: 1,
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    color: '#fff',
+                    fontSize: 16,
+                    fontWeight: 600,
+                    width: '100%',
+                  }}
+                />
+              </div>
+              <AnimatePresence>
+                {phoneError && (
+                  <motion.div
+                    id="mqc-phone-error"
+                    role="alert"
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.18 }}
+                    style={{
+                      color: '#f87171',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      marginTop: 8,
+                    }}
+                  >
+                    {phoneError}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <button
+                type="submit"
+                style={{
+                  width: '100%',
+                  marginTop: 12,
+                  background: ACCENT,
+                  color: '#000',
+                  border: 'none',
+                  borderRadius: 14,
+                  padding: 16,
+                  fontSize: 15,
+                  fontWeight: 800,
+                  letterSpacing: 0.4,
+                  boxShadow: '0 10px 30px rgba(245,184,0,0.4)',
+                  cursor: 'pointer',
+                }}
+              >
+                RECIBIR MI COTIZACIÓN GRATIS →
+              </button>
+              <div
+                style={{
+                  marginTop: 10,
+                  fontSize: 10,
+                  color: '#8a8a92',
+                  textAlign: 'center',
+                }}
+              >
+                🔒 Sin spam · Sin compromiso · 100% gratis si no contratas
+              </div>
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                style={{
                   background: 'transparent',
                   border: 'none',
-                  outline: 'none',
-                  color: '#fff',
-                  fontSize: 16,
-                  fontWeight: 600,
+                  color: '#8a8a92',
+                  fontSize: 12,
+                  marginTop: 6,
+                  padding: 6,
+                  cursor: 'pointer',
                   width: '100%',
+                  textAlign: 'center',
                 }}
-              />
-            </div>
-            <button
-              onClick={handleSubmit}
-              style={{
-                width: '100%',
-                marginTop: 12,
-                background: ACCENT,
-                color: '#000',
-                border: 'none',
-                borderRadius: 14,
-                padding: 16,
-                fontSize: 15,
-                fontWeight: 800,
-                letterSpacing: 0.4,
-                boxShadow: '0 10px 30px rgba(245,184,0,0.4)',
-                cursor: 'pointer',
-              }}
-            >
-              RECIBIR MI COTIZACIÓN GRATIS →
-            </button>
-            <div
-              style={{
-                marginTop: 10,
-                fontSize: 10,
-                color: '#8a8a92',
-                textAlign: 'center',
-              }}
-            >
-              🔒 Sin spam · Sin compromiso · 100% gratis si no contratas
-            </div>
-            <button
-              onClick={() => setStep(2)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#8a8a92',
-                fontSize: 12,
-                marginTop: 6,
-                padding: 6,
-                cursor: 'pointer',
-                width: '100%',
-                textAlign: 'center',
-              }}
-            >
-              ← Atrás
-            </button>
+              >
+                ← Atrás
+              </button>
+            </form>
           </motion.div>
         )}
       </AnimatePresence>

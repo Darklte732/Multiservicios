@@ -62,6 +62,30 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultUserTy
     }
   }, [status, isOpen, onClose])
 
+  // iOS-Safari-friendly scroll lock: preserve scroll position on open/close
+  useEffect(() => {
+    if (!isOpen) return
+    const savedScrollY = window.scrollY
+    const body = document.body
+    const prev = {
+      position: body.style.position,
+      top: body.style.top,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    }
+    body.style.position = 'fixed'
+    body.style.top = `-${savedScrollY}px`
+    body.style.width = '100%'
+    body.style.overflow = 'hidden'
+    return () => {
+      body.style.position = prev.position
+      body.style.top = prev.top
+      body.style.width = prev.width
+      body.style.overflow = prev.overflow
+      window.scrollTo(0, savedScrollY)
+    }
+  }, [isOpen])
+
   const handleInputChange = useCallback((field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }, [])
@@ -246,6 +270,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultUserTy
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     className="glass-input w-full pl-10 pr-4 py-3 text-gray-800 placeholder-gray-500 text-sm"
                     placeholder="Tu nombre completo"
+                    autoComplete="name"
                     required
                   />
                 </div>
@@ -265,6 +290,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultUserTy
                   onChange={(e) => handleInputChange('identifier', e.target.value)}
                   className="glass-input w-full pl-10 pr-4 py-3 text-gray-800 placeholder-gray-500 text-sm"
                   placeholder="ejemplo@correo.com o 809-123-4567"
+                  autoComplete="username"
                   required
                 />
               </div>
@@ -282,6 +308,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login', defaultUserTy
                   onChange={(e) => handleInputChange('password', e.target.value)}
                   className="glass-input w-full pl-4 pr-12 py-3 text-gray-800 placeholder-gray-500 text-sm"
                   placeholder="Tu contraseña"
+                  autoComplete={activeTab === 'register' ? 'new-password' : 'current-password'}
                   required
                 />
                 <button

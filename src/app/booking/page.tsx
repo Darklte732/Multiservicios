@@ -168,16 +168,23 @@ const ServiceCard = ({
       {/* Image carousel */}
       <div className="aspect-video rounded-xl overflow-hidden mb-4 relative bg-navy-600">
         <AnimatePresence mode="wait">
-          <motion.img
+          <motion.div
             key={`${service.id}-${imgIdx}`}
-            src={service.images[imgIdx]}
-            alt={service.name}
-            className="w-full h-full object-cover"
+            className="absolute inset-0"
             initial={{ opacity: 0, scale: 1.05 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.4 }}
-          />
+          >
+            <Image
+              src={service.images[imgIdx]}
+              alt={service.name}
+              fill
+              sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
+              quality={75}
+              className="object-cover"
+            />
+          </motion.div>
         </AnimatePresence>
         <div className="absolute bottom-2 right-2 flex gap-1">
           {service.images.map((_, i) => (

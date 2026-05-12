@@ -1,0 +1,14 @@
+[
+  {
+    "severity": "INFO",
+    "device": "Pixel 7",
+    "area": "logo",
+    "description": "No <img> with src /logo-multiservicios/ found in DOM — site is currently using CSS-generated LogoMark (gradient tile + SVG lightning bolt) instead of the transparent PNG. Confirm intentional."
+  },
+  {
+    "severity": "INFO",
+    "device": "Galaxy S24",
+    "area": "logo",
+    "description": "No <img> with src /logo-multiservicios/ found in DOM — site is currently using CSS-generated LogoMark (gradient tile + SVG lightning bolt) instead of the transparent PNG. Confirm intentional."
+  }
+]

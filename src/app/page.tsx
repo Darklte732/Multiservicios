@@ -35,33 +35,7 @@ import { CoverageMap } from '@/components/redesign/CoverageMap'
 import { TestimonialsRedesign } from '@/components/redesign/TestimonialsRedesign'
 import { MobileQuoteCard } from '@/components/redesign/MobileQuoteCard'
 import { StickyThumbBar } from '@/components/redesign/StickyThumbBar'
-
-// ──────────────────────────────────────────
-// LOGO LOCKUP — bolt SVG path verbatim from design
-// ──────────────────────────────────────────
-function LogoMark({ size = 44 }: { size?: number }) {
-  const innerSize = size === 44 ? 24 : 22
-  return (
-    <div
-      style={{
-        width: size, height: size, borderRadius: size === 44 ? 12 : 10,
-        position: 'relative',
-        background: 'linear-gradient(135deg, #F5B800 0%, #F5B800dd 100%)',
-        boxShadow: '0 6px 20px rgba(245,184,0,0.33), inset 0 1px 0 rgba(255,255,255,0.4)',
-        display: 'grid', placeItems: 'center', overflow: 'hidden',
-      }}
-    >
-      <svg width={innerSize} height={innerSize} viewBox="0 0 32 32" fill="none">
-        <path d="M19 3 L7 18 L14 18 L12 29 L25 13 L17 13 L19 3 Z"
-          fill="#0A0A0B" stroke="#0A0A0B" strokeWidth="1.5" strokeLinejoin="round" />
-      </svg>
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.18) 100%)',
-      }} />
-    </div>
-  )
-}
+import { LOGO_PATH } from '@/lib/site-branding'
 
 // ──────────────────────────────────────────
 // DESKTOP INLINE QUOTE FORM (single-shot, hero right side)
@@ -344,17 +318,16 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-[60px]">
           <div className="flex items-center justify-between h-16 lg:h-20">
 
-            <Link href="/" className="flex items-center gap-3 group">
-              <LogoMark size={44} />
-              <div className="hidden sm:block leading-tight">
-                <div
-                  className="font-extrabold text-white"
-                  style={{ fontSize: 17, letterSpacing: 0.3 }}
-                >
-                  MULTI<span style={{ color: '#F5B800' }}>SERVICIOS</span>
-                </div>
-                <p className="text-[11px] text-gray-500 -mt-0.5 font-medium">El Seibo · Rep. Dom.</p>
-              </div>
+            <Link href="/" className="flex items-center group">
+              <Image
+                src={LOGO_PATH}
+                alt="MultiServicios El Seibo — Servicios Eléctricos Profesionales"
+                width={70}
+                height={60}
+                sizes="(min-width: 1024px) 84px, 70px"
+                className="h-12 lg:h-[60px] w-auto object-contain shrink-0"
+                priority
+              />
             </Link>
 
             <nav className="hidden lg:flex items-center gap-8 text-sm font-semibold">

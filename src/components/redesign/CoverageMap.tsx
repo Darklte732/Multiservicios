@@ -1,6 +1,32 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+
+/**
+ * Lazy-mount hook — defers heavy children (e.g. the OSM iframe, ~295 KB script)
+ * until the container is near the viewport. Uses a generous rootMargin so the
+ * map is ready by the time it scrolls into view. Once mounted, the observer
+ * disconnects so we never tear it back down.
+ */
+function useInViewport<T extends Element>(rootMargin = '200px') {
+  const ref = useRef<T | null>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    if (!ref.current || inView) return;
+    const obs = new IntersectionObserver(
+      entries => {
+        if (entries.some(e => e.isIntersecting)) {
+          setInView(true);
+          obs.disconnect();
+        }
+      },
+      { rootMargin }
+    );
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [inView, rootMargin]);
+  return [ref, inView] as const;
+}
 
 type Point = {
   lon: number;
@@ -83,6 +109,11 @@ function Marker({ p, mobile = false }: { p: Point; mobile?: boolean }) {
 }
 
 export function CoverageMap({ id }: { id?: string }) {
+  // Lazy-mount the OSM iframe — saves ~295 KB script + ~2.4s on Fast 3G when
+  // the map is below the fold. The aspect-[11/8] container already reserves
+  // exact height (no CLS).
+  const [mapRef, mapMounted] = useInViewport<HTMLDivElement>('200px');
+
   return (
     <section id={id} className="py-20 lg:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -145,6 +176,7 @@ export function CoverageMap({ id }: { id?: string }) {
               so OSM renders edge-to-edge and our percent-based marker projection
               lands correctly. CSP allows openstreetmap.org via next.config.ts. */}
           <div
+            ref={mapRef}
             className="relative aspect-[11/8] w-full overflow-hidden"
             style={{
               borderRadius: 20,
@@ -158,23 +190,35 @@ export function CoverageMap({ id }: { id?: string }) {
                 (markers would visually land on the wrong cities). The map is
                 a marketing illustration, not an interactive tool — the iframe
                 is purely a backdrop for the overlay markers. */}
-            <iframe
-              title="Cobertura"
-              src="https://www.openstreetmap.org/export/embed.html?bbox=-69.6%2C18.35%2C-68.5%2C19.15&layer=mapnik"
-              loading="lazy"
-              tabIndex={-1}
-              aria-hidden="true"
-              style={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                border: 0,
-                pointerEvents: 'none',
-                filter:
-                  'invert(0.92) hue-rotate(180deg) saturate(0.7) brightness(0.95) contrast(0.95)',
-              }}
-            />
+            {mapMounted ? (
+              <iframe
+                title="Cobertura"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-69.6%2C18.35%2C-68.5%2C19.15&layer=mapnik"
+                loading="lazy"
+                tabIndex={-1}
+                aria-hidden="true"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  width: '100%',
+                  height: '100%',
+                  border: 0,
+                  pointerEvents: 'none',
+                  filter:
+                    'invert(0.92) hue-rotate(180deg) saturate(0.7) brightness(0.95) contrast(0.95)',
+                }}
+              />
+            ) : (
+              <div
+                aria-label="Mapa de cobertura cargando"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background:
+                    'radial-gradient(circle at 50% 50%, rgba(245,184,0,0.06), transparent 60%), #0e0e12',
+                }}
+              />
+            )}
 
             {/* Desktop markers (full set) */}
             <div className="hidden lg:block absolute inset-0 pointer-events-none">
