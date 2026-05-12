@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Phone, TrendingUp, Users, Star, ChevronDown, ChevronUp, RefreshCw, Zap, MessageSquare, Target, AlertCircle, CheckCircle2, XCircle, Loader2, History, Calendar, UserCheck, UserX } from 'lucide-react'
-import { fetchStats, fetchImprovement, applyPromptAction, fetchPendingUsers, approveUser, rejectUser, type PendingUser } from './actions'
+import { Phone, TrendingUp, Users, Star, ChevronDown, ChevronUp, RefreshCw, Zap, MessageSquare, Target, AlertCircle, CheckCircle2, XCircle, Loader2, History, Calendar } from 'lucide-react'
+import { fetchStats, fetchImprovement, applyPromptAction } from './actions'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -82,179 +82,7 @@ export interface AdminInitial {
   leads: Lead[]
   versions: PromptVersion[]
   weeklyInsights: WeeklyInsight[]
-  pendingUsers: PendingUser[]
   error?: string
-}
-
-// ─── Pending account approval queue ────────────────────────────────────────────
-
-/**
- * Format a Spanish "hace X" string from an ISO timestamp.
- * "hace 3m" / "hace 5h" / "hace 2d" — minimal locale, no external lib.
- */
-function timeAgo(iso: string): string {
-  const then = new Date(iso).getTime()
-  if (Number.isNaN(then)) return ''
-  const diffMs = Date.now() - then
-  if (diffMs < 0) return 'ahora'
-  const mins = Math.floor(diffMs / 60_000)
-  if (mins < 1) return 'ahora mismo'
-  if (mins < 60) return `hace ${mins}m`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `hace ${hours}h`
-  const days = Math.floor(hours / 24)
-  if (days < 30) return `hace ${days}d`
-  const months = Math.floor(days / 30)
-  return `hace ${months}mes`
-}
-
-function formatPhone(raw: string | null): string {
-  if (!raw) return '—'
-  const digits = raw.replace(/\D/g, '')
-  // 18095551234 → +1 (809) 555-1234
-  if (digits.length === 11 && digits.startsWith('1')) {
-    return `+1 (${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`
-  }
-  // 8095551234 → (809) 555-1234
-  if (digits.length === 10) {
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`
-  }
-  return raw
-}
-
-function PendingAccountsSection({
-  users,
-  onChanged,
-}: {
-  users: PendingUser[]
-  onChanged: () => void
-}) {
-  const [busyId, setBusyId] = useState<string | null>(null)
-  const [, startTransition] = useTransition()
-
-  const handleApprove = (user: PendingUser) => {
-    setBusyId(user.id)
-    startTransition(async () => {
-      try {
-        const data = await approveUser(user.id)
-        if (data?.error) {
-          alert(`No pudimos aprobar la cuenta: ${data.error}`)
-          return
-        }
-        onChanged()
-      } finally {
-        setBusyId(null)
-      }
-    })
-  }
-
-  const handleReject = (user: PendingUser) => {
-    const reason = window.prompt(
-      `¿Por qué rechazas la cuenta de ${user.name}? (opcional, ayuda para tu historial)`,
-      ''
-    )
-    // window.prompt returns null on cancel — abort the action.
-    if (reason === null) return
-    setBusyId(user.id)
-    startTransition(async () => {
-      try {
-        const data = await rejectUser(user.id, reason || undefined)
-        if (data?.error) {
-          alert(`No pudimos rechazar la cuenta: ${data.error}`)
-          return
-        }
-        onChanged()
-      } finally {
-        setBusyId(null)
-      }
-    })
-  }
-
-  return (
-    <div className="bg-navy-700 border border-electric/20 rounded-xl p-5">
-      <h2 className="text-sm font-semibold text-electric mb-4 uppercase tracking-wider flex items-center gap-2">
-        <UserCheck className="w-4 h-4" />
-        Solicitudes de cuenta pendientes
-        {users.length > 0 && (
-          <span className="ml-1 bg-electric text-navy-950 text-xs font-bold px-2 py-0.5 rounded-full">
-            {users.length}
-          </span>
-        )}
-      </h2>
-
-      {users.length === 0 ? (
-        <div className="text-sm text-gray-400 flex items-center gap-2">
-          Ninguna solicitud pendiente <span className="text-base">🟢</span>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {users.map(user => {
-            const isBusy = busyId === user.id
-            const roleLabel =
-              user.user_type === 'technician'
-                ? 'Técnico'
-                : user.user_type === 'admin'
-                  ? 'Admin'
-                  : 'Cliente'
-            const roleColor =
-              user.user_type === 'technician'
-                ? 'bg-blue-900/40 text-blue-300 border-blue-700'
-                : user.user_type === 'admin'
-                  ? 'bg-purple-900/40 text-purple-300 border-purple-700'
-                  : 'bg-green-900/40 text-green-300 border-green-700'
-
-            return (
-              <div
-                key={user.id}
-                className="bg-navy-800 border border-white/10 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <span className="font-semibold text-white text-sm truncate">{user.name}</span>
-                    <span
-                      className={`text-xs px-2 py-0.5 rounded-full border ${roleColor}`}
-                    >
-                      {roleLabel}
-                    </span>
-                  </div>
-                  <div className="text-xs text-gray-400 flex items-center gap-2 flex-wrap">
-                    <span>{formatPhone(user.phone)}</span>
-                    <span className="text-gray-600">·</span>
-                    <span className="text-gray-500">{timeAgo(user.created_at)}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => handleApprove(user)}
-                    disabled={isBusy}
-                    className="btn-electric text-xs px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-                  >
-                    {isBusy ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <UserCheck className="w-3.5 h-3.5" />
-                    )}
-                    Aprobar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleReject(user)}
-                    disabled={isBusy}
-                    className="text-xs px-4 py-2 border border-white/20 text-gray-300 hover:bg-white/5 hover:border-red-500/40 hover:text-red-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 transition-colors"
-                  >
-                    <UserX className="w-3.5 h-3.5" />
-                    Rechazar
-                  </button>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
 }
 
 // ─── Score badge component ─────────────────────────────────────────────────────
@@ -448,7 +276,6 @@ export default function AdminClient({ initial }: { initial: AdminInitial }) {
   const [leads, setLeads] = useState<Lead[]>(initial.leads)
   const [versions, setVersions] = useState<PromptVersion[]>(initial.versions)
   const [weeklyInsights, setWeeklyInsights] = useState<WeeklyInsight[]>(initial.weeklyInsights)
-  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>(initial.pendingUsers ?? [])
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'leads' | 'improvement' | 'history'>('leads')
   const [improvement, setImprovement] = useState<ImprovementData | null>(null)
@@ -458,26 +285,11 @@ export default function AdminClient({ initial }: { initial: AdminInitial }) {
   const [applySuccess, setApplySuccess] = useState(false)
   const [, startTransition] = useTransition()
 
-  const reloadPending = () => {
-    startTransition(async () => {
-      try {
-        const data = await fetchPendingUsers()
-        if (!data?.error && data?.users) {
-          setPendingUsers(data.users)
-        } else if (data?.error) {
-          console.error('Error loading pending users:', data.error)
-        }
-      } catch (err) {
-        console.error('Error loading pending users:', err)
-      }
-    })
-  }
-
   const loadData = () => {
     setLoading(true)
     startTransition(async () => {
       try {
-        const [data, pending] = await Promise.all([fetchStats(), fetchPendingUsers()])
+        const data = await fetchStats()
         if (!data?.error) {
           setStats((data.stats as Stats | null) ?? null)
           setLeads((data.leads as Lead[]) || [])
@@ -485,9 +297,6 @@ export default function AdminClient({ initial }: { initial: AdminInitial }) {
           setWeeklyInsights((data.weeklyInsights as WeeklyInsight[]) || [])
         } else {
           console.error('Error loading stats:', data.error)
-        }
-        if (!pending?.error && pending?.users) {
-          setPendingUsers(pending.users)
         }
       } catch (err) {
         console.error('Error loading stats:', err)
@@ -568,10 +377,6 @@ export default function AdminClient({ initial }: { initial: AdminInitial }) {
             {initial.error}
           </div>
         )}
-
-        {/* Pending account approvals — sits above the stats so Neno sees new
-            signups before anything else. Empty state stays quiet. */}
-        <PendingAccountsSection users={pendingUsers} onChanged={reloadPending} />
 
         {/* Stats bar */}
         {stats && (

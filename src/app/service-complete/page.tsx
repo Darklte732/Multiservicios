@@ -1,13 +1,12 @@
 'use client'
 
-import { useEffect, useMemo, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { CheckCircle, Star, Shield, ArrowLeft, UserPlus } from 'lucide-react'
 import { WhatsAppIcon } from '@/components/icons/WhatsAppIcon'
 import { capture } from '@/lib/analytics'
 import Link from 'next/link'
 import { Footer } from '@/components/Footer'
-import { generateServiceCode } from '@/lib/serviceCode'
 
 const serviceConfig = {
   'emergencia': {
@@ -71,8 +70,6 @@ const serviceWorkDetails = {
 function ServiceCompleteContent() {
   const searchParams = useSearchParams()
   const [rating, setRating] = useState(5)
-  // Stable service code generated once on mount — uses MS-YYYY-XXXXX format
-  const serviceCode = useMemo(() => generateServiceCode(), [])
   const [bookingDetails, setBookingDetails] = useState({
     service: 'Instalación Eléctrica',
     serviceKey: 'instalacion',
@@ -362,66 +359,6 @@ function ServiceCompleteContent() {
               <span className="text-blue-600 font-bold">⭐</span>
               <span>Recomiéndanos a tus familiares y amigos que necesiten servicios eléctricos</span>
             </div>
-          </div>
-        </div>
-
-        {/* Account Creation Prompt */}
-        <div className="bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 rounded-xl p-8 mb-8">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <UserPlus className="w-8 h-8 text-indigo-600" />
-            </div>
-            <h3 className="text-2xl font-bold text-indigo-900 mb-4">
-              ¡Únete a MultiServicios y Obtén Beneficios Exclusivos!
-            </h3>
-            <p className="text-indigo-700 mb-6 max-w-2xl mx-auto">
-              Crea tu cuenta ahora y disfruta de descuentos, seguimiento de garantías, 
-              historial completo de servicios y prioridad en reservas futuras.
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-white bg-opacity-50 rounded-lg p-4">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <span className="text-green-600 font-bold">10%</span>
-                </div>
-                <p className="text-sm font-medium text-indigo-800">
-                  Descuento en tu próximo servicio
-                </p>
-              </div>
-              <div className="bg-white bg-opacity-50 rounded-lg p-4">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Shield className="w-4 h-4 text-blue-600" />
-                </div>
-                <p className="text-sm font-medium text-indigo-800">
-                  Seguimiento automático de garantías
-                </p>
-              </div>
-              <div className="bg-white bg-opacity-50 rounded-lg p-4">
-                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <Star className="w-4 h-4 text-purple-600" />
-                </div>
-                <p className="text-sm font-medium text-indigo-800">
-                  Historial completo de servicios
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href={`/account-creation?service=${bookingDetails.serviceKey}&fee=${bookingDetails.evaluationFee}&code=${serviceCode}&name=${encodeURIComponent(bookingDetails.technician)}&auto=true`}
-                className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
-              >
-                <UserPlus className="w-5 h-5" />
-                Crear Mi Cuenta Gratis
-              </Link>
-              <button className="px-6 py-4 bg-white hover:bg-gray-50 text-indigo-600 border border-indigo-200 rounded-lg font-medium transition-colors">
-                Continuar Sin Cuenta
-              </button>
-            </div>
-            
-            <p className="text-sm text-indigo-600 mt-4">
-              Tu servicio será vinculado automáticamente a tu nueva cuenta
-            </p>
           </div>
         </div>
 

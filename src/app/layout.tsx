@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-import { NotificationProvider } from '@/contexts/NotificationContext'
 import { Toaster } from 'react-hot-toast'
 
 export const metadata: Metadata = {
@@ -122,35 +121,33 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="//api.whatsapp.com" />
       </head>
       <body className="font-sans antialiased min-h-screen bg-navy-950 text-white">
-        <NotificationProvider>
-          <ErrorBoundary>
-            {children}
-          </ErrorBoundary>
-          <Toaster 
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+            },
+            success: {
+              duration: 3000,
+              iconTheme: {
+                primary: '#10b981',
+                secondary: '#fff',
               },
-              success: {
-                duration: 3000,
-                iconTheme: {
-                  primary: '#10b981',
-                  secondary: '#fff',
-                },
+            },
+            error: {
+              duration: 5000,
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#fff',
               },
-              error: {
-                duration: 5000,
-                iconTheme: {
-                  primary: '#ef4444',
-                  secondary: '#fff',
-                },
-              },
-            }}
-          />
-        </NotificationProvider>
+            },
+          }}
+        />
       </body>
     </html>
   )

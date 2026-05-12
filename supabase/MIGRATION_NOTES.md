@@ -191,3 +191,78 @@ The SQL file ends with four verification queries:
 - The `/admin` page renders a "Solicitudes de cuenta pendientes" panel above
   the stats grid; the rejection flow uses `window.prompt()` to collect an
   optional reason (kept simple for MVP — can swap for a modal later).
+
+---
+
+## Account schema teardown (2026-05-13)
+
+### What this migration does
+
+`supabase/migrations/20260513000000_drop_unused_tables.sql` issues a single
+`BEGIN; DROP TABLE IF EXISTS ... CASCADE; COMMIT;` against the eight tables
+that backed the customer/technician portal:
+
+- `public.notifications`
+- `public.service_warranties`
+- `public.availability_slots`
+- `public.service_codes`
+- `public.service_requests`
+- `public.customer_profiles`
+- `public.electrician_profiles`
+- `public.users`
+
+The whole customer-portal surface (`/customer-dashboard`, `/dashboard`,
+`/account-creation`, `AuthModal`, `SettingsModal`, the notification bell, the
+`/api/auth/*` and `/api/admin/users/*` routes, and the matching `db.*`
+helpers in `src/lib/supabase.ts`) was deleted in the same commit, so nothing
+left in the codebase reads or writes these tables.
+
+The two earlier 2026-05-12 migrations (RLS lockdown + approval gate) were
+deleted from the repo as part of the same teardown — they were never applied
+to the live project, and the tables they touched are being dropped anyway.
+
+### Tables kept
+
+`ms_leads`, `ms_call_analysis`, `ms_prompt_versions`, `ms_weekly_insights` —
+Ana's lead capture, call analysis, prompt versioning, and the weekly
+insights surface for `/admin`. All four are service-role only.
+
+### How to apply
+
+This migration is **destructive and irreversible**. Apply only after
+confirming there is no production data on the listed tables. Pre-launch,
+there is none — that's the precondition for this teardown.
+
+**Supabase Dashboard (recommended for one-shot destructive runs):**
+1. Open `https://supabase.com/dashboard/project/ncnbwaxtugvswavbrpck`.
+2. Sidebar → **SQL Editor** → **New query**.
+3. Paste the entire contents of
+   `supabase/migrations/20260513000000_drop_unused_tables.sql`.
+4. Click **Run**. The transaction commits atomically.
+5. Run the verification query at the bottom of the file — it should return
+   zero rows.
+
+**Or via CLI:**
+```bash
+supabase db push
+```
+
+### Rollback
+
+There is none. The dropped tables held customer/technician account data,
+service requests, and warranties — all of which were pre-launch test rows
+with no business value. If we ever rebuild a customer portal we will design
+a fresh schema, not restore this one.
+
+### After applying
+
+The remaining `public` schema should contain only:
+
+```
+ms_leads
+ms_call_analysis
+ms_prompt_versions
+ms_weekly_insights
+```
+
+(plus whatever Supabase auth + storage extension tables exist by default).

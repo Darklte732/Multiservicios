@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
-  Zap, LogIn, Settings, Menu, X,
+  Zap, Menu, X,
   ArrowRight, Phone, MapPin,
   ChevronRight,
 } from 'lucide-react'
@@ -20,10 +20,6 @@ const WHATSAPP_OPENER_GENERIC = encodeURIComponent(
 const WHATSAPP_OPENER_QUOTE = encodeURIComponent(
   '¡Hola Neno! Vi tu sitio web y necesito una cotización para un servicio eléctrico. ¿Puede ayudarme?'
 )
-import { AuthModal } from '@/components/AuthModal'
-import { SettingsModal } from '@/components/SettingsModal'
-import { useAuthStore } from '@/store/auth'
-import { NotificationBell } from '@/components/notifications/NotificationBell'
 import { SEO, generateLocalBusinessStructuredData, StructuredData } from '@/components/SEO'
 import { Footer } from '@/components/Footer'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
@@ -248,13 +244,7 @@ function ServiceCard({ service, onSelect }: { service: Service; onSelect: (id: s
 // ──────────────────────────────────────────
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [showAuth, setShowAuth] = useState(false)
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
-  const [showSettings, setShowSettings] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-
-  const { status, logout } = useAuthStore()
-  const isAuthenticated = status === 'authenticated'
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 30)
@@ -344,19 +334,6 @@ export default function HomePage() {
             </nav>
 
             <div className="hidden lg:flex items-center gap-3">
-              {isAuthenticated ? (
-                <>
-                  <NotificationBell />
-                  <button onClick={() => setShowSettings(true)} className="p-2 text-gray-400 hover:text-electric transition-colors">
-                    <Settings className="h-5 w-5" />
-                  </button>
-                  <button onClick={logout} className="btn-outline-electric text-sm !py-2">Salir</button>
-                </>
-              ) : (
-                <button onClick={() => { setAuthMode('login'); setShowAuth(true) }} className="btn-outline-electric text-sm !py-2">
-                  <LogIn className="h-4 w-4" /> Entrar
-                </button>
-              )}
               <a
                 href="tel:+18092514329"
                 onClick={() => capture('phone_clicked', { surface: 'home_nav' })}
@@ -415,14 +392,6 @@ export default function HomePage() {
                   <Link href="/booking" className="btn-electric w-full justify-center" onClick={() => setMenuOpen(false)}>
                     Reservar Ahora <ArrowRight className="h-4 w-4" />
                   </Link>
-                  {!isAuthenticated && (
-                    <button
-                      onClick={() => { setAuthMode('login'); setShowAuth(true); setMenuOpen(false) }}
-                      className="btn-outline-electric w-full justify-center"
-                    >
-                      <LogIn className="h-4 w-4" /> Entrar
-                    </button>
-                  )}
                 </div>
               </div>
             </motion.div>
@@ -968,10 +937,6 @@ export default function HomePage() {
 
       {/* Sticky mobile thumb-zone CTA bar */}
       <StickyThumbBar />
-
-      {/* Modals */}
-      <AuthModal isOpen={showAuth} onClose={() => setShowAuth(false)} defaultTab={authMode} />
-      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   )
 }

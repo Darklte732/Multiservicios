@@ -4,7 +4,7 @@
 // ./actions.ts so the bearer token is never sent to the browser.
 
 import AdminClient, { type AdminInitial } from './admin-client'
-import { fetchStats, fetchPendingUsers, type PendingUser } from './actions'
+import { fetchStats } from './actions'
 
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
@@ -15,7 +15,6 @@ export default async function AdminPage() {
     leads: [],
     versions: [],
     weeklyInsights: [],
-    pendingUsers: [],
   }
 
   if (!process.env.ADMIN_API_TOKEN) {
@@ -27,16 +26,13 @@ export default async function AdminPage() {
   }
 
   try {
-    const [statsData, pendingData] = await Promise.all([
-      fetchStats() as Promise<{
-        error?: string
-        stats?: AdminInitial['stats']
-        leads?: AdminInitial['leads']
-        versions?: AdminInitial['versions']
-        weeklyInsights?: AdminInitial['weeklyInsights']
-      }>,
-      fetchPendingUsers(),
-    ])
+    const statsData = (await fetchStats()) as {
+      error?: string
+      stats?: AdminInitial['stats']
+      leads?: AdminInitial['leads']
+      versions?: AdminInitial['versions']
+      weeklyInsights?: AdminInitial['weeklyInsights']
+    }
 
     if (statsData?.error) {
       initial = { ...initial, error: String(statsData.error) }
@@ -49,11 +45,6 @@ export default async function AdminPage() {
         weeklyInsights: statsData.weeklyInsights ?? [],
       }
     }
-
-    // Pending users are non-fatal — show the rest of the dashboard even if
-    // this fetch failed (the error is logged on the server).
-    const pendingUsers: PendingUser[] = pendingData?.users ?? []
-    initial = { ...initial, pendingUsers }
   } catch (err) {
     initial = {
       ...initial,
