@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import Anthropic from '@anthropic-ai/sdk'
+import { timingSafeEqual } from 'node:crypto'
 import { checkAndSelfHeal } from '@/lib/selfHeal'
+
+// Node runtime is required for `node:crypto` (timingSafeEqual) and for the
+// Resend/Anthropic/Supabase SDKs used below.
+export const runtime = 'nodejs'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -64,7 +69,13 @@ interface CallAnalysis {
 
 async function verifySignature(request: NextRequest, rawBody: string): Promise<boolean> {
   const secret = process.env.ELEVENLABS_WEBHOOK_SECRET
-  if (!secret) return true // Skip verification if no secret configured yet
+  if (!secret) {
+    // Fail closed. A missing secret in production means anyone can POST
+    // arbitrary lead/transcript data; refuse the request instead of
+    // silently accepting it.
+    console.error('[webhook] ELEVENLABS_WEBHOOK_SECRET not set — refusing webhook')
+    return false
+  }
 
   const signatureHeader = request.headers.get('ElevenLabs-Signature') ?? ''
   const parts = Object.fromEntries(signatureHeader.split(',').map(p => p.split('=')))
@@ -82,7 +93,18 @@ async function verifySignature(request: NextRequest, rawBody: string): Promise<b
   )
   const mac = await crypto.subtle.sign('HMAC', key, encoder.encode(`${timestamp}.${rawBody}`))
   const expected = Array.from(new Uint8Array(mac)).map(b => b.toString(16).padStart(2, '0')).join('')
-  return expected === signature
+
+  // Constant-time comparison via node:crypto. timingSafeEqual requires
+  // equal-length buffers, so guard the hex-string length first.
+  if (expected.length !== signature.length) return false
+  const a = Buffer.from(expected, 'hex')
+  const b = Buffer.from(signature, 'hex')
+  if (a.length !== b.length || a.length === 0) return false
+  try {
+    return timingSafeEqual(a, b)
+  } catch {
+    return false
+  }
 }
 
 // ─── Lead extraction ──────────────────────────────────────────────────────────

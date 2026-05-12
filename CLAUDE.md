@@ -171,14 +171,21 @@ const isAuthenticated = status === 'authenticated'  // ← use this pattern, NOT
 
 **Status values:** `'loading' | 'authenticated' | 'unauthenticated'`
 
-**Auth flow:**
+**Auth flow (server-side, bcrypt):**
 1. User submits phone/email + password + user type
-2. Password hashed with SHA-256 + salt
-3. Query `users` table — if exists and matches → authenticate; if not → create new user
-4. Falls back to mock auth if Supabase unavailable
-5. Session expires after 24 hours
+2. Store POSTs plaintext (over TLS) to `/api/auth/login` (`src/app/api/auth/login/route.ts`)
+3. The route uses `SUPABASE_SERVICE_ROLE_KEY` to read `users`, then `verifyPassword` from `src/lib/password.ts` (bcryptjs, rounds=12)
+4. If login returns 404 `user_not_found`, the store falls through to `/api/auth/register`, which bcrypt-hashes the password and inserts the user + matching profile row
+5. The anon Supabase client no longer queries `users` for auth — the browser only sees the response (with `password_hash` stripped)
+6. **Backward-compat:** legacy SHA-256 hex hashes (`isLegacyHash`) still verify on first login post-deploy, and the login route auto-rehashes the row to bcrypt — write happens server-side via the service-role key
+7. There is no mock-auth fallback — failures fail closed with a friendly Spanish message
+8. Session expires after 24 hours (client-side timer in the store)
 
 **User types:** `customer` | `technician` | `admin`
+
+### Account approval gate
+
+New accounts created via `/api/auth/register` insert with `approval_status='pending'` and cannot log in until Neno approves them. The `/api/auth/login` route returns `403 { error: 'pending_approval' | 'rejected', message }` for blocked accounts and a friendly Spanish message that the AuthModal surfaces via the Zustand store's `error` field (no new auth status value — the union stays `loading | authenticated | unauthenticated`). Neno reviews and acts on the queue from `/admin`, which renders a "Solicitudes de cuenta pendientes" panel above the stats grid; Aprobar/Rechazar buttons call the bearer-token-guarded `/api/admin/users/pending` (GET) and `/api/admin/users/[id]/approval` (POST) routes. The migration that adds the column (`supabase/migrations/20260512100000_account_approval_gate.sql`) defaults existing rows to `'approved'` so the rollout doesn't lock anyone out — only NEW signups go through the gate.
 
 ---
 
@@ -349,7 +356,7 @@ npm run lint     # ESLint
 - Supabase anon key is intentionally public (protected by Row Level Security)
 
 ### Known issues to fix before production
-1. **Password hashing** — currently SHA-256 + salt. Must switch to `bcrypt` or `argon2` before real users
+1. ~~**Password hashing**~~ — DONE: moved to server-side bcryptjs (rounds=12) via `/api/auth/{login,register}`. Legacy SHA-256 hashes auto-rehash on first successful login.
 2. **No CSP headers** — add Content-Security-Policy in `next.config.ts`
 3. **Supabase RLS** — Row Level Security policies need to be enabled on all tables
 4. **Dev dependencies** — `flatted`, `glob`, `minimatch` have known CVEs; run `npm audit fix` before launch (dev-only, not production risk)

@@ -77,3 +77,9 @@ scripts/
 design_review/
 design_review_v2/
 /Desktop redesign*.html
+playwright-tests/screenshots/
+mobile-qa-reports/
+test-results/
+
+# Claude Code local settings — contains PostHog API key for LLM analytics, never commit
+.claude/settings.local.json

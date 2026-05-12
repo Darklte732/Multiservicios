@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Anthropic from '@anthropic-ai/sdk'
+import { requireAdmin } from '@/lib/require-admin'
+
+export const runtime = 'nodejs'
 
 // ─── GET: Generate improvement suggestions ────────────────────────────────────
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const denied = requireAdmin(request)
+  if (denied) return denied
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -101,6 +107,9 @@ Responde en español dominicano claro y directo.`
 // ─── POST: Apply prompt update to ElevenLabs ──────────────────────────────────
 
 export async function POST(request: NextRequest) {
+  const denied = requireAdmin(request)
+  if (denied) return denied
+
   const { newPrompt, changeSummary } = await request.json() as { newPrompt: string; changeSummary: string }
 
   if (!newPrompt || newPrompt.length < 100) {

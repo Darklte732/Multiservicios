@@ -1,7 +1,13 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin } from '@/lib/require-admin'
 
-export async function GET() {
+export const runtime = 'nodejs'
+
+export async function GET(request: NextRequest) {
+  const denied = requireAdmin(request)
+  if (denied) return denied
+
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
